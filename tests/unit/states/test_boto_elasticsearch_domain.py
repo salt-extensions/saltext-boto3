@@ -1,35 +1,15 @@
-# -*- coding: utf-8 -*-
-
-# Import Python libs
-from __future__ import absolute_import, print_function, unicode_literals
-
 import logging
 import random
 import string
 
+import pytest
+import salt.config
 import salt.loader
 import salt.states.boto_elasticsearch_domain as boto_elasticsearch_domain
-
-# Import Salt libs
-from salt.ext import six
-
-# Import 3rd-party libs
-from salt.ext.six.moves import range  # pylint: disable=import-error,redefined-builtin
 from salt.utils.versions import LooseVersion
-
-# Import Salt Testing libs
-from tests.support.mixins import LoaderModuleMockMixin
 from tests.support.mock import MagicMock, patch
-from tests.support.unit import TestCase, skipIf
 
 # pylint: disable=import-error,no-name-in-module,unused-import
-from tests.unit.modules.test_boto_elasticsearch_domain import (
-    BotoElasticsearchDomainTestCaseMixin,
-)
-
-# Import test suite libs
-
-
 try:
     import boto
     import boto3
@@ -96,175 +76,174 @@ if _has_required_boto():
     )
 
 
-class BotoElasticsearchDomainStateTestCaseBase(TestCase, LoaderModuleMockMixin):
-    conn = None
-
-    def setup_loader_modules(self):
-        ctx = {}
-        utils = salt.loader.utils(
-            self.opts,
-            whitelist=["boto3", "args", "systemd", "path", "platform"],
-            context=ctx,
-        )
-        serializers = salt.loader.serializers(self.opts)
-        self.funcs = funcs = salt.loader.minion_mods(
-            self.opts, context=ctx, utils=utils, whitelist=["boto_elasticsearch_domain"]
-        )
-        self.salt_states = salt.loader.states(
-            opts=self.opts,
-            functions=funcs,
-            utils=utils,
-            whitelist=["boto_elasticsearch_domain"],
-            serializers=serializers,
-        )
-        return {
-            boto_elasticsearch_domain: {
-                "__opts__": self.opts,
-                "__salt__": funcs,
-                "__utils__": utils,
-                "__states__": self.salt_states,
-                "__serializers__": serializers,
-            }
+@pytest.fixture
+def configure_loader_modules():
+    opts = salt.config.DEFAULT_MINION_OPTS.copy()
+    opts["grains"] = salt.loader.grains(opts)
+    ctx = {}
+    utils = salt.loader.utils(
+        opts, whitelist=["boto3", "args", "systemd", "path", "platform"], context=ctx,
+    )
+    serializers = salt.loader.serializers(opts)
+    funcs = funcs = salt.loader.minion_mods(
+        opts, context=ctx, utils=utils, whitelist=["boto_elasticsearch_domain"]
+    )
+    salt_states = salt.loader.states(
+        opts=opts,
+        functions=funcs,
+        utils=utils,
+        whitelist=["boto_elasticsearch_domain"],
+        serializers=serializers,
+    )
+    return {
+        boto_elasticsearch_domain: {
+            "__opts__": opts,
+            "__salt__": funcs,
+            "__utils__": utils,
+            "__states__": salt_states,
+            "__serializers__": serializers,
         }
-
-    @classmethod
-    def setUpClass(cls):
-        cls.opts = salt.config.DEFAULT_MINION_OPTS.copy()
-        cls.opts["grains"] = salt.loader.grains(cls.opts)
-
-    @classmethod
-    def tearDownClass(cls):
-        del cls.opts
-
-    # Set up MagicMock to replace the boto3 session
-    def setUp(self):
-        self.addCleanup(delattr, self, "funcs")
-        self.addCleanup(delattr, self, "salt_states")
-        # Set up MagicMock to replace the boto3 session
-        # connections keep getting cached from prior tests, can't find the
-        # correct context object to clear it. So randomize the cache key, to prevent any
-        # cache hits
-        conn_parameters["key"] = "".join(
-            random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
-        )
-
-        self.patcher = patch("boto3.session.Session")
-        self.addCleanup(self.patcher.stop)
-        self.addCleanup(delattr, self, "patcher")
-        mock_session = self.patcher.start()
-
-        session_instance = mock_session.return_value
-        self.conn = MagicMock()
-        self.addCleanup(delattr, self, "conn")
-        session_instance.client.return_value = self.conn
+    }
 
 
-@skipIf(HAS_BOTO is False, "The boto module must be installed.")
-@skipIf(
+@pytest.mark.skipif(HAS_BOTO is False, reason="The boto module must be installed.")
+@pytest.mark.skipIf(
     _has_required_boto() is False,
-    "The boto3 module must be greater than"
-    " or equal to version {0}".format(required_boto3_version),
+    reason="The boto3 module must be greater than"
+    " or equal to version {}".format(required_boto3_version),
 )
-class BotoElasticsearchDomainTestCase(
-    BotoElasticsearchDomainStateTestCaseBase, BotoElasticsearchDomainTestCaseMixin
-):
+def test_present_when_domain_does_not_exist():
     """
-    TestCase for salt.modules.boto_elasticsearch_domain state.module
+    Tests present on a domain that does not exist.
     """
+    conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+    conn.describe_elasticsearch_domain.side_effect = not_found_error
+    conn.describe_elasticsearch_domain_config.return_value = {
+        "DomainConfig": domain_ret
+    }
+    conn.create_elasticsearch_domain.return_value = {"DomainStatus": domain_ret}
+    result = boto_elasticsearch_domain.__states__["boto_elasticsearch_domain.present"](
+        "domain present", **domain_ret
+    )
 
-    def test_present_when_domain_does_not_exist(self):
-        """
-        Tests present on a domain that does not exist.
-        """
-        self.conn.describe_elasticsearch_domain.side_effect = not_found_error
-        self.conn.describe_elasticsearch_domain_config.return_value = {
-            "DomainConfig": domain_ret
-        }
-        self.conn.create_elasticsearch_domain.return_value = {
-            "DomainStatus": domain_ret
-        }
-        result = self.salt_states["boto_elasticsearch_domain.present"](
-            "domain present", **domain_ret
-        )
+    assert result["result"]
+    assert result["changes"]["new"]["domain"]["ElasticsearchClusterConfig"] is None
 
-        self.assertTrue(result["result"])
-        self.assertEqual(
-            result["changes"]["new"]["domain"]["ElasticsearchClusterConfig"], None
-        )
 
-    def test_present_when_domain_exists(self):
-        self.conn.describe_elasticsearch_domain.return_value = {
-            "DomainStatus": domain_ret
-        }
-        cfg = {}
-        for k, v in six.iteritems(domain_ret):
-            cfg[k] = {"Options": v}
-        cfg["AccessPolicies"] = {"Options": '{"a": "b"}'}
-        self.conn.describe_elasticsearch_domain_config.return_value = {
-            "DomainConfig": cfg
-        }
-        self.conn.update_elasticsearch_domain_config.return_value = {
-            "DomainConfig": cfg
-        }
-        result = self.salt_states["boto_elasticsearch_domain.present"](
-            "domain present", **domain_ret
-        )
-        self.assertTrue(result["result"])
-        self.assertEqual(
-            result["changes"],
-            {"new": {"AccessPolicies": {}}, "old": {"AccessPolicies": {"a": "b"}}},
-        )
+def test_present_when_domain_exists():
+    conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+    conn.describe_elasticsearch_domain.return_value = {"DomainStatus": domain_ret}
+    cfg = {}
+    for k, v in domain_ret.items():
+        cfg[k] = {"Options": v}
+    cfg["AccessPolicies"] = {"Options": '{"a": "b"}'}
+    conn.describe_elasticsearch_domain_config.return_value = {"DomainConfig": cfg}
+    conn.update_elasticsearch_domain_config.return_value = {"DomainConfig": cfg}
+    result = boto_elasticsearch_domain.__states__["boto_elasticsearch_domain.present"](
+        "domain present", **domain_ret
+    )
+    assert result["result"]
+    assert result["changes"] == {
+        "new": {"AccessPolicies": {}},
+        "old": {"AccessPolicies": {"a": "b"}},
+    }
 
-    def test_present_with_failure(self):
-        self.conn.describe_elasticsearch_domain.side_effect = not_found_error
-        self.conn.describe_elasticsearch_domain_config.return_value = {
-            "DomainConfig": domain_ret
-        }
-        self.conn.create_elasticsearch_domain.side_effect = ClientError(
-            error_content, "create_domain"
-        )
-        result = self.salt_states["boto_elasticsearch_domain.present"](
-            "domain present", **domain_ret
-        )
-        self.assertFalse(result["result"])
-        self.assertTrue("An error occurred" in result["comment"])
 
-    def test_absent_when_domain_does_not_exist(self):
-        """
-        Tests absent on a domain that does not exist.
-        """
-        self.conn.describe_elasticsearch_domain.side_effect = not_found_error
-        result = self.salt_states["boto_elasticsearch_domain.absent"](
-            "test", "mydomain"
-        )
-        self.assertTrue(result["result"])
-        self.assertEqual(result["changes"], {})
+def test_present_with_failure():
+    conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+    conn.describe_elasticsearch_domain.side_effect = not_found_error
+    conn.describe_elasticsearch_domain_config.return_value = {
+        "DomainConfig": domain_ret
+    }
+    conn.create_elasticsearch_domain.side_effect = ClientError(
+        error_content, "create_domain"
+    )
+    result = boto_elasticsearch_domain.__states__["boto_elasticsearch_domain.present"](
+        "domain present", **domain_ret
+    )
+    assert not result["result"]
+    assert "An error occurred" in result["comment"]
 
-    def test_absent_when_domain_exists(self):
-        self.conn.describe_elasticsearch_domain.return_value = {
-            "DomainStatus": domain_ret
-        }
-        self.conn.describe_elasticsearch_domain_config.return_value = {
-            "DomainConfig": domain_ret
-        }
-        result = self.salt_states["boto_elasticsearch_domain.absent"](
-            "test", domain_ret["DomainName"]
-        )
-        self.assertTrue(result["result"])
-        self.assertEqual(result["changes"]["new"]["domain"], None)
 
-    def test_absent_with_failure(self):
-        self.conn.describe_elasticsearch_domain.return_value = {
-            "DomainStatus": domain_ret
-        }
-        self.conn.describe_elasticsearch_domain_config.return_value = {
-            "DomainConfig": domain_ret
-        }
-        self.conn.delete_elasticsearch_domain.side_effect = ClientError(
-            error_content, "delete_domain"
-        )
-        result = self.salt_states["boto_elasticsearch_domain.absent"](
-            "test", domain_ret["DomainName"]
-        )
-        self.assertFalse(result["result"])
-        self.assertTrue("An error occurred" in result["comment"])
+def test_absent_when_domain_does_not_exist():
+    """
+    Tests absent on a domain that does not exist.
+    """
+    conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+    conn.describe_elasticsearch_domain.side_effect = not_found_error
+    result = boto_elasticsearch_domain.__states__["boto_elasticsearch_domain.absent"](
+        "test", "mydomain"
+    )
+    assert result["result"]
+    assert result["changes"] == {}
+
+
+def test_absent_when_domain_exists():
+    conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+    conn.describe_elasticsearch_domain.return_value = {"DomainStatus": domain_ret}
+    conn.describe_elasticsearch_domain_config.return_value = {
+        "DomainConfig": domain_ret
+    }
+    result = boto_elasticsearch_domain.__states__["boto_elasticsearch_domain.absent"](
+        "test", domain_ret["DomainName"]
+    )
+    assert result["result"]
+    assert result["changes"]["new"]["domain"] is None
+
+
+def test_absent_with_failure():
+    conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+    conn.describe_elasticsearch_domain.return_value = {"DomainStatus": domain_ret}
+    conn.describe_elasticsearch_domain_config.return_value = {
+        "DomainConfig": domain_ret
+    }
+    conn.delete_elasticsearch_domain.side_effect = ClientError(
+        error_content, "delete_domain"
+    )
+    result = boto_elasticsearch_domain.__states__["boto_elasticsearch_domain.absent"](
+        "test", domain_ret["DomainName"]
+    )
+    assert not result["result"]
+    assert "An error occurred" in result["comment"]

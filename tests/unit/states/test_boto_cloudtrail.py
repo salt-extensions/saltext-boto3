@@ -7,13 +7,9 @@ import salt.config
 import salt.loader
 import salt.states.boto_cloudtrail as boto_cloudtrail
 from salt.utils.versions import LooseVersion
-from tests.support.mixins import LoaderModuleMockMixin
 from tests.support.mock import MagicMock, patch
-from tests.support.unit import TestCase, skipIf
 
 # pylint: disable=import-error,no-name-in-module,unused-import
-from tests.unit.modules.test_boto_cloudtrail import BotoCloudTrailTestCaseMixin
-
 try:
     import boto
     import boto3
@@ -88,153 +84,193 @@ if _has_required_boto():
     )
 
 
-@skipIf(HAS_BOTO is False, "The boto module must be installed.")
-@skipIf(
+@pytest.mark.skipif(HAS_BOTO is False, reason="The boto module must be installed.")
+@pytest.mark.skipIf(
     _has_required_boto() is False,
-    "The boto3 module must be greater than"
+    reason="The boto3 module must be greater than"
     " or equal to version {}".format(required_boto3_version),
 )
-class BotoCloudTrailStateTestCaseBase(TestCase, LoaderModuleMockMixin):
-    conn = None
-
-    def setup_loader_modules(self):
-        ctx = {}
-        utils = salt.loader.utils(
-            self.opts,
-            whitelist=["boto", "boto3", "args", "systemd", "path", "platform", "reg"],
-            context=ctx,
-        )
-        serializers = salt.loader.serializers(self.opts)
-        self.funcs = funcs = salt.loader.minion_mods(
-            self.opts, context=ctx, utils=utils, whitelist=["boto_cloudtrail"]
-        )
-        self.salt_states = salt.loader.states(
-            opts=self.opts,
-            functions=funcs,
-            utils=utils,
-            whitelist=["boto_cloudtrail"],
-            serializers=serializers,
-        )
-        return {
-            boto_cloudtrail: {
-                "__opts__": self.opts,
-                "__salt__": funcs,
-                "__utils__": utils,
-                "__states__": self.salt_states,
-                "__serializers__": serializers,
-            }
+@pytest.fixture
+def configure_loader_modules():
+    opts = salt.config.DEFAULT_MINION_OPTS.copy()
+    opts["grains"] = salt.loader.grains(opts)
+    ctx = {}
+    utils = salt.loader.utils(
+        opts,
+        whitelist=["boto", "boto3", "args", "systemd", "path", "platform", "reg"],
+        context=ctx,
+    )
+    serializers = salt.loader.serializers(opts)
+    funcs = salt.loader.minion_mods(
+        opts, context=ctx, utils=utils, whitelist=["boto_cloudtrail"]
+    )
+    salt_states = salt.loader.states(
+        opts=opts,
+        functions=funcs,
+        utils=utils,
+        whitelist=["boto_cloudtrail"],
+        serializers=serializers,
+    )
+    return {
+        boto_cloudtrail: {
+            "__opts__": opts,
+            "__salt__": funcs,
+            "__utils__": utils,
+            "__states__": salt_states,
+            "__serializers__": serializers,
         }
+    }
 
-    @classmethod
-    def setUpClass(cls):
-        cls.opts = salt.config.DEFAULT_MINION_OPTS.copy()
-        cls.opts["grains"] = salt.loader.grains(cls.opts)
 
-    @classmethod
-    def tearDownClass(cls):
-        del cls.opts
+@pytest.mark.slow_test
+def test_present_when_trail_does_not_exist():
+    """
+    Tests present on a trail that does not exist.
+    """
+    conn = None
+    conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
 
-    # Set up MagicMock to replace the boto3 session
-    def setUp(self):
-        self.addCleanup(delattr, self, "funcs")
-        self.addCleanup(delattr, self, "salt_states")
-        # Set up MagicMock to replace the boto3 session
-        # connections keep getting cached from prior tests, can't find the
-        # correct context object to clear it. So randomize the cache key, to prevent any
-        # cache hits
-        conn_parameters["key"] = "".join(
-            random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+
+    conn.get_trail_status.side_effect = [not_found_error, status_ret]
+    conn.create_trail.return_value = trail_ret
+    conn.describe_trails.return_value = {"trailList": [trail_ret]}
+    with patch.dict(
+        boto_cloudtrail.__salt__,
+        {"boto_iam.get_account_id": MagicMock(return_value="1234")},
+    ):
+        result = boto_cloudtrail.__states__["boto_cloudtrail.present"](
+            "trail present",
+            Name=trail_ret["Name"],
+            S3BucketName=trail_ret["S3BucketName"],
         )
 
-        self.patcher = patch("boto3.session.Session")
-        self.addCleanup(self.patcher.stop)
-        self.addCleanup(delattr, self, "patcher")
-        mock_session = self.patcher.start()
-
-        session_instance = mock_session.return_value
-        self.conn = MagicMock()
-        self.addCleanup(delattr, self, "conn")
-        session_instance.client.return_value = self.conn
+    assert result["result"]
+    assert result["changes"]["new"]["trail"]["Name"] == trail_ret["Name"]
 
 
-class BotoCloudTrailTestCase(
-    BotoCloudTrailStateTestCaseBase, BotoCloudTrailTestCaseMixin
-):
+@pytest.mark.slow_test
+def test_present_when_trail_exists():
+    conn = None
+    conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+
+    conn.get_trail_status.return_value = status_ret
+    conn.create_trail.return_value = trail_ret
+    conn.describe_trails.return_value = {"trailList": [trail_ret]}
+    with patch.dict(
+        boto_cloudtrail.__salt__,
+        {"boto_iam.get_account_id": MagicMock(return_value="1234")},
+    ):
+        result = boto_cloudtrail.__states__["boto_cloudtrail.present"](
+            "trail present",
+            Name=trail_ret["Name"],
+            S3BucketName=trail_ret["S3BucketName"],
+            LoggingEnabled=False,
+        )
+    assert result["result"]
+    assert result["changes"] == {}
+
+
+@pytest.mark.slow_test
+def test_present_with_failure():
+    conn = None
+    conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+
+    conn.get_trail_status.side_effect = [not_found_error, status_ret]
+    conn.create_trail.side_effect = ClientError(error_content, "create_trail")
+    with patch.dict(
+        boto_cloudtrail.__salt__,
+        {"boto_iam.get_account_id": MagicMock(return_value="1234")},
+    ):
+        result = boto_cloudtrail.__states__["boto_cloudtrail.present"](
+            "trail present",
+            Name=trail_ret["Name"],
+            S3BucketName=trail_ret["S3BucketName"],
+            LoggingEnabled=False,
+        )
+    assert not result["result"]
+    assert "An error occurred" in result["comment"]
+
+
+def test_absent_when_trail_does_not_exist():
     """
-    TestCase for salt.modules.boto_cloudtrail state.module
+    Tests absent on a trail that does not exist.
     """
+    conn = None
+    conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
 
-    @pytest.mark.slow_test
-    def test_present_when_trail_does_not_exist(self):
-        """
-        Tests present on a trail that does not exist.
-        """
-        self.conn.get_trail_status.side_effect = [not_found_error, status_ret]
-        self.conn.create_trail.return_value = trail_ret
-        self.conn.describe_trails.return_value = {"trailList": [trail_ret]}
-        with patch.dict(
-            self.funcs, {"boto_iam.get_account_id": MagicMock(return_value="1234")}
-        ):
-            result = self.salt_states["boto_cloudtrail.present"](
-                "trail present",
-                Name=trail_ret["Name"],
-                S3BucketName=trail_ret["S3BucketName"],
-            )
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
 
-        self.assertTrue(result["result"])
-        self.assertEqual(result["changes"]["new"]["trail"]["Name"], trail_ret["Name"])
+    conn.get_trail_status.side_effect = not_found_error
+    result = boto_cloudtrail.__states__["boto_cloudtrail.absent"]("test", "mytrail")
+    assert result["result"]
+    assert result["changes"] == {}
 
-    @pytest.mark.slow_test
-    def test_present_when_trail_exists(self):
-        self.conn.get_trail_status.return_value = status_ret
-        self.conn.create_trail.return_value = trail_ret
-        self.conn.describe_trails.return_value = {"trailList": [trail_ret]}
-        with patch.dict(
-            self.funcs, {"boto_iam.get_account_id": MagicMock(return_value="1234")}
-        ):
-            result = self.salt_states["boto_cloudtrail.present"](
-                "trail present",
-                Name=trail_ret["Name"],
-                S3BucketName=trail_ret["S3BucketName"],
-                LoggingEnabled=False,
-            )
-        self.assertTrue(result["result"])
-        self.assertEqual(result["changes"], {})
 
-    @pytest.mark.slow_test
-    def test_present_with_failure(self):
-        self.conn.get_trail_status.side_effect = [not_found_error, status_ret]
-        self.conn.create_trail.side_effect = ClientError(error_content, "create_trail")
-        with patch.dict(
-            self.funcs, {"boto_iam.get_account_id": MagicMock(return_value="1234")}
-        ):
-            result = self.salt_states["boto_cloudtrail.present"](
-                "trail present",
-                Name=trail_ret["Name"],
-                S3BucketName=trail_ret["S3BucketName"],
-                LoggingEnabled=False,
-            )
-        self.assertFalse(result["result"])
-        self.assertTrue("An error occurred" in result["comment"])
+def test_absent_when_trail_exists():
+    conn = None
+    conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
 
-    def test_absent_when_trail_does_not_exist(self):
-        """
-        Tests absent on a trail that does not exist.
-        """
-        self.conn.get_trail_status.side_effect = not_found_error
-        result = self.salt_states["boto_cloudtrail.absent"]("test", "mytrail")
-        self.assertTrue(result["result"])
-        self.assertEqual(result["changes"], {})
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
 
-    def test_absent_when_trail_exists(self):
-        self.conn.get_trail_status.return_value = status_ret
-        result = self.salt_states["boto_cloudtrail.absent"]("test", trail_ret["Name"])
-        self.assertTrue(result["result"])
-        self.assertEqual(result["changes"]["new"]["trail"], None)
+    conn.get_trail_status.return_value = status_ret
+    result = boto_cloudtrail.__states__["boto_cloudtrail.absent"](
+        "test", trail_ret["Name"]
+    )
+    assert result["result"]
+    assert result["changes"]["new"]["trail"] is None
 
-    def test_absent_with_failure(self):
-        self.conn.get_trail_status.return_value = status_ret
-        self.conn.delete_trail.side_effect = ClientError(error_content, "delete_trail")
-        result = self.salt_states["boto_cloudtrail.absent"]("test", trail_ret["Name"])
-        self.assertFalse(result["result"])
-        self.assertTrue("An error occurred" in result["comment"])
+
+def test_absent_with_failure():
+    conn = None
+    conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+
+    conn.get_trail_status.return_value = status_ret
+    conn.delete_trail.side_effect = ClientError(error_content, "delete_trail")
+    result = boto_cloudtrail.__states__["boto_cloudtrail.absent"](
+        "test", trail_ret["Name"]
+    )
+    assert not result["result"]
+    assert "An error occurred" in result["comment"]
