@@ -6,47 +6,16 @@ from copy import deepcopy
 import pytest
 import salt.loader
 import salt.states.boto_s3_bucket as boto_s3_bucket
-from salt.utils.versions import LooseVersion
-from tests.support.mixins import LoaderModuleMockMixin
 from tests.support.mock import MagicMock, patch
-from tests.support.unit import TestCase, skipIf
 
-# pylint: disable=import-error,no-name-in-module,unused-import
-from tests.unit.modules.test_boto_s3_bucket import BotoS3BucketTestCaseMixin
-
-try:
-    import boto
-    import boto3
-    from botocore.exceptions import ClientError
-
-    HAS_BOTO = True
-except ImportError:
-    HAS_BOTO = False
-
-# pylint: enable=import-error,no-name-in-module,unused-import
-
-# the boto_s3_bucket module relies on the connect_to_region() method
-# which was added in boto 2.8.0
-# https://github.com/boto/boto/commit/33ac26b416fbb48a60602542b4ce15dcc7029f12
-required_boto3_version = "1.2.1"
+boto = pytest.importorskip("boto")
+boto3 = pytest.importorskip("boto3", "1.2.1")
+botocore = pytest.importorskip("botocore", "1.4.41")
 
 log = logging.getLogger(__name__)
 
 
-def _has_required_boto():
-    """
-    Returns True/False boolean depending on if Boto is installed and correct
-    version.
-    """
-    if not HAS_BOTO:
-        return False
-    elif LooseVersion(boto3.__version__) < LooseVersion(required_boto3_version):
-        return False
-    else:
-        return True
-
-
-if _has_required_boto():
+class GlobalConfig:
     region = "us-east-1"
     access_key = "GKTADJGHEIQSXMKKRBJ08H"
     secret_key = "askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs"
@@ -59,7 +28,7 @@ if _has_required_boto():
     error_message = (
         "An error occurred (101) when calling the {0} operation: Test-defined error"
     )
-    not_found_error = ClientError(
+    not_found_error = botocore.exceptions.ClientError(
         {"Error": {"Code": "404", "Message": "Test-defined error"}}, "msg"
     )
     error_content = {"Error": {"Code": 101, "Message": "Test-defined error"}}
@@ -199,171 +168,205 @@ if _has_required_boto():
     bucket_ret = {"Location": "EU"}
 
 
-@skipIf(HAS_BOTO is False, "The boto module must be installed.")
-@skipIf(
-    _has_required_boto() is False,
-    "The boto3 module must be greater than"
-    " or equal to version {}".format(required_boto3_version),
-)
-class BotoS3BucketStateTestCaseBase(TestCase, LoaderModuleMockMixin):
-    conn = None
+@pytest.fixture
+def global_config():
+    params = GlobalConfig()
+    return params
 
-    def setup_loader_modules(self):
-        ctx = {}
-        utils = salt.loader.utils(
-            self.opts,
-            whitelist=["boto", "boto3", "args", "systemd", "path", "platform", "reg"],
-            context=ctx,
-        )
-        serializers = salt.loader.serializers(self.opts)
-        self.funcs = funcs = salt.loader.minion_mods(
-            self.opts, context=ctx, utils=utils, whitelist=["boto_s3_bucket"]
-        )
-        self.salt_states = salt.loader.states(
-            opts=self.opts,
-            functions=funcs,
-            utils=utils,
-            whitelist=["boto_s3_bucket"],
-            serializers=serializers,
-        )
-        return {
-            boto_s3_bucket: {
-                "__opts__": self.opts,
-                "__salt__": funcs,
-                "__utils__": utils,
-                "__states__": self.salt_states,
-                "__serializers__": serializers,
-            }
+
+@pytest.fixture
+def configure_loader_modules():
+    opts = salt.config.DEFAULT_MINION_OPTS.copy()
+    ctx = {}
+    utils = salt.loader.utils(
+        opts,
+        whitelist=["boto", "boto3", "args", "systemd", "path", "platform", "reg"],
+        context=ctx,
+    )
+    serializers = salt.loader.serializers(opts)
+    funcs = salt.loader.minion_mods(
+        opts, context=ctx, utils=utils, whitelist=["boto_s3_bucket"]
+    )
+    salt_states = salt.loader.states(
+        opts=opts,
+        functions=funcs,
+        utils=utils,
+        whitelist=["boto_s3_bucket"],
+        serializers=serializers,
+    )
+    return {
+        boto_s3_bucket: {
+            "__opts__": opts,
+            "__salt__": funcs,
+            "__utils__": utils,
+            "__states__": salt_states,
+            "__serializers__": serializers,
         }
-
-    @classmethod
-    def setUpClass(cls):
-        cls.opts = salt.config.DEFAULT_MINION_OPTS.copy()
-        cls.opts["grains"] = salt.loader.grains(cls.opts)
-
-    @classmethod
-    def tearDownClass(cls):
-        del cls.opts
-
-    def setUp(self):
-        self.addCleanup(delattr, self, "funcs")
-        self.addCleanup(delattr, self, "salt_states")
-        # connections keep getting cached from prior tests, can't find the
-        # correct context object to clear it. So randomize the cache key, to prevent any
-        # cache hits
-        conn_parameters["key"] = "".join(
-            random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
-        )
-
-        self.patcher = patch("boto3.session.Session")
-        self.addCleanup(self.patcher.stop)
-        self.addCleanup(delattr, self, "patcher")
-        mock_session = self.patcher.start()
-
-        session_instance = mock_session.return_value
-        self.conn = MagicMock()
-        self.addCleanup(delattr, self, "conn")
-        session_instance.client.return_value = self.conn
+    }
 
 
-class BotoS3BucketTestCase(BotoS3BucketStateTestCaseBase, BotoS3BucketTestCaseMixin):
+@pytest.mark.slow_test
+def test_present_when_bucket_does_not_exist(global_config):
     """
-    TestCase for salt.modules.boto_s3_bucket state.module
+    Tests present on a bucket that does not exist.
     """
+    global_config.conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
 
-    @pytest.mark.slow_test
-    def test_present_when_bucket_does_not_exist(self):
-        """
-        Tests present on a bucket that does not exist.
-        """
-        self.conn.head_bucket.side_effect = [not_found_error, None]
-        self.conn.list_buckets.return_value = deepcopy(list_ret)
-        self.conn.create_bucket.return_value = bucket_ret
-        for key, value in config_ret.items():
-            getattr(self.conn, key).return_value = deepcopy(value)
-        with patch.dict(
-            self.funcs,
-            {"boto_iam.get_account_id": MagicMock(return_value="111111222222")},
-        ):
-            result = self.salt_states["boto_s3_bucket.present"](
-                "bucket present", Bucket="testbucket", **config_in
-            )
-
-        self.assertTrue(result["result"])
-        self.assertEqual(
-            result["changes"]["new"]["bucket"]["Location"],
-            config_ret["get_bucket_location"],
+    conn.head_bucket.side_effect = [global_config.not_found_error, None]
+    conn.list_buckets.return_value = deepcopy(global_config.list_ret)
+    conn.create_bucket.return_value = global_config.bucket_ret
+    for key, value in global_config.config_ret.items():
+        getattr(conn, key).return_value = deepcopy(value)
+    with patch.dict(
+        boto_s3_bucket.__salt__,
+        {"boto_iam.get_account_id": MagicMock(return_value="111111222222")},
+    ):
+        result = boto_s3_bucket.__states__["boto_s3_bucket.present"](
+            "bucket present", Bucket="testbucket", **global_config.config_in
         )
 
-    @pytest.mark.slow_test
-    def test_present_when_bucket_exists_no_mods(self):
-        self.conn.list_buckets.return_value = deepcopy(list_ret)
-        for key, value in config_ret.items():
-            getattr(self.conn, key).return_value = deepcopy(value)
-        with patch.dict(
-            self.funcs,
-            {"boto_iam.get_account_id": MagicMock(return_value="111111222222")},
-        ):
-            result = self.salt_states["boto_s3_bucket.present"](
-                "bucket present", Bucket="testbucket", **config_in
-            )
+    assert result["result"]
+    assert (
+        result["changes"]["new"]["bucket"]["Location"]
+        == global_config.config_ret["get_bucket_location"]
+    )
 
-        self.assertTrue(result["result"])
-        self.assertEqual(result["changes"], {})
 
-    @pytest.mark.slow_test
-    def test_present_when_bucket_exists_all_mods(self):
-        self.conn.list_buckets.return_value = deepcopy(list_ret)
-        for key, value in config_ret.items():
-            getattr(self.conn, key).return_value = deepcopy(value)
-        with patch.dict(
-            self.funcs,
-            {"boto_iam.get_account_id": MagicMock(return_value="111111222222")},
-        ):
-            result = self.salt_states["boto_s3_bucket.present"](
-                "bucket present",
-                Bucket="testbucket",
-                LocationConstraint=config_in["LocationConstraint"],
-            )
+@pytest.mark.slow_test
+def test_present_when_bucket_exists_no_mods(global_config):
+    global_config.conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
 
-        self.assertTrue(result["result"])
-        self.assertNotEqual(result["changes"], {})
-
-    @pytest.mark.slow_test
-    def test_present_with_failure(self):
-        self.conn.head_bucket.side_effect = [not_found_error, None]
-        self.conn.list_buckets.return_value = deepcopy(list_ret)
-        self.conn.create_bucket.side_effect = ClientError(
-            error_content, "create_bucket"
+    conn.list_buckets.return_value = deepcopy(global_config.list_ret)
+    for key, value in global_config.config_ret.items():
+        getattr(conn, key).return_value = deepcopy(value)
+    with patch.dict(
+        boto_s3_bucket.__salt__,
+        {"boto_iam.get_account_id": MagicMock(return_value="111111222222")},
+    ):
+        result = boto_s3_bucket.__states__["boto_s3_bucket.present"](
+            "bucket present", Bucket="testbucket", **global_config.config_in
         )
-        with patch.dict(
-            self.funcs,
-            {"boto_iam.get_account_id": MagicMock(return_value="111111222222")},
-        ):
-            result = self.salt_states["boto_s3_bucket.present"](
-                "bucket present", Bucket="testbucket", **config_in
-            )
-        self.assertFalse(result["result"])
-        self.assertTrue("Failed to create bucket" in result["comment"])
 
-    def test_absent_when_bucket_does_not_exist(self):
-        """
-        Tests absent on a bucket that does not exist.
-        """
-        self.conn.head_bucket.side_effect = [not_found_error, None]
-        result = self.salt_states["boto_s3_bucket.absent"]("test", "mybucket")
-        self.assertTrue(result["result"])
-        self.assertEqual(result["changes"], {})
+    assert result["result"]
+    assert result["changes"] == {}
 
-    def test_absent_when_bucket_exists(self):
-        result = self.salt_states["boto_s3_bucket.absent"]("test", "testbucket")
-        self.assertTrue(result["result"])
-        self.assertEqual(result["changes"]["new"]["bucket"], None)
 
-    def test_absent_with_failure(self):
-        self.conn.delete_bucket.side_effect = ClientError(
-            error_content, "delete_bucket"
+@pytest.mark.slow_test
+def test_present_when_bucket_exists_all_mods(global_config):
+    global_config.conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+
+    conn.list_buckets.return_value = deepcopy(global_config.list_ret)
+    for key, value in global_config.config_ret.items():
+        getattr(conn, key).return_value = deepcopy(value)
+    with patch.dict(
+        boto_s3_bucket.__salt__,
+        {"boto_iam.get_account_id": MagicMock(return_value="111111222222")},
+    ):
+        result = boto_s3_bucket.__states__["boto_s3_bucket.present"](
+            "bucket present",
+            Bucket="testbucket",
+            LocationConstraint=global_config.config_in["LocationConstraint"],
         )
-        result = self.salt_states["boto_s3_bucket.absent"]("test", "testbucket")
-        self.assertFalse(result["result"])
-        self.assertTrue("Failed to delete bucket" in result["comment"])
+
+    assert result["result"]
+    assert result["changes"] != {}
+
+
+@pytest.mark.slow_test
+def test_present_with_failure(global_config):
+    global_config.conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+
+    conn.head_bucket.side_effect = [global_config.not_found_error, None]
+    conn.list_buckets.return_value = deepcopy(global_config.list_ret)
+    conn.create_bucket.side_effect = botocore.exceptions.ClientError(
+        global_config.error_content, "create_bucket"
+    )
+    with patch.dict(
+        boto_s3_bucket.__salt__,
+        {"boto_iam.get_account_id": MagicMock(return_value="111111222222")},
+    ):
+        result = boto_s3_bucket.__states__["boto_s3_bucket.present"](
+            "bucket present", Bucket="testbucket", **global_config.config_in
+        )
+    assert not result["result"]
+    assert "Failed to create bucket" in result["comment"]
+
+
+def test_absent_when_bucket_does_not_exist(global_config):
+    """
+    Tests absent on a bucket that does not exist.
+    """
+    global_config.conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+
+    conn.head_bucket.side_effect = [global_config.not_found_error, None]
+    result = boto_s3_bucket.__states__["boto_s3_bucket.absent"]("test", "mybucket")
+    assert result["result"]
+    assert result["changes"] == {}
+
+
+def test_absent_when_bucket_exists(global_config):
+    global_config.conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+
+    result = boto_s3_bucket.__states__["boto_s3_bucket.absent"]("test", "testbucket")
+    assert result["result"]
+    assert result["changes"]["new"]["bucket"] is None
+
+
+def test_absent_with_failure(global_config):
+    global_config.conn_parameters["key"] = "".join(
+        random.choice(string.ascii_lowercase + string.digits) for _ in range(50)
+    )
+    patcher = patch("boto3.session.Session")
+    mock_session = patcher.start()
+    session_instance = mock_session.return_value
+    conn = MagicMock()
+    session_instance.client.return_value = conn
+
+    conn.delete_bucket.side_effect = botocore.exceptions.ClientError(
+        global_config.error_content, "delete_bucket"
+    )
+    result = boto_s3_bucket.__states__["boto_s3_bucket.absent"]("test", "testbucket")
+    assert not result["result"]
+    assert "Failed to delete bucket" in result["comment"]
