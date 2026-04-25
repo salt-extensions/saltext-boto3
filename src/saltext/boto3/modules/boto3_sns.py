@@ -1,42 +1,46 @@
 """
-Connection module for Amazon SNS
+Connection module for Amazon SNS using boto3.
+=============================================
 
-:configuration: This module accepts explicit sns credentials but can also
-    utilize IAM roles assigned to the instance through Instance Profiles. Dynamic
-    credentials are then automatically obtained from AWS API and no further
-    configuration is necessary. More Information available at:
+:depends:
+  - boto3 >= 1.28.0
+  - botocore >= 1.31.0
+
+:configuration: This module accepts explicit SNS credentials but can
+    also utilize IAM roles assigned to the instance through Instance Profiles.
+    Dynamic credentials are then automatically obtained from AWS API and no
+    further configuration is necessary. More Information available at:
 
     .. code-block:: text
 
         http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
 
-    If IAM roles are not used you need to specify them either in a pillar or
-    in the minion's config file:
+    If IAM roles are not used you need to specify them either in the minion's
+    config file or as a profile. For example, to specify them in the minion's
+    config file:
 
-    .. code-block:: yaml
+.. code-block:: yaml
 
-        sns.keyid: GKTADJGHEIQSXMKKRBJ08H
-        sns.key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
+    sns.keyid: GKTADJGHEIQSXMKKRBJ08H
+    sns.key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
 
-    A region may also be specified in the configuration:
+A region may also be specified in the configuration:
 
-    .. code-block:: yaml
+.. code-block:: yaml
 
-        sns.region: us-east-1
+    sns.region: us-east-1
 
-    If a region is not specified, the default is us-east-1.
+It's also possible to specify key, keyid and region via a profile, either
+as a passed in dict, or as a string to pull from pillars or minion config:
 
-    It's also possible to specify key, keyid and region via a profile, either
-    as a passed in dict, or as a string to pull from pillars or minion config:
+.. code-block:: yaml
 
-    .. code-block:: yaml
+    myprofile:
+        keyid: GKTADJGHEIQSXMKKRBJ08H
+        key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
+        region: us-east-1
 
-        myprofile:
-            keyid: GKTADJGHEIQSXMKKRBJ08H
-            key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
-            region: us-east-1
-
-:depends: boto3
+.. versionadded:: 1.0.0
 """
 
 # keep lint from choking on _get_conn and _cache_id
@@ -45,31 +49,69 @@ Connection module for Amazon SNS
 
 import logging
 
-import salt.utils.versions
+from saltext.boto3.utils import boto3mod
 
 log = logging.getLogger(__name__)
 
-# pylint: disable=unused-import
 try:
-    import boto3
     import botocore
     import jmespath
 
     logging.getLogger("boto3").setLevel(logging.CRITICAL)
-    HAS_BOTO = True
+    HAS_BOTO3 = True
 except ImportError:
     HAS_BOTO = False
-# pylint: enable=unused-import
+
+__virtualname__ = "boto3_sns"
 
 
 def __virtual__():
     """
-    Only load if boto libraries exist.
+    Only load if boto3 is available. Minimum version is enforced via the
+    project's ``pyproject.toml`` dependency declaration.
     """
-    has_boto_reqs = salt.utils.versions.check_boto_reqs()
-    if has_boto_reqs is True:
-        __utils__["boto3.assign_funcs"](__name__, "sns")
-    return has_boto_reqs
+    if HAS_BOTO3:
+        return __virtualname__
+    return (False, "The boto3_sns module could not be loaded: boto3 is not available.")
+
+
+def get_arn(name, region=None, profile=None):
+    """
+    Return the ARN for an SNS topic. If ``name`` already looks like an ARN it
+    is returned unchanged, otherwise an ARN is built using the given
+    ``region`` (or ``profile["region"]``, or the ``sns.region`` minion config
+    option, falling back to ``us-east-1``) and the AWS account ID obtained
+    from :py:func:`boto3_iam.get_account_id`.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt myminion boto3_sns.get_arn mytopic
+    """
+    if isinstance(name, str) and name.startswith("arn:aws:sns:"):
+        return name
+    if region is None and isinstance(profile, dict):
+        region = profile.get("region")
+    if region is None:
+        region = __salt__["config.option"]("sns.region") or "us-east-1"
+    account_id = __salt__["boto3_iam.get_account_id"]()
+    return f"arn:aws:sns:{region}:{account_id}:{name}"
+
+
+def _get_conn(service, region=None, key=None, keyid=None, profile=None):
+    """
+    Return a boto3 client for ``service`` using this module's dunders.
+    """
+    return boto3mod.get_connection(
+        service,
+        opts=__opts__,
+        context=__context__,
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
 
 
 def list_topics(region=None, key=None, keyid=None, profile=None):
@@ -82,16 +124,20 @@ def list_topics(region=None, key=None, keyid=None, profile=None):
 
         salt myminion boto3_sns.list_topics
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("sns", region=region, key=key, keyid=keyid, profile=profile)
     res = {}
     NextToken = ""
-    while NextToken is not None:
-        ret = conn.list_topics(NextToken=NextToken)
-        NextToken = ret.get("NextToken", None)
-        arns = jmespath.search("Topics[*].TopicArn", ret)
-        for t in arns:
-            short_name = t.split(":")[-1]
-            res[short_name] = t
+    try:
+        while NextToken is not None:
+            ret = conn.list_topics(NextToken=NextToken)
+            NextToken = ret.get("NextToken", None)
+            arns = jmespath.search("Topics[*].TopicArn", ret)
+            for t in arns:
+                short_name = t.split(":")[-1]
+                res[short_name] = t
+    except botocore.exceptions.ClientError as e:
+        log.error("Failed to list SNS topics: %s", e)
+        return None
     return res
 
 
@@ -106,6 +152,8 @@ def describe_topic(name, region=None, key=None, keyid=None, profile=None):
         salt my_favorite_client boto3_sns.describe_topic a_sns_topic_of_my_choice
     """
     topics = list_topics(region=region, key=key, keyid=keyid, profile=profile)
+    if not topics:
+        return {}
     ret = {}
     for topic, arn in topics.items():
         if name in (topic, arn):
@@ -138,6 +186,8 @@ def topic_exists(name, region=None, key=None, keyid=None, profile=None):
         salt myminion boto3_sns.topic_exists mytopic region=us-east-1
     """
     topics = list_topics(region=region, key=key, keyid=keyid, profile=profile)
+    if not topics:
+        return False
     return name in list(topics.values()) + list(topics)
 
 
@@ -151,7 +201,7 @@ def create_topic(Name, region=None, key=None, keyid=None, profile=None):
 
         salt myminion boto3_sns.create_topic mytopic region=us-east-1
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("sns", region=region, key=key, keyid=keyid, profile=profile)
     try:
         ret = conn.create_topic(Name=Name)
         log.info("SNS topic %s created with ARN %s", Name, ret["TopicArn"])
@@ -174,13 +224,13 @@ def delete_topic(TopicArn, region=None, key=None, keyid=None, profile=None):
 
         salt myminion boto3_sns.delete_topic mytopic region=us-east-1
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("sns", region=region, key=key, keyid=keyid, profile=profile)
     try:
         conn.delete_topic(TopicArn=TopicArn)
         log.info("SNS topic %s deleted", TopicArn)
         return True
     except botocore.exceptions.ClientError as e:
-        log.error("Failed to delete SNS topic %s: %s", name, e)
+        log.error("Failed to delete SNS topic %s: %s", TopicArn, e)
         return False
 
 
@@ -195,7 +245,7 @@ def get_topic_attributes(TopicArn, region=None, key=None, keyid=None, profile=No
 
         salt myminion boto3_sns.get_topic_attributes someTopic region=us-west-1
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("sns", region=region, key=key, keyid=keyid, profile=profile)
     try:
         return conn.get_topic_attributes(TopicArn=TopicArn).get("Attributes")
     except botocore.exceptions.ClientError as e:
@@ -221,7 +271,7 @@ def set_topic_attributes(
 
         salt myminion boto3_sns.set_topic_attributes someTopic DisplayName myDisplayNameValue
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("sns", region=region, key=key, keyid=keyid, profile=profile)
     try:
         conn.set_topic_attributes(
             TopicArn=TopicArn,
@@ -246,9 +296,7 @@ def set_topic_attributes(
         return False
 
 
-def list_subscriptions_by_topic(
-    TopicArn, region=None, key=None, keyid=None, profile=None
-):
+def list_subscriptions_by_topic(TopicArn, region=None, key=None, keyid=None, profile=None):
     """
     Returns a list of the subscriptions to a specific topic
 
@@ -258,14 +306,12 @@ def list_subscriptions_by_topic(
 
         salt myminion boto3_sns.list_subscriptions_by_topic mytopic region=us-east-1
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("sns", region=region, key=key, keyid=keyid, profile=profile)
     NextToken = ""
     res = []
     try:
         while NextToken is not None:
-            ret = conn.list_subscriptions_by_topic(
-                TopicArn=TopicArn, NextToken=NextToken
-            )
+            ret = conn.list_subscriptions_by_topic(TopicArn=TopicArn, NextToken=NextToken)
             NextToken = ret.get("NextToken", None)
             subs = ret.get("Subscriptions", [])
             res += subs
@@ -285,7 +331,7 @@ def list_subscriptions(region=None, key=None, keyid=None, profile=None):
 
         salt myminion boto3_sns.list_subscriptions region=us-east-1
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("sns", region=region, key=key, keyid=keyid, profile=profile)
     NextToken = ""
     res = []
     try:
@@ -300,9 +346,7 @@ def list_subscriptions(region=None, key=None, keyid=None, profile=None):
     return res
 
 
-def get_subscription_attributes(
-    SubscriptionArn, region=None, key=None, keyid=None, profile=None
-):
+def get_subscription_attributes(SubscriptionArn, region=None, key=None, keyid=None, profile=None):
     """
     Returns all of the properties of a subscription.
 
@@ -312,14 +356,12 @@ def get_subscription_attributes(
 
         salt myminion boto3_sns.get_subscription_attributes somesubscription region=us-west-1
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("sns", region=region, key=key, keyid=keyid, profile=profile)
     try:
         ret = conn.get_subscription_attributes(SubscriptionArn=SubscriptionArn)
         return ret["Attributes"]
     except botocore.exceptions.ClientError as e:
-        log.error(
-            "Failed to list attributes for SNS subscription %s: %s", SubscriptionArn, e
-        )
+        log.error("Failed to list attributes for SNS subscription %s: %s", SubscriptionArn, e)
         return None
     except KeyError:
         log.error("Failed to list attributes for SNS subscription %s", SubscriptionArn)
@@ -344,7 +386,7 @@ def set_subscription_attributes(
 
         salt myminion boto3_sns.set_subscription_attributes someSubscription RawMessageDelivery jsonStringValue
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("sns", region=region, key=key, keyid=keyid, profile=profile)
     try:
         conn.set_subscription_attributes(
             SubscriptionArn=SubscriptionArn,
@@ -369,9 +411,7 @@ def set_subscription_attributes(
         return False
 
 
-def subscribe(
-    TopicArn, Protocol, Endpoint, region=None, key=None, keyid=None, profile=None
-):
+def subscribe(TopicArn, Protocol, Endpoint, region=None, key=None, keyid=None, profile=None):
     """
     Subscribe to a Topic.
 
@@ -381,7 +421,7 @@ def subscribe(
 
         salt myminion boto3_sns.subscribe mytopic https https://www.example.com/sns-endpoint
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("sns", region=region, key=key, keyid=keyid, profile=profile)
     try:
         ret = conn.subscribe(TopicArn=TopicArn, Protocol=Protocol, Endpoint=Endpoint)
         log.info(
@@ -427,7 +467,7 @@ def unsubscribe(SubscriptionArn, region=None, key=None, keyid=None, profile=None
         log.error("Subscription ARN %s not found", SubscriptionArn)
         return False
     TopicArn = sub[0]["TopicArn"]
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("sns", region=region, key=key, keyid=keyid, profile=profile)
     try:
         conn.unsubscribe(SubscriptionArn=SubscriptionArn)
         log.info("Deleted subscription %s from SNS topic %s", SubscriptionArn, TopicArn)

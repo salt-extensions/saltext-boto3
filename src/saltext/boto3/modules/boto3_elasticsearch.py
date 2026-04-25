@@ -1,7 +1,10 @@
 """
-Connection module for Amazon Elasticsearch Service
+Connection module for Amazon Elasticsearch Service using boto3.
+===============================================================
 
-.. versionadded:: 3001
+:depends:
+  - boto3 >= 1.28.0
+  - botocore >= 1.31.0
 
 :configuration: This module accepts explicit IAM credentials but can also
     utilize IAM roles assigned to the instance trough Instance Profiles.
@@ -12,8 +15,9 @@ Connection module for Amazon Elasticsearch Service
 
         http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
 
-    If IAM roles are not used you need to specify them either in a pillar or
-    in the minion's config file:
+    If IAM roles are not used you need to specify them either in the minion's
+    config file or as a profile. For example, to specify them in the minion's
+    config file:
 
     .. code-block:: yaml
 
@@ -44,7 +48,8 @@ Connection module for Amazon Elasticsearch Service
         'response' key containing the data of the response returned by boto on success.
 
 :codeauthor: Herbert Buurman <herbert.buurman@ogd.nl>
-:depends: boto3
+
+.. versionadded:: 1.0.0
 """
 
 # keep lint from choking on _get_conn and _cache_id
@@ -53,43 +58,50 @@ Connection module for Amazon Elasticsearch Service
 
 import logging
 
-import salt.utils.compat
 import salt.utils.json
-import salt.utils.versions
 from salt.exceptions import SaltInvocationError
 from salt.utils.decorators import depends
 
-try:
-    # Disable unused import-errors as these are only used for dependency checking
-    # pylint: disable=unused-import
-    import boto3
-    import botocore
+from saltext.boto3.utils import boto3mod
 
-    # pylint: enable=unused-import
-    from botocore.exceptions import ClientError, ParamValidationError, WaiterError
+try:
+    from botocore.exceptions import ClientError
+    from botocore.exceptions import ParamValidationError
+    from botocore.exceptions import WaiterError
 
     logging.getLogger("boto3").setLevel(logging.INFO)
-    HAS_BOTO = True
+    HAS_BOTO3 = True
 except ImportError:
-    HAS_BOTO = False
+    HAS_BOTO3 = False
 
 log = logging.getLogger(__name__)
+
+__virtualname__ = "boto3_elasticsearch"
+
+
+def _get_conn(service, region=None, key=None, keyid=None, profile=None):
+    """
+    Return a boto3 client for ``service`` using this module's dunders.
+    """
+    return boto3mod.get_connection(
+        service,
+        opts=__opts__,
+        context=__context__,
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
 
 
 def __virtual__():
     """
-    Only load if boto libraries exist and if boto libraries are greater than
-    a given version.
+    Only load if boto3 is available. Minimum version is enforced via the
+    project's ``pyproject.toml`` dependency declaration.
     """
-    return HAS_BOTO and salt.utils.versions.check_boto_reqs(
-        boto3_ver="1.2.7", check_boto=False
-    )
-
-
-def __init__(opts):
-    _ = opts
-    if HAS_BOTO:
-        __utils__["boto3.assign_funcs"](__name__, "es")
+    if HAS_BOTO3:
+        return __virtualname__
+    return (False, "The boto3_elasticsearch module could not be loaded: boto3 is not available.")
 
 
 def add_tags(
@@ -115,8 +127,6 @@ def add_tags(
     :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
-
     CLI Example:
 
     .. code-block:: bash
@@ -124,9 +134,7 @@ def add_tags(
         salt myminion boto3_elasticsearch.add_tags domain_name=mydomain tags='{"foo": "bar", "baz": "qux"}'
     """
     if not any((arn, domain_name)):
-        raise SaltInvocationError(
-            "At least one of domain_name or arn must be specified."
-        )
+        raise SaltInvocationError("At least one of domain_name or arn must be specified.")
     ret = {"result": False}
     if arn is None:
         res = describe_elasticsearch_domain(
@@ -139,28 +147,20 @@ def add_tags(
         if "error" in res:
             ret.update(res)
         elif not res["result"]:
-            ret.update(
-                {
-                    "error": 'The domain with name "{}" does not exist.'.format(
-                        domain_name
-                    )
-                }
-            )
+            ret.update({"error": f'The domain with name "{domain_name}" does not exist.'})
         else:
             arn = res["response"].get("ARN")
     if arn:
         boto_params = {
             "ARN": arn,
-            "TagList": [
-                {"Key": k, "Value": value} for k, value in (tags or {}).items()
-            ],
+            "TagList": [{"Key": k, "Value": value} for k, value in (tags or {}).items()],
         }
         try:
-            conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+            conn = _get_conn("es", region=region, key=key, keyid=keyid, profile=profile)
             conn.add_tags(**boto_params)
             ret["result"] = True
         except (ParamValidationError, ClientError) as exp:
-            ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+            ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -181,17 +181,21 @@ def cancel_elasticsearch_service_software_update(
         Upon success, also contains a key 'reponse' with the current service software options.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.cancel_elasticsearch_service_software_update
 
     """
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         res = conn.cancel_elasticsearch_service_software_update(DomainName=domain_name)
         ret["result"] = True
         res["response"] = res["ServiceSoftwareOptions"]
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -314,8 +318,6 @@ def create_elasticsearch_domain(
         Upon success, also contains a key 'reponse' with the domain status configuration.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
-
     CLI Example:
 
     .. code-block:: bash
@@ -364,7 +366,7 @@ def create_elasticsearch_domain(
     )
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+        conn = _get_conn("es", region=region, key=key, keyid=keyid, profile=profile)
         res = conn.create_elasticsearch_domain(**boto_kwargs)
         if res and "DomainStatus" in res:
             ret["result"] = True
@@ -372,7 +374,7 @@ def create_elasticsearch_domain(
         if blocking:
             conn.get_waiter("ESDomainAvailable").wait(DomainName=domain_name)
     except (ParamValidationError, ClientError, WaiterError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -391,18 +393,22 @@ def delete_elasticsearch_domain(
     :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.delete_elasticsearch_domain
 
     """
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+        conn = _get_conn("es", region=region, key=key, keyid=keyid, profile=profile)
         conn.delete_elasticsearch_domain(DomainName=domain_name)
         ret["result"] = True
         if blocking:
             conn.get_waiter("ESDomainDeleted").wait(DomainName=domain_name)
     except (ParamValidationError, ClientError, WaiterError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -417,22 +423,24 @@ def delete_elasticsearch_service_role(region=None, keyid=None, key=None, profile
     :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.delete_elasticsearch_service_role
 
     """
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         conn.delete_elasticsearch_service_role()
         ret["result"] = True
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
-def describe_elasticsearch_domain(
-    domain_name, region=None, keyid=None, key=None, profile=None
-):
+def describe_elasticsearch_domain(domain_name, region=None, keyid=None, key=None, profile=None):
     """
     Given a domain name gets its status description.
 
@@ -443,18 +451,22 @@ def describe_elasticsearch_domain(
         Upon success, also contains a key 'reponse' with the domain status information.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.describe_elasticsearch_domain
 
     """
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+        conn = _get_conn("es", region=region, key=key, keyid=keyid, profile=profile)
         res = conn.describe_elasticsearch_domain(DomainName=domain_name)
         if res and "DomainStatus" in res:
             ret["result"] = True
             ret["response"] = res["DomainStatus"]
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -472,24 +484,26 @@ def describe_elasticsearch_domain_config(
         Upon success, also contains a key 'reponse' with the current configuration information.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.describe_elasticsearch_domain_config
 
     """
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+        conn = _get_conn("es", region=region, key=key, keyid=keyid, profile=profile)
         res = conn.describe_elasticsearch_domain_config(DomainName=domain_name)
         if res and "DomainConfig" in res:
             ret["result"] = True
             ret["response"] = res["DomainConfig"]
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
-def describe_elasticsearch_domains(
-    domain_names, region=None, keyid=None, key=None, profile=None
-):
+def describe_elasticsearch_domains(domain_names, region=None, keyid=None, key=None, profile=None):
     """
     Returns domain configuration information about the specified Elasticsearch
     domains, including the domain ID, domain endpoint, and domain ARN.
@@ -501,8 +515,6 @@ def describe_elasticsearch_domains(
         Upon success, also contains a key 'reponse' with the list of domain status information.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
-
     CLI Example:
 
     .. code-block:: bash
@@ -511,13 +523,13 @@ def describe_elasticsearch_domains(
     """
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         res = conn.describe_elasticsearch_domains(DomainNames=domain_names)
         if res and "DomainStatusList" in res:
             ret["result"] = True
             ret["response"] = res["DomainStatusList"]
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -549,8 +561,6 @@ def describe_elasticsearch_instance_type_limits(
         Upon success, also contains a key 'reponse' with the limits information.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
-
     CLI Example:
 
     .. code-block:: bash
@@ -568,13 +578,13 @@ def describe_elasticsearch_instance_type_limits(
         }
     )
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         res = conn.describe_elasticsearch_instance_type_limits(**boto_params)
         if res and "LimitsByRole" in res:
             ret["result"] = True
             ret["response"] = res["LimitsByRole"]
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -598,12 +608,16 @@ def describe_reserved_elasticsearch_instance_offerings(
         Upon success, also contains a key 'reponse' with the list of offerings information.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.describe_reserved_elasticsearch_instance_offerings
 
     """
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         boto_params = {
             "ReservedElasticsearchInstanceOfferingId": reserved_elasticsearch_instance_offering_id
         }
@@ -616,7 +630,7 @@ def describe_reserved_elasticsearch_instance_offerings(
             ret["result"] = True
             ret["response"] = res
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -644,25 +658,29 @@ def describe_reserved_elasticsearch_instances(
     :note: Version 1.9.174 of boto3 has a bug in that reserved_elasticsearch_instance_id
         is considered a required argument, even though the documentation says otherwise.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.describe_reserved_elasticsearch_instances
 
     """
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         boto_params = {
             "ReservedElasticsearchInstanceId": reserved_elasticsearch_instance_id,
         }
         res = []
-        for page in conn.get_paginator(
-            "describe_reserved_elasticsearch_instances"
-        ).paginate(**boto_params):
+        for page in conn.get_paginator("describe_reserved_elasticsearch_instances").paginate(
+            **boto_params
+        ):
             res.extend(page["ReservedElasticsearchInstances"])
         if res:
             ret["result"] = True
             ret["response"] = res
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -682,19 +700,23 @@ def get_compatible_elasticsearch_versions(
         Upon success, also contains a key 'reponse' with a list of compatible versions.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.get_compatible_elasticsearch_versions
 
     """
     ret = {"result": False}
     boto_params = salt.utils.data.filter_falsey({"DomainName": domain_name})
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         res = conn.get_compatible_elasticsearch_versions(**boto_params)
         if res and "CompatibleElasticsearchVersions" in res:
             ret["result"] = True
             ret["response"] = res["CompatibleElasticsearchVersions"]
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -713,12 +735,16 @@ def get_upgrade_history(domain_name, region=None, keyid=None, key=None, profile=
         Upon success, also contains a key 'reponse' with a list of upgrade histories.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.get_upgrade_history
 
     """
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         boto_params = {"DomainName": domain_name}
         res = []
         for page in conn.get_paginator("get_upgrade_history").paginate(**boto_params):
@@ -727,7 +753,7 @@ def get_upgrade_history(domain_name, region=None, keyid=None, key=None, profile=
             ret["result"] = True
             ret["response"] = res
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -747,19 +773,23 @@ def get_upgrade_status(domain_name, region=None, keyid=None, key=None, profile=N
         Upon success, also contains a key 'reponse' with upgrade status information.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.get_upgrade_status
 
     """
     ret = {"result": False}
     boto_params = {"DomainName": domain_name}
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         res = conn.get_upgrade_status(**boto_params)
         ret["result"] = True
         ret["response"] = res
         del res["ResponseMetadata"]
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -772,18 +802,22 @@ def list_domain_names(region=None, keyid=None, key=None, profile=None):
         Upon success, also contains a key 'reponse' with a list of domain names.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.list_domain_names
 
     """
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         res = conn.list_domain_names()
         if res and "DomainNames" in res:
             ret["result"] = True
             ret["response"] = [item["DomainName"] for item in res["DomainNames"]]
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -810,12 +844,16 @@ def list_elasticsearch_instance_types(
         Upon success, also contains a key 'reponse' with a list of Elasticsearch instance types.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.list_elasticsearch_instance_types
 
     """
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         boto_params = salt.utils.data.filter_falsey(
             {
                 "ElasticsearchVersion": str(elasticsearch_version),
@@ -823,15 +861,13 @@ def list_elasticsearch_instance_types(
             }
         )
         res = []
-        for page in conn.get_paginator("list_elasticsearch_instance_types").paginate(
-            **boto_params
-        ):
+        for page in conn.get_paginator("list_elasticsearch_instance_types").paginate(**boto_params):
             res.extend(page["ElasticsearchInstanceTypes"])
         if res:
             ret["result"] = True
             ret["response"] = res
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -845,12 +881,16 @@ def list_elasticsearch_versions(region=None, keyid=None, key=None, profile=None)
         Upon success, also contains a key 'reponse' with a list of Elasticsearch versions.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.list_elasticsearch_versions
 
     """
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         res = []
         for page in conn.get_paginator("list_elasticsearch_versions").paginate():
             res.extend(page["ElasticsearchVersions"])
@@ -858,13 +898,11 @@ def list_elasticsearch_versions(region=None, keyid=None, key=None, profile=None)
             ret["result"] = True
             ret["response"] = res
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
-def list_tags(
-    domain_name=None, arn=None, region=None, key=None, keyid=None, profile=None
-):
+def list_tags(domain_name=None, arn=None, region=None, key=None, keyid=None, profile=None):
     """
     Returns all tags for the given Elasticsearch domain.
 
@@ -873,13 +911,15 @@ def list_tags(
         Upon success, also contains a key 'reponse' with a dict of tags.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.list_tags
 
     """
     if not any((arn, domain_name)):
-        raise SaltInvocationError(
-            "At least one of domain_name or arn must be specified."
-        )
+        raise SaltInvocationError("At least one of domain_name or arn must be specified.")
     ret = {"result": False}
     if arn is None:
         res = describe_elasticsearch_domain(
@@ -892,25 +932,17 @@ def list_tags(
         if "error" in res:
             ret.update(res)
         elif not res["result"]:
-            ret.update(
-                {
-                    "error": 'The domain with name "{}" does not exist.'.format(
-                        domain_name
-                    )
-                }
-            )
+            ret.update({"error": f'The domain with name "{domain_name}" does not exist.'})
         else:
             arn = res["response"].get("ARN")
     if arn:
         try:
-            conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+            conn = _get_conn("es", region=region, key=key, keyid=keyid, profile=profile)
             res = conn.list_tags(ARN=arn)
             ret["result"] = True
-            ret["response"] = {
-                item["Key"]: item["Value"] for item in res.get("TagList", [])
-            }
+            ret["response"] = {item["Key"]: item["Value"] for item in res.get("TagList", [])}
         except (ParamValidationError, ClientError) as exp:
-            ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+            ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -937,7 +969,11 @@ def purchase_reserved_elasticsearch_instance_offering(
         Upon success, also contains a key 'reponse' with purchase information.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.purchase_reserved_elasticsearch_instance_offering
 
     """
     ret = {"result": False}
@@ -949,13 +985,13 @@ def purchase_reserved_elasticsearch_instance_offering(
         }
     )
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         res = conn.purchase_reserved_elasticsearch_instance_offering(**boto_params)
         if res:
             ret["result"] = True
             ret["response"] = res
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -980,8 +1016,6 @@ def remove_tags(
     :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
-
     CLI Example:
 
     .. code-block:: bash
@@ -989,9 +1023,7 @@ def remove_tags(
         salt myminion boto3_elasticsearch.remove_tags '["foo", "bar"]' domain_name=my_domain
     """
     if not any((arn, domain_name)):
-        raise SaltInvocationError(
-            "At least one of domain_name or arn must be specified."
-        )
+        raise SaltInvocationError("At least one of domain_name or arn must be specified.")
     ret = {"result": False}
     if arn is None:
         res = describe_elasticsearch_domain(
@@ -1004,22 +1036,16 @@ def remove_tags(
         if "error" in res:
             ret.update(res)
         elif not res["result"]:
-            ret.update(
-                {
-                    "error": 'The domain with name "{}" does not exist.'.format(
-                        domain_name
-                    )
-                }
-            )
+            ret.update({"error": f'The domain with name "{domain_name}" does not exist.'})
         else:
             arn = res["response"].get("ARN")
     if arn:
         try:
-            conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+            conn = _get_conn("es", region=region, key=key, keyid=keyid, profile=profile)
             conn.remove_tags(ARN=arn, TagKeys=tag_keys)
             ret["result"] = True
         except (ParamValidationError, ClientError) as exp:
-            ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+            ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -1038,19 +1064,23 @@ def start_elasticsearch_service_software_update(
         Upon success, also contains a key 'reponse' with service software information.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.start_elasticsearch_service_software_update
 
     """
     ret = {"result": False}
     boto_params = {"DomainName": domain_name}
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         res = conn.start_elasticsearch_service_software_update(**boto_params)
         if res and "ServiceSoftwareOptions" in res:
             ret["result"] = True
             ret["response"] = res["ServiceSoftwareOptions"]
     except (ParamValidationError, ClientError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -1153,8 +1183,6 @@ def update_elasticsearch_domain_config(
         Upon success, also contains a key 'reponse' with the domain configuration.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
-
     CLI Example:
 
     .. code-block:: bash
@@ -1196,7 +1224,7 @@ def update_elasticsearch_domain_config(
         }
     )
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         res = conn.update_elasticsearch_domain_config(**boto_kwargs)
         if not res or "DomainConfig" not in res:
             log.warning("Domain was not updated")
@@ -1206,7 +1234,7 @@ def update_elasticsearch_domain_config(
         if blocking:
             conn.get_waiter("ESDomainAvailable").wait(DomainName=domain_name)
     except (ParamValidationError, ClientError, WaiterError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -1242,8 +1270,6 @@ def upgrade_elasticsearch_domain(
         Upon success, also contains a key 'reponse' with the domain configuration.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
-
     CLI Example:
 
     .. code-block:: bash
@@ -1261,7 +1287,7 @@ def upgrade_elasticsearch_domain(
         }
     )
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         res = conn.upgrade_elasticsearch_domain(**boto_params)
         if res:
             ret["result"] = True
@@ -1269,7 +1295,7 @@ def upgrade_elasticsearch_domain(
         if blocking:
             conn.get_waiter("ESUpgradeFinished").wait(DomainName=domain_name)
     except (ParamValidationError, ClientError, WaiterError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -1283,17 +1309,21 @@ def exists(domain_name, region=None, key=None, keyid=None, profile=None):
     :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.exists
 
     """
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+        conn = _get_conn("es", region=region, key=key, keyid=keyid, profile=profile)
         conn.describe_elasticsearch_domain(DomainName=domain_name)
         ret["result"] = True
     except (ParamValidationError, ClientError) as exp:
         if exp.response.get("Error", {}).get("Code") != "ResourceNotFoundException":
-            ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+            ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -1307,16 +1337,20 @@ def wait_for_upgrade(domain_name, region=None, keyid=None, key=None, profile=Non
     :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
         Upon failure, also contains a key 'error' with the error message as value.
 
-    .. versionadded:: 3001
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticsearch.wait_for_upgrade
 
     """
     ret = {"result": False}
     try:
-        conn = _get_conn(region=region, keyid=keyid, key=key, profile=profile)
+        conn = _get_conn("es", region=region, keyid=keyid, key=key, profile=profile)
         conn.get_waiter("ESUpgradeFinished").wait(DomainName=domain_name)
         ret["result"] = True
     except (ParamValidationError, ClientError, WaiterError) as exp:
-        ret.update({"error": __utils__["boto3.get_error"](exp)["message"]})
+        ret.update({"error": boto3mod.get_error(exp)["message"]})
     return ret
 
 
@@ -1349,8 +1383,6 @@ def check_upgrade_eligibility(
     :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
         Upon success, also contains a key 'reponse' with boolean result of the check.
         Upon failure, also contains a key 'error' with the error message as value.
-
-    .. versionadded:: 3001
 
     CLI Example:
 
@@ -1386,14 +1418,10 @@ def check_upgrade_eligibility(
     )
     if "error" in res:
         return res
-    res = wait_for_upgrade(
-        domain_name, region=region, keyid=keyid, key=key, profile=profile
-    )
+    res = wait_for_upgrade(domain_name, region=region, keyid=keyid, key=key, profile=profile)
     if "error" in res:
         return res
-    res = get_upgrade_status(
-        domain_name, region=region, keyid=keyid, key=key, profile=profile
-    )
+    res = get_upgrade_status(domain_name, region=region, keyid=keyid, key=key, profile=profile)
     ret["result"] = True
     ret["response"] = (
         res["response"]["UpgradeStep"] == "PRE_UPGRADE_CHECK"

@@ -1,8 +1,6 @@
 """
-Manage Elasticache with boto3
-=============================
-
-.. versionadded:: 2017.7.0
+Manage Elasticache with boto3.
+==============================
 
 Create, destroy and update Elasticache clusters. Be aware that this interacts
 with Amazon's services, and so may incur charges.
@@ -21,28 +19,40 @@ is written should work immediately.
 
 Brand new API calls, of course, would still require new functions to be added :)
 
-This module accepts explicit elasticache credentials but can also utilize IAM
-roles assigned to the instance through Instance Profiles. Dynamic credentials are
-then automatically obtained from AWS API and no further configuration is necessary.
-More information is available
-`here <http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html>`_.
+:depends:
+  - boto3 >= 1.28.0
+  - botocore >= 1.31.0
 
-If IAM roles are not used you need to specify them either in a pillar file or
-in the minion's config file:
+Create and destroy Elasticache clusters. Be aware that this interacts with Amazon's
+services, and so may incur charges.
+
+This module uses boto3, which can be installed via package, or pip.
+
+This module accepts explicit Elasticache credentials but can also utilize
+IAM roles assigned to the instance through Instance Profiles. Dynamic
+credentials are then automatically obtained from AWS API and no further
+configuration is necessary. More Information available at:
+
+.. code-block:: text
+
+    http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
+
+If IAM roles are not used you need to specify them either in the minion's config file
+or as a profile. For example, to specify them in the minion's config file:
 
 .. code-block:: yaml
 
     elasticache.keyid: GKTADJGHEIQSXMKKRBJ08H
     elasticache.key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
 
-It's also possible to specify ``key``, ``keyid`` and ``region`` via a profile, either
-passed in as a dict, or as a string to pull from pillars or minion config:
+It's also possible to specify key, keyid and region via a profile, either
+as a passed in dict, or as a string to pull from pillars or minion config:
 
 .. code-block:: yaml
 
     myprofile:
-      keyid: GKTADJGHEIQSXMKKRBJ08H
-      key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
+        keyid: GKTADJGHEIQSXMKKRBJ08H
+        key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
         region: us-east-1
 
 .. code-block:: yaml
@@ -85,6 +95,8 @@ passed in as a dict, or as a string to pull from pillars or minion config:
         - profile:
             keyid: GKTADJGHEIQSXMKKRBJ08H
             key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
+
+.. versionadded:: 1.0.0
 """
 
 
@@ -113,20 +125,14 @@ def _diff_cache_cluster(current, desired):
     ### The data formats are annoyingly (and as far as I can can tell, unnecessarily)
     ### different - we have to munge to a common format to compare...
     if current.get("SecurityGroups") is not None:
-        current["SecurityGroupIds"] = [
-            s["SecurityGroupId"] for s in current["SecurityGroups"]
-        ]
+        current["SecurityGroupIds"] = [s["SecurityGroupId"] for s in current["SecurityGroups"]]
     if current.get("CacheSecurityGroups") is not None:
         current["CacheSecurityGroupNames"] = [
             c["CacheSecurityGroupName"] for c in current["CacheSecurityGroups"]
         ]
     if current.get("NotificationConfiguration") is not None:
-        current["NotificationTopicArn"] = current["NotificationConfiguration"][
-            "TopicArn"
-        ]
-        current["NotificationTopicStatus"] = current["NotificationConfiguration"][
-            "TopicStatus"
-        ]
+        current["NotificationTopicArn"] = current["NotificationConfiguration"]["TopicArn"]
+        current["NotificationTopicStatus"] = current["NotificationConfiguration"]["TopicStatus"]
     if current.get("CacheParameterGroup") is not None:
         current["CacheParameterGroupName"] = current["CacheParameterGroup"][
             "CacheParameterGroupName"
@@ -422,6 +428,15 @@ def cache_cluster_present(
     profile
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
+
+    Example:
+
+    .. code-block:: yaml
+
+        ensure-cache-cluster-present:
+          boto3_elasticache.cache_cluster_present:
+            - name: example
+
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     args = {k: v for k, v in args.items() if not k.startswith("_")}
@@ -507,9 +522,7 @@ def cache_cluster_present(
     return ret
 
 
-def cache_cluster_absent(
-    name, wait=600, region=None, key=None, keyid=None, profile=None, **args
-):
+def cache_cluster_absent(name, wait=600, region=None, key=None, keyid=None, profile=None, **args):
     """
     Ensure a given cache cluster is deleted.
 
@@ -544,6 +557,15 @@ def cache_cluster_absent(
     profile
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
+
+    Example:
+
+    .. code-block:: yaml
+
+        ensure-cache-cluster-absent:
+          boto3_elasticache.cache_cluster_absent:
+            - name: example
+
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     args = {k: v for k, v in args.items() if not k.startswith("_")}
@@ -589,8 +611,9 @@ def _diff_replication_group(current, desired):
     much, much easier to code :)
     """
     if current.get("AutomaticFailover") is not None:
-        current["AutomaticFailoverEnabled"] = (
-            True if current["AutomaticFailover"] in ("enabled", "enabling") else False
+        current["AutomaticFailoverEnabled"] = current["AutomaticFailover"] in (
+            "enabled",
+            "enabling",
         )
 
     modifiable = {
@@ -878,6 +901,15 @@ def replication_group_present(
     profile
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
+
+    Example:
+
+    .. code-block:: yaml
+
+        ensure-replication-group-present:
+          boto3_elasticache.replication_group_present:
+            - name: example
+
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     args = {k: v for k, v in args.items() if not k.startswith("_")}
@@ -955,9 +987,7 @@ def replication_group_present(
                 ret["result"] = False
                 ret["comment"] = f"Failed to modify replication group {name}."
         else:
-            ret["comment"] = "Replication group {} is in the desired state.".format(
-                name
-            )
+            ret["comment"] = f"Replication group {name} is in the desired state."
     return ret
 
 
@@ -1002,6 +1032,15 @@ def replication_group_absent(
     profile
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
+
+    Example:
+
+    .. code-block:: yaml
+
+        ensure-replication-group-absent:
+          boto3_elasticache.replication_group_absent:
+            - name: example
+
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     args = {k: v for k, v in args.items() if not k.startswith("_")}
@@ -1102,6 +1141,15 @@ def cache_subnet_group_present(
     profile
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
+
+    Example:
+
+    .. code-block:: yaml
+
+        ensure-cache-subnet-group-present:
+          boto3_elasticache.cache_subnet_group_present:
+            - name: example
+
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     args = {k: v for k, v in args.items() if not k.startswith("_")}
@@ -1163,15 +1211,11 @@ def cache_subnet_group_present(
                 ret["result"] = False
                 ret["comment"] = f"Failed to modify cache subnet group {name}."
         else:
-            ret["comment"] = "Cache subnet group {} is in the desired state.".format(
-                name
-            )
+            ret["comment"] = f"Cache subnet group {name} is in the desired state."
     return ret
 
 
-def cache_subnet_group_absent(
-    name, region=None, key=None, keyid=None, profile=None, **args
-):
+def cache_subnet_group_absent(name, region=None, key=None, keyid=None, profile=None, **args):
     """
     Ensure a given cache subnet group is deleted.
 
@@ -1194,6 +1238,15 @@ def cache_subnet_group_absent(
     profile
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
+
+    Example:
+
+    .. code-block:: yaml
+
+        ensure-cache-subnet-group-absent:
+          boto3_elasticache.cache_subnet_group_absent:
+            - name: example
+
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     args = {k: v for k, v in args.items() if not k.startswith("_")}

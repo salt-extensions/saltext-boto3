@@ -1,11 +1,15 @@
 """
-Manage SNS Topics
-=================
+Manage SNS Topics using boto3.
+==============================
 
 Create and destroy SNS topics. Be aware that this interacts with Amazon's
 services, and so may incur charges.
 
-This module uses ``boto``, which can be installed via package, or pip.
+:depends:
+  - boto3 >= 1.28.0
+  - botocore >= 1.31.0
+
+This module uses ``boto3``, which can be installed via package, or pip.
 
 This module accepts explicit AWS credentials but can also utilize
 IAM roles assigned to the instance through Instance Profiles. Dynamic
@@ -60,6 +64,8 @@ Passing in a profile
             - profile:
                 keyid: GKTADJGHEIQSXMKKRBJ08H
                 key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
+
+.. versionadded:: 1.0.0
 """
 
 import copy
@@ -67,6 +73,8 @@ import logging
 import re
 
 import salt.utils.json
+
+from saltext.boto3.utils import boto3mod
 
 log = logging.getLogger(__name__)
 
@@ -147,9 +155,7 @@ def topic_present(
                 name, region=region, key=key, keyid=keyid, profile=profile
             )
             if TopicArn:
-                ret["comment"] = "AWS SNS topic {} created with ARN {}.".format(
-                    name, TopicArn
-                )
+                ret["comment"] = f"AWS SNS topic {name} created with ARN {TopicArn}."
                 something_changed = True
             else:
                 ret["comment"] = f"Failed to create AWS SNS topic {name}"
@@ -174,14 +180,10 @@ def topic_present(
         if _json_objs_equal(want_val, curr_val):
             continue
         if __opts__["test"]:
-            ret["comment"] += "  Attribute {} would be updated on topic {}.".format(
-                attr, TopicArn
-            )
+            ret["comment"] += f"  Attribute {attr} would be updated on topic {TopicArn}."
             ret["result"] = None
             continue
-        want_val = (
-            want_val if isinstance(want_val, str) else salt.utils.json.dumps(want_val)
-        )
+        want_val = want_val if isinstance(want_val, str) else salt.utils.json.dumps(want_val)
         if __salt__["boto3_sns.set_topic_attributes"](
             TopicArn,
             attr,
@@ -196,9 +198,7 @@ def topic_present(
             )
             something_changed = True
         else:
-            ret["comment"] += "  Failed to update {} on topic {}.".format(
-                attr, TopicArn
-            )
+            ret["comment"] += f"  Failed to update {attr} on topic {TopicArn}."
             ret["result"] = False
             return ret
 
@@ -206,9 +206,7 @@ def topic_present(
     want_subs = subscriptions if subscriptions else []
     obfuscated_subs = []
     current_subs = current.get("Subscriptions", [])
-    current_slim = [
-        {"Protocol": s["Protocol"], "Endpoint": s["Endpoint"]} for s in current_subs
-    ]
+    current_slim = [{"Protocol": s["Protocol"], "Endpoint": s["Endpoint"]} for s in current_subs]
     subscribe = []
     unsubscribe = []
     for sub in want_subs:
@@ -218,9 +216,7 @@ def topic_present(
         endpoint = sub["Endpoint"]
         matches = re.search(r"https://(?P<user>\w+):(?P<pass>\w+)@", endpoint)
         if matches is not None:
-            sub["Endpoint"] = endpoint.replace(
-                ":" + matches.groupdict()["pass"], ":****"
-            )
+            sub["Endpoint"] = endpoint.replace(":" + matches.groupdict()["pass"], ":****")
         obfuscated_subs += [copy.deepcopy(sub)]
         # Now set it back...
         if sub not in current_slim:
@@ -228,17 +224,13 @@ def topic_present(
             subscribe += [sub]
     for sub in current_subs:
         minimal = {"Protocol": sub["Protocol"], "Endpoint": sub["Endpoint"]}
-        if minimal not in obfuscated_subs and sub["SubscriptionArn"].startswith(
-            "arn:aws:sns:"
-        ):
+        if minimal not in obfuscated_subs and sub["SubscriptionArn"].startswith("arn:aws:sns:"):
             unsubscribe += [sub["SubscriptionArn"]]
     for sub in subscribe:
         prot = sub["Protocol"]
         endp = sub["Endpoint"]
         if __opts__["test"]:
-            msg = " Subscription {}:{} would be set on topic {}.".format(
-                prot, endp, TopicArn
-            )
+            msg = f" Subscription {prot}:{endp} would be set on topic {TopicArn}."
             ret["comment"] += msg
             ret["result"] = None
             continue
@@ -250,17 +242,13 @@ def topic_present(
             ret["comment"] += msg
             something_changed = True
         else:
-            msg = " Failed to set subscription {}:{} on topic {}.".format(
-                prot, endp, TopicArn
-            )
+            msg = f" Failed to set subscription {prot}:{endp} on topic {TopicArn}."
             ret["comment"] += msg
             ret["result"] = False
             return ret
     for sub in unsubscribe:
         if __opts__["test"]:
-            msg = "  Subscription {} would be removed from topic {}.".format(
-                sub, TopicArn
-            )
+            msg = f"  Subscription {sub} would be removed from topic {TopicArn}."
             ret["comment"] += msg
             ret["result"] = None
             continue
@@ -268,14 +256,10 @@ def topic_present(
             sub, region=region, key=key, keyid=keyid, profile=profile
         )
         if unsubbed:
-            ret["comment"] += "  Subscription {} removed from topic {}.".format(
-                sub, TopicArn
-            )
+            ret["comment"] += f"  Subscription {sub} removed from topic {TopicArn}."
             something_changed = True
         else:
-            msg = "  Failed to remove subscription {} from topic {}.".format(
-                sub, TopicArn
-            )
+            msg = f"  Failed to remove subscription {sub} from topic {TopicArn}."
             ret["comment"] += msg
             ret["result"] = False
             return ret
@@ -287,9 +271,7 @@ def topic_present(
     return ret
 
 
-def topic_absent(
-    name, unsubscribe=False, region=None, key=None, keyid=None, profile=None
-):
+def topic_absent(name, unsubscribe=False, region=None, key=None, keyid=None, profile=None):
     """
     Ensure the named sns topic is deleted.
 
@@ -312,6 +294,15 @@ def topic_absent(
     profile
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
+
+    Example:
+
+    .. code-block:: yaml
+
+        ensure-topic-absent:
+          boto3_sns.topic_absent:
+            - name: example
+
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -350,10 +341,8 @@ def topic_absent(
                     log.debug("Deleted subscription %s for SNS topic %s", sub, TopicArn)
                     something_changed = True
                 else:
-                    ret["comment"] = (
-                        "Failed to delete subscription {} for SNS topic {}".format(
-                            sub, TopicArn
-                        )
+                    ret["comment"] = "Failed to delete subscription {} for SNS topic {}".format(
+                        sub, TopicArn
                     )
                     ret["result"] = False
                     return ret
@@ -380,10 +369,6 @@ def topic_absent(
 
 
 def _json_objs_equal(left, right):
-    left = __utils__["boto3.ordered"](
-        salt.utils.json.loads(left) if isinstance(left, str) else left
-    )
-    right = __utils__["boto3.ordered"](
-        salt.utils.json.loads(right) if isinstance(right, str) else right
-    )
+    left = boto3mod.ordered(salt.utils.json.loads(left) if isinstance(left, str) else left)
+    right = boto3mod.ordered(salt.utils.json.loads(right) if isinstance(right, str) else right)
     return left == right

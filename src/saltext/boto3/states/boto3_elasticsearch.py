@@ -1,46 +1,75 @@
 """
-Manage Elasticsearch Service
-============================
+Manage Elasticsearch Service domains using boto3.
+=================================================
 
-.. versionadded:: 3001
+Create and destroy Elasticsearch domains. Be aware that this interacts with Amazon's
+services, and so may incur charges.
 
-:configuration: This module accepts explicit AWS credentials but can also
-    utilize IAM roles assigned to the instance trough Instance Profiles.
-    Dynamic credentials are then automatically obtained from AWS API and no
-    further configuration is necessary. More Information available at:
+:depends:
+  - boto3 >= 1.28.0
+  - botocore >= 1.31.0
 
-    .. code-block:: text
+This module uses boto3, which can be installed via package, or pip.
 
-        http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
+This module accepts explicit Elasticsearch credentials but can also utilize
+IAM roles assigned to the instance through Instance Profiles. Dynamic
+credentials are then automatically obtained from AWS API and no further
+configuration is necessary. More Information available at:
 
-    If IAM roles are not used you need to specify them either in a pillar or
-    in the minion's config file:
+.. code-block:: text
 
-    .. code-block:: yaml
+    http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
 
-        es.keyid: GKTADJGHEIQSXMKKRBJ08H
-        es.key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
+If IAM roles are not used you need to specify them either in the minion's config file
+or as a profile. For example, to specify them in the minion's config file:
 
-    A region may also be specified in the configuration:
+.. code-block:: yaml
 
-    .. code-block:: yaml
+    elasticsearch.keyid: GKTADJGHEIQSXMKKRBJ08H
+    elasticsearch.key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
 
-        es.region: us-east-1
+It's also possible to specify key, keyid and region via a profile, either
+as a passed in dict, or as a string to pull from pillars or minion config:
 
-    If a region is not specified, the default is us-east-1.
+.. code-block:: yaml
 
-    It's also possible to specify key, keyid and region via a profile, either
-    as a passed in dict, or as a string to pull from pillars or minion config:
+    myprofile:
+        keyid: GKTADJGHEIQSXMKKRBJ08H
+        key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
+        region: us-east-1
 
-    .. code-block:: yaml
+.. code-block:: yaml
 
-        myprofile:
-            keyid: GKTADJGHEIQSXMKKRBJ08H
-            key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
-            region: us-east-1
+    Create new domain:
+        boto3_elasticsearch.present:
+        - name: my_domain
+        - elasticsearch_version: '5.1'
+        - elasticsearch_cluster_config:
+            InstanceType: t2.small.elasticsearch
+            InstanceCount: 1
+            DedicatedMasterEnabled: False
+            ZoneAwarenessEnabled: False
+        - ebs_options:
+            EBSEnabled: True
+            VolumeType: gp2
+            VolumeSize: 10
+        - snapshot_options:
+            AutomatedSnapshotStartHour: 3
+        - vpc_options:
+            SubnetIds:
+            - subnet-12345678
+            SecurityGroupIds:
+            - sg-12345678
+        - node_to_node_encryption_options:
+            Enabled: False
+        - region: eu-west-1
+        - tags:
+            foo: bar
+            baz: qux
 
 :codeauthor: Herbert Buurman <herbert.buurman@ogd.nl>
-:depends: boto3
+
+.. versionadded:: 1.0.0
 """
 
 import logging
@@ -49,6 +78,7 @@ import salt.utils.json
 from salt.utils.versions import Version
 
 log = logging.getLogger(__name__)
+
 __virtualname__ = "boto3_elasticsearch"
 
 
@@ -208,7 +238,6 @@ def present(
         (create/update/upgrade) to be completed. Default: ``True``
     :param dict tags: Dict of tags to ensure are present on the Elasticsearch domain.
 
-    .. versionadded:: 3001
 
     Example:
 
@@ -309,12 +338,9 @@ def present(
                 del current_domain["CognitoOptions"]
         if (
             "AdvancedOptions" not in target_conf
-            and "rest.action.multi.allow_explicit_index"
-            in current_domain["AdvancedOptions"]
+            and "rest.action.multi.allow_explicit_index" in current_domain["AdvancedOptions"]
         ):
-            del current_domain["AdvancedOptions"][
-                "rest.action.multi.allow_explicit_index"
-            ]
+            del current_domain["AdvancedOptions"]["rest.action.multi.allow_explicit_index"]
         if not current_domain["AdvancedOptions"]:
             del current_domain["AdvancedOptions"]
 
@@ -330,11 +356,7 @@ def present(
     if action in ["create", "update"]:
         if __opts__["test"]:
             ret["result"] = None
-            ret["comment"].append(
-                'The Elasticsearch Domain "{}" would have been {}d.'.format(
-                    name, action
-                )
-            )
+            ret["comment"].append(f'The Elasticsearch Domain "{name}" would have been {action}d.')
             ret["changes"] = config_diff
         else:
             boto_kwargs = salt.utils.data.filter_falsey(
@@ -376,9 +398,7 @@ def present(
                 ret["comment"].append(res["error"])
             else:
                 ret["result"] = True
-                ret["comment"].append(
-                    f'Elasticsearch Domain "{name}" has been {action}d.'
-                )
+                ret["comment"].append(f'Elasticsearch Domain "{name}" has been {action}d.')
                 ret["changes"] = config_diff
     elif action == "upgrade":
         res = upgraded(
@@ -431,7 +451,6 @@ def absent(name, blocking=True, region=None, keyid=None, key=None, profile=None)
     :param bool blocking: Whether or not the state should wait for the deletion
         to be completed. Default: ``True``
 
-    .. versionadded:: 3001
 
     Example:
 
@@ -453,9 +472,7 @@ def absent(name, blocking=True, region=None, keyid=None, key=None, profile=None)
     elif res["result"]:
         if __opts__["test"]:
             ret["result"] = None
-            ret["comment"].append(
-                f'Elasticsearch domain "{name}" would have been removed.'
-            )
+            ret["comment"].append(f'Elasticsearch domain "{name}" would have been removed.')
             ret["changes"] = {"old": name, "new": None}
         else:
             res = __salt__["boto3_elasticsearch.delete_elasticsearch_domain"](
@@ -469,15 +486,11 @@ def absent(name, blocking=True, region=None, keyid=None, key=None, profile=None)
             if "error" in res:
                 ret["result"] = False
                 ret["comment"].append(
-                    'Error deleting Elasticsearch domain "{}": {}'.format(
-                        name, res["error"]
-                    )
+                    'Error deleting Elasticsearch domain "{}": {}'.format(name, res["error"])
                 )
             else:
                 ret["result"] = True
-                ret["comment"].append(
-                    f'Elasticsearch domain "{name}" has been deleted.'
-                )
+                ret["comment"].append(f'Elasticsearch domain "{name}" has been deleted.')
                 ret["changes"] = {"old": name, "new": None}
     else:
         ret["result"] = True
@@ -506,7 +519,6 @@ def upgraded(
     :param str elasticsearch_version: String of format X.Y to specify version for
         the Elasticsearch domain eg. "1.5" or "2.3".
 
-    .. versionadded:: 3001
 
     Example:
 
@@ -556,9 +568,7 @@ def upgraded(
     if "error" in res:
         ret["result"] = False
         ret["comment"].append(
-            'Error determining current upgrade status of domain "{}": {}'.format(
-                name, res["error"]
-            )
+            'Error determining current upgrade status of domain "{}": {}'.format(name, res["error"])
         )
         return ret
     if res["response"].get("StepStatus") == "IN_PROGRESS":
@@ -574,9 +584,7 @@ def upgraded(
                         name, res2["error"]
                     )
                 )
-            elif (
-                res2["response"].get("UpgradeName", "").endswith(elasticsearch_version)
-            ):
+            elif res2["response"].get("UpgradeName", "").endswith(elasticsearch_version):
                 ret["result"] = True
                 ret["comment"].append(
                     'Elasticsearch Domain "{}" is already at version "{}".'.format(
@@ -607,9 +615,7 @@ def upgraded(
     if "error" in res:
         ret["result"] = False
         ret["comment"].append(
-            'Error checking upgrade eligibility for domain "{}": {}'.format(
-                name, res["error"]
-            )
+            'Error checking upgrade eligibility for domain "{}": {}'.format(name, res["error"])
         )
     elif not res["response"]:
         ret["result"] = False
@@ -643,9 +649,7 @@ def upgraded(
             if "error" in res:
                 ret["result"] = False
                 ret["comment"].append(
-                    'Error upgrading Elasticsearch domain "{}": {}'.format(
-                        name, res["error"]
-                    )
+                    'Error upgrading Elasticsearch domain "{}": {}'.format(name, res["error"])
                 )
             else:
                 ret["result"] = True
@@ -672,7 +676,6 @@ def latest(name, minor_only=True, region=None, keyid=None, key=None, profile=Non
     :param str name: The name of the Elasticsearch domain to upgrade.
     :param bool minor_only: Only upgrade to the latest minor version.
 
-    .. versionadded:: 3001
 
     Example:
 
@@ -689,6 +692,8 @@ def latest(name, minor_only=True, region=None, keyid=None, key=None, profile=Non
           - region: eu-west-1
     """
     ret = {"name": name, "result": "oops", "comment": [], "changes": {}}
+    current_version = None
+    latest_version = None
     # Get current version
     res = __salt__["boto3_elasticsearch.describe_elasticsearch_domain"](
         domain_name=name, region=region, keyid=keyid, key=key, profile=profile
@@ -696,14 +701,11 @@ def latest(name, minor_only=True, region=None, keyid=None, key=None, profile=Non
     if "error" in res:
         ret["result"] = False
         ret["comment"].append(
-            'Error getting information of Elasticsearch domain "{}": {}'.format(
-                name, res["error"]
-            )
+            'Error getting information of Elasticsearch domain "{}": {}'.format(name, res["error"])
         )
     else:
         current_version = res["response"]["ElasticsearchVersion"]
         # Get latest compatible version
-        latest_version = None
         res = __salt__["boto3_elasticsearch.get_compatible_elasticsearch_versions"](
             domain_name=name, region=region, keyid=keyid, key=key, profile=profile
         )
@@ -774,9 +776,7 @@ def latest(name, minor_only=True, region=None, keyid=None, key=None, profile=Non
     return ret
 
 
-def tagged(
-    name, tags=None, replace=False, region=None, keyid=None, key=None, profile=None
-):
+def tagged(name, tags=None, replace=False, region=None, keyid=None, key=None, profile=None):
     """
     Ensures the Elasticsearch domain has the tags provided.
     Adds tags to the domain unless ``replace`` is set to ``True``, in which
@@ -788,7 +788,13 @@ def tagged(
     :param bool replace: Whether or not to replace (``True``) all existing tags
         on the Elasticsearch domain, or add (``False``) tags to the ES domain.
 
-    .. versionadded:: 3001
+    Example:
+
+    .. code-block:: yaml
+
+        ensure-tagged:
+          boto3_elasticsearch.tagged:
+            - name: example
 
     """
     ret = {"name": name, "result": "oops", "comment": [], "changes": {}}
@@ -804,9 +810,7 @@ def tagged(
         if "error" in res:
             ret["result"] = False
             ret["comment"].append(
-                'Error fetching tags of Elasticsearch domain "{}": {}'.format(
-                    name, res["error"]
-                )
+                'Error fetching tags of Elasticsearch domain "{}": {}'.format(name, res["error"])
             )
         else:
             current_tags = res["response"] or {}
@@ -819,9 +823,7 @@ def tagged(
     diff_tags = salt.utils.dictdiffer.deep_diff(current_tags, tags)
     if not diff_tags:
         ret["result"] = True
-        ret["comment"].append(
-            f'Elasticsearch domain "{name}" already has the specified tags.'
-        )
+        ret["comment"].append(f'Elasticsearch domain "{name}" already has the specified tags.')
     else:
         if replace:
             ret["changes"] = diff_tags
@@ -864,9 +866,7 @@ def tagged(
             if "error" in res:
                 ret["result"] = False
                 ret["comment"].append(
-                    'Error tagging Elasticsearch domain "{}": {}'.format(
-                        name, res["error"]
-                    )
+                    'Error tagging Elasticsearch domain "{}": {}'.format(name, res["error"])
                 )
                 ret["changes"] = {}
             else:

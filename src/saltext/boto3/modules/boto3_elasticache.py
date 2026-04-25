@@ -1,8 +1,10 @@
 """
-Execution module for Amazon Elasticache using boto3
-===================================================
+Execution module for Amazon Elasticache using boto3.
+====================================================
 
-.. versionadded:: 2017.7.0
+:depends:
+  - boto3 >= 1.28.0
+  - botocore >= 1.31.0
 
 :configuration: This module accepts explicit elasticache credentials but can
     also utilize IAM roles assigned to the instance through Instance Profiles.
@@ -13,8 +15,9 @@ Execution module for Amazon Elasticache using boto3
 
         http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/iam-roles-for-amazon-ec2.html
 
-    If IAM roles are not used you need to specify them either in a pillar or
-    in the minion's config file:
+    If IAM roles are not used you need to specify them either in the minion's
+    config file or as a profile. For example, to specify them in the minion's
+    config file:
 
     .. code-block:: yaml
 
@@ -39,7 +42,7 @@ Execution module for Amazon Elasticache using boto3
             key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
             region: us-east-1
 
-:depends: boto3
+.. versionadded:: 1.0.0
 """
 
 # keep lint from choking on _get_conn and _cache_id
@@ -49,15 +52,16 @@ Execution module for Amazon Elasticache using boto3
 import logging
 import time
 
-import salt.utils.compat
-import salt.utils.versions
-from salt.exceptions import CommandExecutionError, SaltInvocationError
+from salt.exceptions import CommandExecutionError
+from salt.exceptions import SaltInvocationError
+
+from saltext.boto3.utils import boto3mod
 
 log = logging.getLogger(__name__)
 
+__virtualname__ = "boto3_elasticache"
+
 try:
-    # pylint: disable=unused-import
-    import boto3
     import botocore
 
     # pylint: enable=unused-import
@@ -67,15 +71,32 @@ except ImportError:
     HAS_BOTO3 = False
 
 
+def _get_conn(service, region=None, key=None, keyid=None, profile=None):
+    """
+    Return a boto3 client for ``service`` using this module's dunders.
+    """
+    return boto3mod.get_connection(
+        service,
+        opts=__opts__,
+        context=__context__,
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
+
+
 def __virtual__():
     """
-    Only load if boto libraries exist and if boto libraries are greater than
-    a given version.
+    Only load if boto3 is available. Minimum version is enforced via the
+    project's ``pyproject.toml`` dependency declaration.
     """
-    return salt.utils.versions.check_boto_reqs()
+    if HAS_BOTO3:
+        return __virtualname__
+    return (False, "The boto3_elasticache module could not be loaded: boto3 is not available.")
 
 
-def __init__(opts):
+def __init__(opts):  # pylint: disable=unused-argument
     if HAS_BOTO3:
         __utils__["boto3.assign_funcs"](
             __name__,
@@ -110,12 +131,12 @@ def _describe_resource(
     **args,
 ):
     if conn is None:
-        conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+        conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
     try:
         func = "describe_" + res_type + "s"
         f = getattr(conn, func)
     except (AttributeError, KeyError) as e:
-        raise SaltInvocationError(f"No function '{func}()' found: {e.message}")
+        raise SaltInvocationError(f"No function '{func}()' found: {e}") from e
     # Undocumented, but you can't pass 'Marker' if searching for a specific resource...
     args.update({name_param: name} if name else {"Marker": ""})
     args = {k: v for k, v in args.items() if not k.startswith("_")}
@@ -145,12 +166,11 @@ def _delete_resource(
     """
     try:
         wait = int(wait)
-    except Exception:  # pylint: disable=broad-except
+    except Exception as e:  # pylint: disable=broad-except
         raise SaltInvocationError(
-            "Bad value ('{}') passed for 'wait' param - must be an "
-            "int or boolean.".format(wait)
-        )
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+            "Bad value ('{}') passed for 'wait' param - must be an " "int or boolean.".format(wait)
+        ) from e
+    conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
     if name_param in args:
         log.info(
             "'name: %s' param being overridden by explicitly provided '%s: %s'",
@@ -162,6 +182,7 @@ def _delete_resource(
     else:
         args[name_param] = name
     args = {k: v for k, v in args.items() if not k.startswith("_")}
+    s = None
     try:
         func = "delete_" + res_type
         f = getattr(conn, func)
@@ -169,7 +190,7 @@ def _delete_resource(
             func = "describe_" + res_type + "s"
             s = globals()[func]
     except (AttributeError, KeyError) as e:
-        raise SaltInvocationError(f"No function '{func}()' found: {e.message}")
+        raise SaltInvocationError(f"No function '{func}()' found: {e.message}") from e
     try:
 
         f(**args)
@@ -211,12 +232,11 @@ def _create_resource(
 ):
     try:
         wait = int(wait)
-    except Exception:  # pylint: disable=broad-except
+    except Exception as e:  # pylint: disable=broad-except
         raise SaltInvocationError(
-            "Bad value ('{}') passed for 'wait' param - must be an "
-            "int or boolean.".format(wait)
-        )
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+            "Bad value ('{}') passed for 'wait' param - must be an " "int or boolean.".format(wait)
+        ) from e
+    conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
     if name_param in args:
         log.info(
             "'name: %s' param being overridden by explicitly provided '%s: %s'",
@@ -228,6 +248,7 @@ def _create_resource(
     else:
         args[name_param] = name
     args = {k: v for k, v in args.items() if not k.startswith("_")}
+    s = None
     try:
         func = "create_" + res_type
         f = getattr(conn, func)
@@ -235,7 +256,7 @@ def _create_resource(
             func = "describe_" + res_type + "s"
             s = globals()[func]
     except (AttributeError, KeyError) as e:
-        raise SaltInvocationError(f"No function '{func}()' found: {e.message}")
+        raise SaltInvocationError(f"No function '{func}()' found: {e}") from e
     try:
         f(**args)
         if not wait:
@@ -254,14 +275,10 @@ def _create_resource(
                 log.info("%s %s created and available.", desc.title(), name)
                 return True
             sleep = wait if wait % 60 == wait else 60
-            log.info(
-                "Sleeping %s seconds for %s %s to become available.", sleep, desc, name
-            )
+            log.info("Sleeping %s seconds for %s %s to become available.", sleep, desc, name)
             time.sleep(sleep)
             wait -= sleep
-        log.error(
-            "%s %s not available after %s seconds!", desc.title(), name, orig_wait
-        )
+        log.error("%s %s not available after %s seconds!", desc.title(), name, orig_wait)
         return False
     except botocore.exceptions.ClientError as e:
         msg = f"Failed to create {desc} {name}: {e}"
@@ -285,12 +302,11 @@ def _modify_resource(
 ):
     try:
         wait = int(wait)
-    except Exception:  # pylint: disable=broad-except
+    except Exception as e:  # pylint: disable=broad-except
         raise SaltInvocationError(
-            "Bad value ('{}') passed for 'wait' param - must be an "
-            "int or boolean.".format(wait)
-        )
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+            "Bad value ('{}') passed for 'wait' param - must be an " "int or boolean.".format(wait)
+        ) from e
+    conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
     if name_param in args:
         log.info(
             "'name: %s' param being overridden by explicitly provided '%s: %s'",
@@ -302,6 +318,7 @@ def _modify_resource(
     else:
         args[name_param] = name
     args = {k: v for k, v in args.items() if not k.startswith("_")}
+    s = None
     try:
         func = "modify_" + res_type
         f = getattr(conn, func)
@@ -309,7 +326,7 @@ def _modify_resource(
             func = "describe_" + res_type + "s"
             s = globals()[func]
     except (AttributeError, KeyError) as e:
-        raise SaltInvocationError(f"No function '{func}()' found: {e.message}")
+        raise SaltInvocationError(f"No function '{func}()' found: {e}") from e
     try:
         f(**args)
         if not wait:
@@ -328,14 +345,10 @@ def _modify_resource(
                 log.info("%s %s modified and available.", desc.title(), name)
                 return True
             sleep = wait if wait % 60 == wait else 60
-            log.info(
-                "Sleeping %s seconds for %s %s to become available.", sleep, desc, name
-            )
+            log.info("Sleeping %s seconds for %s %s to become available.", sleep, desc, name)
             time.sleep(sleep)
             wait -= sleep
-        log.error(
-            "%s %s not available after %s seconds!", desc.title(), name, orig_wait
-        )
+        log.error("%s %s not available after %s seconds!", desc.title(), name, orig_wait)
         return False
     except botocore.exceptions.ClientError as e:
         msg = f"Failed to modify {desc} {name}: {e}"
@@ -355,6 +368,13 @@ def describe_cache_clusters(
 
         salt myminion boto3_elasticache.describe_cache_clusters
         salt myminion boto3_elasticache.describe_cache_clusters myelasticache
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.describe_cache_clusters
+
     """
     return _describe_resource(
         name=name,
@@ -370,9 +390,7 @@ def describe_cache_clusters(
     )
 
 
-def cache_cluster_exists(
-    name, conn=None, region=None, key=None, keyid=None, profile=None
-):
+def cache_cluster_exists(name, conn=None, region=None, key=None, keyid=None, profile=None):
     """
     Check to see if a cache cluster exists.
 
@@ -381,6 +399,13 @@ def cache_cluster_exists(
     .. code-block:: bash
 
         salt myminion boto3_elasticache.cache_cluster_exists myelasticache
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.cache_cluster_exists
+
     """
     return bool(
         describe_cache_clusters(
@@ -412,11 +437,18 @@ def create_cache_cluster(
                                                              NumCacheNodes=1 \
                                                              SecurityGroupIds='[sg-11223344]' \
                                                              CacheSubnetGroupName=myCacheSubnetGroup
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.create_cache_cluster
+
     """
     if security_groups:
         if not isinstance(security_groups, list):
             security_groups = [security_groups]
-        sgs = __salt__["boto_secgroup.convert_to_group_ids"](
+        sgs = __salt__["boto3_secgroup.convert_to_group_ids"](
             groups=security_groups, region=region, key=key, keyid=keyid, profile=profile
         )
         if "SecurityGroupIds" not in args:
@@ -466,11 +498,18 @@ def modify_cache_cluster(
 
         salt myminion boto3_elasticache.create_cache_cluster name=myCacheCluster \
                                                              NotificationTopicStatus=inactive
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.modify_cache_cluster
+
     """
     if security_groups:
         if not isinstance(security_groups, list):
             security_groups = [security_groups]
-        sgs = __salt__["boto_secgroup.convert_to_group_ids"](
+        sgs = __salt__["boto3_secgroup.convert_to_group_ids"](
             groups=security_groups, region=region, key=key, keyid=keyid, profile=profile
         )
         if "SecurityGroupIds" not in args:
@@ -492,9 +531,7 @@ def modify_cache_cluster(
     )
 
 
-def delete_cache_cluster(
-    name, wait=600, region=None, key=None, keyid=None, profile=None, **args
-):
+def delete_cache_cluster(name, wait=600, region=None, key=None, keyid=None, profile=None, **args):
     """
     Delete a cache cluster.
 
@@ -503,6 +540,13 @@ def delete_cache_cluster(
     .. code-block:: bash
 
         salt myminion boto3_elasticache.delete myelasticache
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.delete_cache_cluster
+
     """
     return _delete_resource(
         name,
@@ -531,6 +575,13 @@ def describe_replication_groups(
 
         salt myminion boto3_elasticache.describe_replication_groups
         salt myminion boto3_elasticache.describe_replication_groups myelasticache
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.describe_replication_groups
+
     """
     return _describe_resource(
         name=name,
@@ -554,11 +605,16 @@ def replication_group_exists(name, region=None, key=None, keyid=None, profile=No
     .. code-block:: bash
 
         salt myminion boto3_elasticache.replication_group_exists myelasticache
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.replication_group_exists
+
     """
     return bool(
-        describe_replication_groups(
-            name=name, region=region, key=key, keyid=keyid, profile=profile
-        )
+        describe_replication_groups(name=name, region=region, key=key, keyid=keyid, profile=profile)
     )
 
 
@@ -585,11 +641,18 @@ def create_replication_group(
         salt myminion boto3_elasticache.create_replication_group \
                                                   name=myelasticache \
                                                   ReplicationGroupDescription=description
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.create_replication_group
+
     """
     if security_groups:
         if not isinstance(security_groups, list):
             security_groups = [security_groups]
-        sgs = __salt__["boto_secgroup.convert_to_group_ids"](
+        sgs = __salt__["boto3_secgroup.convert_to_group_ids"](
             groups=security_groups, region=region, key=key, keyid=keyid, profile=profile
         )
         if "SecurityGroupIds" not in args:
@@ -631,11 +694,18 @@ def modify_replication_group(
         salt myminion boto3_elasticache.modify_replication_group \
                                                   name=myelasticache \
                                                   ReplicationGroupDescription=newDescription
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.modify_replication_group
+
     """
     if security_groups:
         if not isinstance(security_groups, list):
             security_groups = [security_groups]
-        sgs = __salt__["boto_secgroup.convert_to_group_ids"](
+        sgs = __salt__["boto3_secgroup.convert_to_group_ids"](
             groups=security_groups, region=region, key=key, keyid=keyid, profile=profile
         )
         if "SecurityGroupIds" not in args:
@@ -668,6 +738,13 @@ def delete_replication_group(
     .. code-block:: bash
 
         salt myminion boto3_elasticache.delete_replication_group my-replication-group
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.delete_replication_group
+
     """
     return _delete_resource(
         name,
@@ -695,6 +772,13 @@ def describe_cache_subnet_groups(
     .. code-block:: bash
 
         salt myminion boto3_elasticache.describe_cache_subnet_groups region=us-east-1
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.describe_cache_subnet_groups
+
     """
     return _describe_resource(
         name=name,
@@ -718,6 +802,13 @@ def cache_subnet_group_exists(name, region=None, key=None, keyid=None, profile=N
     .. code-block:: bash
 
         salt myminion boto3_elasticache.cache_subnet_group_exists my-subnet-group
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.cache_subnet_group_exists
+
     """
     return bool(
         describe_cache_subnet_groups(
@@ -735,6 +826,13 @@ def list_cache_subnet_groups(region=None, key=None, keyid=None, profile=None):
     .. code-block:: bash
 
         salt myminion boto3_elasticache.list_cache_subnet_groups region=us-east-1
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.list_cache_subnet_groups
+
     """
     return [
         g["CacheSubnetGroupName"]
@@ -755,6 +853,13 @@ def create_cache_subnet_group(
         salt myminion boto3_elasticache.create_cache_subnet_group name=my-subnet-group \
                                               CacheSubnetGroupDescription="description" \
                                               subnets='[myVPCSubnet1,myVPCSubnet2]'
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.create_cache_subnet_group
+
     """
     if subnets:
         if "SubnetIds" not in args:
@@ -766,7 +871,7 @@ def create_cache_subnet_group(
                 # Moderately safe assumption... :)  Will be caught further down if incorrect.
                 args["SubnetIds"] += [subnet]
                 continue
-            sn = __salt__["boto_vpc.describe_subnets"](
+            sn = __salt__["boto3_vpc.describe_subnets"](
                 subnet_names=subnet,
                 region=region,
                 key=key,
@@ -774,15 +879,11 @@ def create_cache_subnet_group(
                 profile=profile,
             ).get("subnets")
             if not sn:
-                raise SaltInvocationError(
-                    f"Could not resolve Subnet Name {subnet} to an ID."
-                )
+                raise SaltInvocationError(f"Could not resolve Subnet Name {subnet} to an ID.")
             if len(sn) == 1:
                 args["SubnetIds"] += [sn[0]["id"]]
             elif len(sn) > 1:
-                raise CommandExecutionError(
-                    f"Subnet Name {subnet} returned more than one ID."
-                )
+                raise CommandExecutionError(f"Subnet Name {subnet} returned more than one ID.")
     args = {k: v for k, v in args.items() if not k.startswith("_")}
     return _create_resource(
         name,
@@ -810,6 +911,13 @@ def modify_cache_subnet_group(
         salt myminion boto3_elasticache.modify_cache_subnet_group \
                                               name=my-subnet-group \
                                               subnets='[myVPCSubnet3]'
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.modify_cache_subnet_group
+
     """
     if subnets:
         if "SubnetIds" not in args:
@@ -817,7 +925,7 @@ def modify_cache_subnet_group(
         if not isinstance(subnets, list):
             subnets = [subnets]
         for subnet in subnets:
-            sn = __salt__["boto_vpc.describe_subnets"](
+            sn = __salt__["boto3_vpc.describe_subnets"](
                 subnet_names=subnet,
                 region=region,
                 key=key,
@@ -827,16 +935,12 @@ def modify_cache_subnet_group(
             if len(sn) == 1:
                 args["SubnetIds"] += [sn[0]["id"]]
             elif len(sn) > 1:
-                raise CommandExecutionError(
-                    f"Subnet Name {subnet} returned more than one ID."
-                )
+                raise CommandExecutionError(f"Subnet Name {subnet} returned more than one ID.")
             elif subnet.startswith("subnet-"):
                 # Moderately safe assumption... :)  Will be caught later if incorrect.
                 args["SubnetIds"] += [subnet]
             else:
-                raise SaltInvocationError(
-                    f"Could not resolve Subnet Name {subnet} to an ID."
-                )
+                raise SaltInvocationError(f"Could not resolve Subnet Name {subnet} to an ID.")
     args = {k: v for k, v in args.items() if not k.startswith("_")}
     return _modify_resource(
         name,
@@ -851,9 +955,7 @@ def modify_cache_subnet_group(
     )
 
 
-def delete_cache_subnet_group(
-    name, region=None, key=None, keyid=None, profile=None, **args
-):
+def delete_cache_subnet_group(name, region=None, key=None, keyid=None, profile=None, **args):
     """
     Delete an ElastiCache subnet group.
 
@@ -862,6 +964,13 @@ def delete_cache_subnet_group(
     .. code-block:: bash
 
         salt myminion boto3_elasticache.delete_subnet_group my-subnet-group region=us-east-1
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.delete_cache_subnet_group
+
     """
     return _delete_resource(
         name,
@@ -888,6 +997,13 @@ def describe_cache_security_groups(
 
         salt myminion boto3_elasticache.describe_cache_security_groups
         salt myminion boto3_elasticache.describe_cache_security_groups mycachesecgrp
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.describe_cache_security_groups
+
     """
     return _describe_resource(
         name=name,
@@ -911,6 +1027,13 @@ def cache_security_group_exists(name, region=None, key=None, keyid=None, profile
     .. code-block:: bash
 
         salt myminion boto3_elasticache.cache_security_group_exists mysecuritygroup
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.cache_security_group_exists
+
     """
     return bool(
         describe_cache_security_groups(
@@ -919,9 +1042,7 @@ def cache_security_group_exists(name, region=None, key=None, keyid=None, profile
     )
 
 
-def create_cache_security_group(
-    name, region=None, key=None, keyid=None, profile=None, **args
-):
+def create_cache_security_group(name, region=None, key=None, keyid=None, profile=None, **args):
     """
     Create a cache security group.
 
@@ -930,6 +1051,13 @@ def create_cache_security_group(
     .. code-block:: bash
 
         salt myminion boto3_elasticache.create_cache_security_group mycachesecgrp Description='My Cache Security Group'
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.create_cache_security_group
+
     """
     return _create_resource(
         name,
@@ -944,9 +1072,7 @@ def create_cache_security_group(
     )
 
 
-def delete_cache_security_group(
-    name, region=None, key=None, keyid=None, profile=None, **args
-):
+def delete_cache_security_group(name, region=None, key=None, keyid=None, profile=None, **args):
     """
     Delete a cache security group.
 
@@ -955,6 +1081,13 @@ def delete_cache_security_group(
     .. code-block:: bash
 
         salt myminion boto3_elasticache.delete_cache_security_group myelasticachesg
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.delete_cache_security_group
+
     """
     return _delete_resource(
         name,
@@ -983,8 +1116,15 @@ def authorize_cache_security_group_ingress(
                                         mycachesecgrp \
                                         EC2SecurityGroupName=someEC2sg \
                                         EC2SecurityGroupOwnerId=SOMEOWNERID
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.authorize_cache_security_group_ingress
+
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
     if "CacheSecurityGroupName" in args:
         log.info(
             "'name: %s' param being overridden by explicitly provided "
@@ -1024,8 +1164,15 @@ def revoke_cache_security_group_ingress(
                                         mycachesecgrp \
                                         EC2SecurityGroupName=someEC2sg \
                                         EC2SecurityGroupOwnerId=SOMEOWNERID
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.revoke_cache_security_group_ingress
+
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
     if "CacheSecurityGroupName" in args:
         log.info(
             "'name: %s' param being overridden by explicitly provided "
@@ -1050,9 +1197,7 @@ def revoke_cache_security_group_ingress(
         return False
 
 
-def list_tags_for_resource(
-    name, region=None, key=None, keyid=None, profile=None, **args
-):
+def list_tags_for_resource(name, region=None, key=None, keyid=None, profile=None, **args):
     """
     List tags on an Elasticache resource.
 
@@ -1069,12 +1214,18 @@ def list_tags_for_resource(
 
         salt myminion boto3_elasticache.list_tags_for_resource \
                 name'=arn:aws:elasticache:us-west-2:0123456789:snapshot:mySnapshot'
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.list_tags_for_resource
+
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
     if "ResourceName" in args:
         log.info(
-            "'name: %s' param being overridden by explicitly provided "
-            "'ResourceName: %s'",
+            "'name: %s' param being overridden by explicitly provided 'ResourceName: %s'",
             name,
             args["ResourceName"],
         )
@@ -1084,7 +1235,7 @@ def list_tags_for_resource(
     args = {k: v for k, v in args.items() if not k.startswith("_")}
     try:
         r = conn.list_tags_for_resource(**args)
-        if r and "Taglist" in r:
+        if r and "TagList" in r:
             return r["TagList"]
         return []
     except botocore.exceptions.ClientError as e:
@@ -1110,12 +1261,18 @@ def add_tags_to_resource(name, region=None, key=None, keyid=None, profile=None, 
         salt myminion boto3_elasticache.add_tags_to_resource \
                 name'=arn:aws:elasticache:us-west-2:0123456789:snapshot:mySnapshot' \
                 Tags="[{'Key': 'TeamOwner', 'Value': 'infrastructure'}]"
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.add_tags_to_resource
+
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
     if "ResourceName" in args:
         log.info(
-            "'name: %s' param being overridden by explicitly provided "
-            "'ResourceName: %s'",
+            "'name: %s' param being overridden by explicitly provided 'ResourceName: %s'",
             name,
             args["ResourceName"],
         )
@@ -1132,9 +1289,7 @@ def add_tags_to_resource(name, region=None, key=None, keyid=None, profile=None, 
         return False
 
 
-def remove_tags_from_resource(
-    name, region=None, key=None, keyid=None, profile=None, **args
-):
+def remove_tags_from_resource(name, region=None, key=None, keyid=None, profile=None, **args):
     """
     Remove tags from an Elasticache resource.
 
@@ -1152,12 +1307,18 @@ def remove_tags_from_resource(
         salt myminion boto3_elasticache.remove_tags_from_resource \
                 name'=arn:aws:elasticache:us-west-2:0123456789:snapshot:mySnapshot' \
                 TagKeys="['TeamOwner']"
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.remove_tags_from_resource
+
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
     if "ResourceName" in args:
         log.info(
-            "'name: %s' param being overridden by explicitly provided "
-            "'ResourceName: %s'",
+            "'name: %s' param being overridden by explicitly provided 'ResourceName: %s'",
             name,
             args["ResourceName"],
         )
@@ -1184,12 +1345,18 @@ def copy_snapshot(name, region=None, key=None, keyid=None, profile=None, **args)
 
         salt myminion boto3_elasticache.copy_snapshot name=mySnapshot \
                                                       TargetSnapshotName=copyOfMySnapshot
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.copy_snapshot
+
     """
-    conn = _get_conn(region=region, key=key, keyid=keyid, profile=profile)
+    conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
     if "SourceSnapshotName" in args:
         log.info(
-            "'name: %s' param being overridden by explicitly provided "
-            "'SourceSnapshotName: %s'",
+            "'name: %s' param being overridden by explicitly provided 'SourceSnapshotName: %s'",
             name,
             args["SourceSnapshotName"],
         )
@@ -1218,6 +1385,13 @@ def describe_cache_parameter_groups(
 
         salt myminion boto3_elasticache.describe_cache_parameter_groups
         salt myminion boto3_elasticache.describe_cache_parameter_groups myParameterGroup
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.describe_cache_parameter_groups
+
     """
     return _describe_resource(
         name=name,
@@ -1232,9 +1406,7 @@ def describe_cache_parameter_groups(
     )
 
 
-def create_cache_parameter_group(
-    name, region=None, key=None, keyid=None, profile=None, **args
-):
+def create_cache_parameter_group(name, region=None, key=None, keyid=None, profile=None, **args):
     """
     Create a cache parameter group.
 
@@ -1246,6 +1418,13 @@ def create_cache_parameter_group(
                 name=myParamGroup \
                 CacheParameterGroupFamily=redis2.8 \
                 Description="My Parameter Group"
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.create_cache_parameter_group
+
     """
     return _create_resource(
         name,
@@ -1260,9 +1439,7 @@ def create_cache_parameter_group(
     )
 
 
-def delete_cache_parameter_group(
-    name, region=None, key=None, keyid=None, profile=None, **args
-):
+def delete_cache_parameter_group(name, region=None, key=None, keyid=None, profile=None, **args):
     """
     Delete a cache parameter group.
 
@@ -1271,6 +1448,13 @@ def delete_cache_parameter_group(
     .. code-block:: bash
 
         salt myminion boto3_elasticache.delete_cache_parameter_group myParamGroup
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt-call boto3_elasticache.delete_cache_parameter_group
+
     """
     return _delete_resource(
         name,
