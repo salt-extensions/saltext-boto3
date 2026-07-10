@@ -247,6 +247,8 @@ def dhcp_options_present(
     name
         Name of the DHCP options set.
 
+    .. versionchanged:: 1.0.1
+
     Example:
 
     .. code-block:: yaml
@@ -264,6 +266,25 @@ def dhcp_options_present(
         "netbios_name_servers": netbios_name_servers,
         "netbios_node_type": netbios_node_type,
     }
+    desired_vpc = None
+    if vpc_id or vpc_name:
+        desired_vpc = __salt__["boto3_vpc.describe"](
+            vpc_id=vpc_id,
+            vpc_name=vpc_name,
+            region=region,
+            key=key,
+            keyid=keyid,
+            profile=profile,
+        )
+        if "error" in desired_vpc:
+            ret["result"] = False
+            ret["comment"] = "Failed to validate VPC: {}.".format(desired_vpc["error"]["message"])
+            return ret
+        desired_vpc = desired_vpc.get("vpc")
+        if not desired_vpc:
+            ret["result"] = False
+            ret["comment"] = f"VPC {vpc_name or vpc_id} does not exist."
+            return ret
 
     r = __salt__["boto3_vpc.dhcp_options_exists"](
         dhcp_options_id=dhcp_options_id,
@@ -279,6 +300,55 @@ def dhcp_options_present(
         return ret
 
     if r.get("exists"):
+        if desired_vpc:
+            dhcp_id = __salt__["boto3_vpc.get_resource_id"](
+                "dhcp_options",
+                name=name,
+                resource_id=dhcp_options_id,
+                region=region,
+                key=key,
+                keyid=keyid,
+                profile=profile,
+            )
+            if "error" in dhcp_id:
+                ret["result"] = False
+                ret["comment"] = "Failed to resolve DHCP options: {}.".format(
+                    dhcp_id["error"]["message"]
+                )
+                return ret
+            dhcp_id = dhcp_id.get("id")
+            current_dhcp_id = desired_vpc.get("dhcp_options_id")
+            if current_dhcp_id == dhcp_id:
+                ret["comment"] = "DHCP options already present and associated."
+                return ret
+            if __opts__["test"]:
+                ret["comment"] = f"DHCP options {name} are set to be associated."
+                ret["result"] = None
+                ret["changes"] = {
+                    "old": {"dhcp_options_id": current_dhcp_id},
+                    "new": {"dhcp_options_id": dhcp_id, "vpc_id": desired_vpc.get("id")},
+                }
+                return ret
+            associated = __salt__["boto3_vpc.associate_dhcp_options_to_vpc"](
+                dhcp_options_id=dhcp_id,
+                vpc_id=desired_vpc.get("id"),
+                region=region,
+                key=key,
+                keyid=keyid,
+                profile=profile,
+            )
+            if not associated.get("associated"):
+                ret["result"] = False
+                ret["comment"] = "Failed to associate DHCP options: {}.".format(
+                    associated["error"]["message"]
+                )
+                return ret
+            ret["changes"] = {
+                "old": {"dhcp_options_id": current_dhcp_id},
+                "new": {"dhcp_options_id": dhcp_id, "vpc_id": desired_vpc.get("id")},
+            }
+            ret["comment"] = f"DHCP options {name} associated to VPC {desired_vpc.get('id')}."
+            return ret
         ret["comment"] = "DHCP options already present."
         return ret
 
