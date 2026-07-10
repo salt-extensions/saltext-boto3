@@ -123,13 +123,43 @@ def test_dhcp_test_mode(mock_salt):
 
 def test_dhcp_create(mock_salt):
     salt_map = {
+        "boto3_vpc.describe": {"vpc": {"id": "vpc-1", "dhcp_options_id": "default"}},
         "boto3_vpc.dhcp_options_exists": {"exists": False},
         "boto3_vpc.create_dhcp_options": {"created": True, "id": "dopt-1"},
     }
     with mock_salt(boto3_vpc_state, salt_map):
-        result = boto3_vpc_state.dhcp_options_present("myopts", domain_name="example.com")
+        result = boto3_vpc_state.dhcp_options_present(
+            "myopts", domain_name="example.com", vpc_name="myvpc"
+        )
     assert result["result"] is True
     assert result["changes"]["new"]["dhcp_options"]["domain_name"] == "example.com"
+
+
+def test_dhcp_existing_associated_noop(mock_salt):
+    salt_map = {
+        "boto3_vpc.describe": {"vpc": {"id": "vpc-1", "dhcp_options_id": "dopt-1"}},
+        "boto3_vpc.dhcp_options_exists": {"exists": True},
+        "boto3_vpc.get_resource_id": {"id": "dopt-1"},
+    }
+    with mock_salt(boto3_vpc_state, salt_map):
+        result = boto3_vpc_state.dhcp_options_present("myopts", vpc_name="myvpc")
+    assert result["result"] is True
+    assert result["comment"] == "DHCP options already present and associated."
+    assert not result["changes"]
+
+
+def test_dhcp_existing_association_update(mock_salt):
+    salt_map = {
+        "boto3_vpc.describe": {"vpc": {"id": "vpc-1", "dhcp_options_id": "dopt-old"}},
+        "boto3_vpc.dhcp_options_exists": {"exists": True},
+        "boto3_vpc.get_resource_id": {"id": "dopt-1"},
+        "boto3_vpc.associate_dhcp_options_to_vpc": {"associated": True},
+    }
+    with mock_salt(boto3_vpc_state, salt_map):
+        result = boto3_vpc_state.dhcp_options_present("myopts", vpc_name="myvpc")
+    assert result["result"] is True
+    assert result["changes"]["old"] == {"dhcp_options_id": "dopt-old"}
+    assert result["changes"]["new"] == {"dhcp_options_id": "dopt-1", "vpc_id": "vpc-1"}
 
 
 def test_dhcp_delete(mock_salt):
