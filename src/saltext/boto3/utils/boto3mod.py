@@ -100,6 +100,8 @@ def _get_profile(service, region, key, keyid, profile, opts):
         cxkey = label + hashlib.md5(hash_string, usedforsecurity=False).hexdigest()
     else:
         cxkey = label + region
+        if isinstance(profile, str):
+            cxkey = f"{cxkey}:{profile}"
 
     return (cxkey, region, key, keyid)
 
@@ -172,6 +174,8 @@ def get_connection(
     """
     Return a boto3 client for the given service, caching it in ``context``.
 
+    .. versionchanged:: 1.0.1
+
     ``opts`` and ``context`` are required; pass ``__opts__`` and
     ``__context__`` from the calling module.
 
@@ -193,11 +197,16 @@ def get_connection(
         return context[cxkey]
 
     try:
-        session = boto3.session.Session(
-            aws_access_key_id=keyid,
-            aws_secret_access_key=key,
-            region_name=region,
-        )
+        if isinstance(profile, str) and not keyid and not key:
+            # If no static credentials were resolved, allow boto3 named
+            # profile resolution from ~/.aws/{config,credentials}.
+            session = boto3.session.Session(profile_name=profile, region_name=region)
+        else:
+            session = boto3.session.Session(
+                aws_access_key_id=keyid,
+                aws_secret_access_key=key,
+                region_name=region,
+            )
         if session is None:
             raise SaltInvocationError(f'Region "{region}" is not valid.')
         conn = session.client(module)

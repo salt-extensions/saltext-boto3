@@ -161,6 +161,21 @@ def test_get_connection_resolves_profile_from_opts(context, mock_session):
     )
 
 
+def test_get_connection_uses_named_profile_when_not_in_opts(context, mock_session):
+    opts = {}
+    boto3mod.get_connection("ec2", opts=opts, context=context, profile="myprof", region=REGION)
+    mock_session.assert_called_once_with(profile_name="myprof", region_name=REGION)
+
+
+def test_get_connection_cache_isolated_by_profile(context, mock_session):
+    opts = {}
+    boto3mod.get_connection("ec2", opts=opts, context=context, profile="prof-a")
+    boto3mod.get_connection("ec2", opts=opts, context=context, profile="prof-b")
+    assert "boto3_ec2:us-east-1:prof-a:conn3" in context
+    assert "boto3_ec2:us-east-1:prof-b:conn3" in context
+    assert mock_session.call_count == 2
+
+
 def test_get_connection_falls_back_to_service_options(context, mock_session):
     opts = {
         "ec2.region": REGION,
