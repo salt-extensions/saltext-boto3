@@ -4,6 +4,14 @@ This project uses [Semantic Versioning](https://semver.org/) - MAJOR.MINOR.PATCH
 
 # Changelog
 
+## 1.0.1 (2026-07-10)
+
+
+### Fixed
+
+- Fixed boto3_vpc.dhcp_options_present to associate an existing DHCP options set to the target VPC when the desired options already exist but are not currently attached.
+- Fixed profile-string authentication to use named AWS profiles when no static credentials are set, and isolated profile-only client caching by profile name to prevent cross-profile reuse.
+
 ## 1.0.0 (2026-04-25)
 
 
