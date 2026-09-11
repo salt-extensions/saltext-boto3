@@ -39,7 +39,6 @@ log = logging.getLogger(__name__)
 try:
     import botocore.exceptions
 
-    logging.getLogger("boto3").setLevel(logging.CRITICAL)
     HAS_BOTO3 = True
 except ImportError:
     HAS_BOTO3 = False
