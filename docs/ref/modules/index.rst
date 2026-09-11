@@ -35,6 +35,7 @@ _________________
     boto3_s3
     boto3_s3_bucket
     boto3_secgroup
+    boto3_secretsmanager
     boto3_sns
     boto3_sqs
     boto3_ssm
