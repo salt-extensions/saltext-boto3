@@ -233,6 +233,27 @@ def get_id(
     """
     Return the id of the VPC matching the supplied filters.
 
+    name (str):
+        The name of the VPC to look up.
+
+    cidr (str, optional):
+        The primary CIDR block for the VPC. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to filter the VPCs. Defaults to None.
+
+    region (str, optional):
+        The AWS region to look up the VPC in. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -267,6 +288,30 @@ def exists(
 ):
     """
     Return ``{"exists": True}`` if a VPC matching the supplied filters exists.
+
+    vpc_id (str, optional):
+        The ID of the VPC to check for existence. Defaults to None.
+
+    name (str, optional):
+        The name of the VPC to check for existence. Defaults to None.
+
+    cidr (str, optional):
+        The primary CIDR block for the VPC. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to filter the VPCs. Defaults to None.
+
+    region (str, optional):
+        The AWS region to look up the VPC in. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -308,6 +353,24 @@ def check_vpc(
     Return the VPC id if a VPC with the supplied id or name exists, else
     ``None``.
 
+    vpc_id (str, optional):
+        The ID of the VPC to check for existence. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC to check for existence. Defaults to None.
+
+    region (str, optional):
+        The AWS region to look up the VPC in. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -342,6 +405,39 @@ def create(
 ):
     """
     Create a VPC with the primary CIDR block.
+
+    .. versionchanged:: 1.1.0
+        Validate that ``cidr_block`` is a CIDR string before creating the VPC.
+
+    cidr_block (str):
+        The primary CIDR block for the VPC.
+
+    instance_tenancy (str, optional):
+        The instance tenancy option for the VPC. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC. Defaults to None.
+
+    enable_dns_support (bool, optional):
+        Whether to enable DNS support for the VPC. Defaults to None.
+
+    enable_dns_hostnames (bool, optional):
+        Whether to enable DNS hostnames for the VPC. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to apply to the VPC. Defaults to None.
+
+    region (str, optional):
+        The AWS region to create the VPC in. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -403,6 +499,29 @@ def associate_vpc_cidr_blocks(
 ):
     """
     Associate one or more secondary CIDR blocks to an existing VPC.
+
+    .. versionadded:: 1.1.0
+
+    cidr_blocks (str or list):
+        The CIDR block or list of CIDR blocks to associate with the VPC.
+
+    vpc_id (str, optional):
+        The ID of the VPC. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the VPC exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -488,6 +607,30 @@ def delete(
     """
     Delete a VPC by id or name.
 
+    vpc_id (str, optional):
+        The ID of the VPC to delete. Defaults to None.
+
+    name (str, optional):
+        Deprecated. Use vpc_name instead.
+
+    vpc_name (str, optional):
+        The name of the VPC to delete. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to filter the VPCs. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the VPC exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -560,6 +703,24 @@ def describe(
     Describe a VPC's properties. If neither id nor name is provided the
     default VPC (if any) is described.
 
+    vpc_id (str, optional):
+        The ID of the VPC to describe. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC to describe. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the VPC exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -600,6 +761,30 @@ def describe_vpcs(
 ):
     """
     Describe all VPCs matching the supplied filters.
+
+    vpc_id (str, optional):
+        The ID of the VPC to describe. Defaults to None.
+
+    name (str, optional):
+        The name of the VPC to describe. Defaults to None.
+
+    cidr (str, optional):
+        The CIDR block of the VPC to describe. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to filter the VPCs. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the VPC exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -764,6 +949,24 @@ def get_resource_id(
     """
     Return ``{"id": "..."}`` for a VPC resource looked up by name or id.
 
+    resource_id (str, optional):
+        The ID of the resource to look up. Defaults to None.
+
+    name (str, optional):
+        The name of the resource to look up. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the resource exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     Currently supported ``resource`` values: ``vpc``, ``subnet``,
     ``dhcp_options``.
 
@@ -798,6 +1001,27 @@ def resource_exists(
     """
     Return ``{"exists": True}`` if a resource of ``resource`` matching the
     supplied filters exists.
+
+    resource_id (str, optional):
+        The ID of the resource to check for existence. Defaults to None.
+
+    name (str, optional):
+        The name of the resource to check for existence. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to filter the resources. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the resource exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -839,6 +1063,39 @@ def create_subnet(
 ):
     """
     Create a subnet inside an existing VPC.
+
+    vpc_id (str, optional):
+        The ID of the VPC in which to create the subnet. Defaults to None.
+
+    cidr_block (str, optional):
+        The CIDR block for the subnet. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC in which to create the subnet. Defaults to None.
+
+    availability_zone (str, optional):
+        The availability zone for the subnet. Defaults to None.
+
+    subnet_name (str, optional):
+        The name of the subnet to create. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to assign to the subnet. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the subnet will be created. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
+    auto_assign_public_ipv4 (bool, optional):
+        Whether to automatically assign a public IPv4 address to the subnet. Defaults to False.
 
     CLI Example:
 
@@ -897,6 +1154,24 @@ def delete_subnet(
 ):
     """
     Delete a subnet by id or name.
+
+    subnet_id (str, optional):
+        The ID of the subnet to delete. Defaults to None.
+
+    subnet_name (str, optional):
+        The name of the subnet to delete. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the subnet exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -959,6 +1234,33 @@ def subnet_exists(
     """
     Return ``{"exists": True}`` when a subnet matching the filters exists.
 
+    subnet_id (str, optional):
+        The ID of the subnet to check for existence. Defaults to None.
+
+    subnet_name (str, optional):
+        The name of the subnet to check for existence. Defaults to None.
+
+    cidr (str, optional):
+        The CIDR block of the subnet to check for existence. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to filter the subnets. Defaults to None.
+
+    zones (list or str, optional):
+        The availability zones to filter the subnets. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the subnet exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1005,6 +1307,21 @@ def get_subnet_association(subnets, region=None, key=None, keyid=None, profile=N
     Return the VPC id (or list of VPC ids) associated with the given subnet
     id or list of subnet ids.
 
+    subnets (str or list):
+        The ID or list of IDs of the subnets to check for association.
+
+    region (str, optional):
+        The AWS region where the subnets exist. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1040,6 +1357,24 @@ def describe_subnet(
 ):
     """
     Describe a single subnet by id or name.
+
+    subnet_id (str, optional):
+        The ID of the subnet to describe. Defaults to None.
+
+    subnet_name (str, optional):
+        The name of the subnet to describe. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the subnet exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -1082,6 +1417,30 @@ def describe_subnets(
 ):
     """
     Describe subnets matching the supplied filters.
+
+    subnet_ids (str or list, optional):
+        The ID or list of IDs of the subnets to describe. Defaults to None.
+
+    subnet_names (str or list, optional):
+        The name or list of names of the subnets to describe. Defaults to None.
+
+    vpc_id (str, optional):
+        The ID of the VPC to which the subnets belong. Defaults to None.
+
+    cidr (str, optional):
+        The CIDR block of the subnets to describe. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the subnets exist. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -1165,6 +1524,45 @@ def create_dhcp_options(
     """
     Create a DHCP options set, optionally associating it with an existing VPC.
 
+    domain_name (str, optional):
+        The domain name for the DHCP options set. Defaults to None.
+
+    domain_name_servers (str or list, optional):
+        The domain name servers for the DHCP options set. Defaults to None.
+
+    ntp_servers (str or list, optional):
+        The NTP servers for the DHCP options set. Defaults to None.
+
+    netbios_name_servers (str or list, optional):
+        The NetBIOS name servers for the DHCP options set. Defaults to None.
+
+    netbios_node_type (str, optional):
+        The NetBIOS node type for the DHCP options set. Defaults to None.
+
+    dhcp_options_name (str, optional):
+        The name to assign to the DHCP options set. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to assign to the DHCP options set. Defaults to None.
+
+    vpc_id (str, optional):
+        The ID of the VPC to associate with the DHCP options set. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC to associate with the DHCP options set. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the DHCP options set should be created. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1241,6 +1639,24 @@ def get_dhcp_options(
     """
     Return the configured options for the named DHCP options set.
 
+    dhcp_options_name (str, optional):
+        The name of the DHCP options set to retrieve. Defaults to None.
+
+    dhcp_options_id (str, optional):
+        The ID of the DHCP options set to retrieve. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the DHCP options set exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1296,6 +1712,24 @@ def delete_dhcp_options(
 ):
     """
     Delete a DHCP options set by id or name.
+
+    dhcp_options_id (str, optional):
+        The ID of the DHCP options set to delete. Defaults to None.
+
+    dhcp_options_name (str, optional):
+        The name of the DHCP options set to delete. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the DHCP options set exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -1355,6 +1789,27 @@ def associate_dhcp_options_to_vpc(
     """
     Associate a DHCP options set with a VPC.
 
+    dhcp_options_id (str):
+        The ID of the DHCP options set to associate with the VPC. Required.
+
+    vpc_id (str, optional):
+        The ID of the VPC to associate with the DHCP options set. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC to associate with the DHCP options set. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the VPC and DHCP options set exist. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1388,6 +1843,27 @@ def dhcp_options_exists(
 ):
     """
     Return ``{"exists": True}`` if a DHCP options set matching the filters exists.
+
+    dhcp_options_id (str, optional):
+        The ID of the DHCP options set to check for existence. Defaults to None.
+
+    dhcp_options_name (str, optional):
+        The name of the DHCP options set to check for existence. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to filter the DHCP options set. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the DHCP options set exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -1425,6 +1901,30 @@ def create_internet_gateway(
 ):
     """
     Create an internet gateway, optionally attaching it to an existing VPC.
+
+    internet_gateway_name (str, optional):
+        The name of the internet gateway to create. Defaults to None.
+
+    vpc_id (str, optional):
+        The ID of the VPC to attach the internet gateway to. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC to attach the internet gateway to. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to apply to the internet gateway. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the internet gateway will be created. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -1483,6 +1983,27 @@ def delete_internet_gateway(
     """
     Delete an internet gateway by id or name. If ``detach`` is ``True``,
     any VPC attachment is detached first.
+
+    internet_gateway_id (str, optional):
+        The ID of the internet gateway to delete. Defaults to None.
+
+    internet_gateway_name (str, optional):
+        The name of the internet gateway to delete. Defaults to None.
+
+    detach (bool, optional):
+        Whether to detach the internet gateway from any VPC attachments before deletion. Defaults to False.
+
+    region (str, optional):
+        The AWS region where the internet gateway exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -1607,6 +2128,36 @@ def nat_gateway_exists(
     """
     Return ``True`` if a NAT gateway matching the filter criteria exists.
 
+    nat_gateway_id (str, optional):
+        The ID of the NAT gateway to check for existence. Defaults to None.
+
+    subnet_id (str, optional):
+        The ID of the subnet associated with the NAT gateway. Defaults to None.
+
+    subnet_name (str, optional):
+        The name of the subnet associated with the NAT gateway. Defaults to None.
+
+    vpc_id (str, optional):
+        The ID of the VPC associated with the NAT gateway. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC associated with the NAT gateway. Defaults to None.
+
+    states (tuple, optional):
+        A tuple of NAT gateway states to filter by. Defaults to ("pending", "available").
+
+    region (str, optional):
+        The AWS region where the NAT gateway exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1648,6 +2199,36 @@ def describe_nat_gateways(
     """
     Return a list of NAT gateway descriptions matching the selection criteria.
 
+    nat_gateway_id (str, optional):
+        The ID of the NAT gateway to describe. Defaults to None.
+
+    subnet_id (str, optional):
+        The ID of the subnet associated with the NAT gateway. Defaults to None.
+
+    subnet_name (str, optional):
+        The name of the subnet associated with the NAT gateway. Defaults to None.
+
+    vpc_id (str, optional):
+        The ID of the VPC associated with the NAT gateway. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC associated with the NAT gateway. Defaults to None.
+
+    states (tuple, optional):
+        A tuple of NAT gateway states to filter by. Defaults to ("pending", "available").
+
+    region (str, optional):
+        The AWS region where the NAT gateway exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1684,6 +2265,27 @@ def create_nat_gateway(
     """
     Create a NAT gateway inside an existing subnet. If ``allocation_id`` is
     not supplied a new Elastic IP is allocated and used.
+
+    subnet_id (str, optional):
+        The ID of the subnet where the NAT gateway will be created. Defaults to None.
+
+    subnet_name (str, optional):
+        The name of the subnet where the NAT gateway will be created. Defaults to None.
+
+    allocation_id (str, optional):
+        The allocation ID of an existing Elastic IP to associate with the NAT gateway. If not provided, a new Elastic IP will be allocated. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the NAT gateway will be created. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -1725,6 +2327,30 @@ def delete_nat_gateway(
 ):
     """
     Delete a NAT gateway by id, optionally releasing any associated EIPs.
+
+    nat_gateway_id (str, optional):
+        The ID of the NAT gateway to delete. Defaults to None.
+
+    release_eips (bool, optional):
+        Whether to release any Elastic IPs associated with the NAT gateway. Defaults to False.
+
+    region (str, optional):
+        The AWS region where the NAT gateway exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
+    wait_for_delete (bool, optional):
+        Whether to wait for the NAT gateway to be fully deleted. Defaults to False.
+
+    wait_for_delete_retries (int, optional):
+        The number of times to retry checking the deletion status. Defaults to 5.
 
     CLI Example:
 
@@ -1774,6 +2400,33 @@ def create_customer_gateway(
     """
     Create a customer gateway.
 
+    vpn_connection_type (str):
+        The type of VPN connection. Typically 'ipsec.1'.
+
+    ip_address (str):
+        The public IP address of the customer gateway.
+
+    bgp_asn (int):
+        The BGP ASN of the customer gateway.
+
+    customer_gateway_name (str, optional):
+        The name to assign to the customer gateway. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to assign to the customer gateway. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the customer gateway will be created. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1818,6 +2471,24 @@ def delete_customer_gateway(
 ):
     """
     Delete a customer gateway by id or name.
+
+    customer_gateway_id (str, optional):
+        The ID of the customer gateway to delete. Defaults to None.
+
+    customer_gateway_name (str, optional):
+        The name of the customer gateway to delete. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the customer gateway exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -1872,6 +2543,24 @@ def customer_gateway_exists(
     """
     Return ``{"exists": True}`` if the given customer gateway exists.
 
+    customer_gateway_id (str, optional):
+        The ID of the customer gateway to check. Defaults to None.
+
+    customer_gateway_name (str, optional):
+        The name of the customer gateway to check. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the customer gateway exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1904,6 +2593,36 @@ def create_network_acl(
     """
     Create a network ACL within a VPC, optionally associating it with a
     subnet.
+
+    vpc_id (str, optional):
+        The ID of the VPC where the network ACL will be created. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC where the network ACL will be created. Defaults to None.
+
+    network_acl_name (str, optional):
+        The name to assign to the network ACL. Defaults to None.
+
+    subnet_id (str, optional):
+        The ID of the subnet to associate with the network ACL. Defaults to None.
+
+    subnet_name (str, optional):
+        The name of the subnet to associate with the network ACL. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to assign to the network ACL. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the network ACL will be created. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -1990,6 +2709,27 @@ def delete_network_acl(
     any existing subnet association is replaced with the VPC's default ACL
     before deletion.
 
+    network_acl_id (str, optional):
+        The ID of the network ACL to delete. Defaults to None.
+
+    network_acl_name (str, optional):
+        The name of the network ACL to delete. Defaults to None.
+
+    disassociate (bool, optional):
+        Whether to disassociate the network ACL from any subnets before deletion. Defaults to False.
+
+    region (str, optional):
+        The AWS region where the network ACL exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -2068,6 +2808,27 @@ def network_acl_exists(
     """
     Return ``{"exists": True}`` if the network ACL exists.
 
+    network_acl_id (str, optional):
+        The ID of the network ACL to check. Defaults to None.
+
+    network_acl_name (str, optional):
+        The name of the network ACL to check. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to filter the network ACLs. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the network ACL exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -2105,6 +2866,30 @@ def associate_network_acl_to_subnet(
     """
     Associate a network ACL with a subnet by replacing the subnet's current
     network ACL association.
+
+    network_acl_id (str, optional):
+        The ID of the network ACL to associate with the subnet. Defaults to None.
+
+    subnet_id (str, optional):
+        The ID of the subnet to associate with the network ACL. Defaults to None.
+
+    network_acl_name (str, optional):
+        The name of the network ACL to associate with the subnet. Defaults to None.
+
+    subnet_name (str, optional):
+        The name of the subnet to associate with the network ACL. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the network ACL and subnet exist. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -2177,6 +2962,30 @@ def disassociate_network_acl(
     """
     Disassociate the network ACL from a subnet by replacing its association
     with the VPC's default network ACL.
+
+    subnet_id (str, optional):
+        The ID of the subnet to disassociate from its network ACL. Defaults to None.
+
+    vpc_id (str, optional):
+        The ID of the VPC containing the subnet. Defaults to None.
+
+    subnet_name (str, optional):
+        The name of the subnet to disassociate from its network ACL. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC containing the subnet. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the subnet and VPC exist. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -2343,6 +3152,51 @@ def create_network_acl_entry(
     """
     Create a network ACL entry.
 
+    network_acl_id (str, optional):
+        The ID of the network ACL to create the entry in. Defaults to None.
+
+    rule_number (int, optional):
+        The rule number for the network ACL entry. Defaults to None.
+
+    protocol (str, optional):
+        The protocol for the network ACL entry (e.g., 'all', 'tcp', 'udp', 'icmp'). Defaults to None.
+
+    rule_action (str, optional):
+        The action for the network ACL entry ('allow' or 'deny'). Defaults to None.
+
+    cidr_block (str, optional):
+        The CIDR block for the network ACL entry. Defaults to None.
+
+    egress (bool, optional):
+        Whether the rule is an egress rule. Defaults to None.
+
+    network_acl_name (str, optional):
+        The name of the network ACL to create the entry in. Defaults to None.
+
+    icmp_code (int, optional):
+        The ICMP code for the network ACL entry. Defaults to None.
+
+    icmp_type (int, optional):
+        The ICMP type for the network ACL entry. Defaults to None.
+
+    port_range_from (int, optional):
+        The starting port for the network ACL entry. Defaults to None.
+
+    port_range_to (int, optional):
+        The ending port for the network ACL entry. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the network ACL exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -2390,6 +3244,51 @@ def replace_network_acl_entry(
     """
     Replace a network ACL entry.
 
+    network_acl_id (str, optional):
+        The ID of the network ACL to replace the entry in. Defaults to None.
+
+    rule_number (int, optional):
+        The rule number for the network ACL entry. Defaults to None.
+
+    protocol (str, optional):
+        The protocol for the network ACL entry (e.g., 'all', 'tcp', 'udp', 'icmp'). Defaults to None.
+
+    rule_action (str, optional):
+        The action for the network ACL entry ('allow' or 'deny'). Defaults to None.
+
+    cidr_block (str, optional):
+        The CIDR block for the network ACL entry. Defaults to None.
+
+    egress (bool, optional):
+        Whether the rule is an egress rule. Defaults to None.
+
+    network_acl_name (str, optional):
+        The name of the network ACL to replace the entry in. Defaults to None.
+
+    icmp_code (int, optional):
+        The ICMP code for the network ACL entry. Defaults to None.
+
+    icmp_type (int, optional):
+        The ICMP type for the network ACL entry. Defaults to None.
+
+    port_range_from (int, optional):
+        The starting port for the network ACL entry. Defaults to None.
+
+    port_range_to (int, optional):
+        The ending port for the network ACL entry. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the network ACL exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -2429,6 +3328,30 @@ def delete_network_acl_entry(
 ):
     """
     Delete a network ACL entry.
+
+    network_acl_id (str, optional):
+        The ID of the network ACL to delete the entry from. Defaults to None.
+
+    rule_number (int, optional):
+        The rule number for the network ACL entry to delete. Defaults to None.
+
+    egress (bool, optional):
+        Whether the rule is an egress rule. Defaults to None.
+
+    network_acl_name (str, optional):
+        The name of the network ACL to delete the entry from. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the network ACL exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -2484,6 +3407,30 @@ def create_route_table(
     """
     Create a route table in the specified VPC.
 
+    vpc_id (str, optional):
+        The ID of the VPC where the route table will be created. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC where the route table will be created. Defaults to None.
+
+    route_table_name (str, optional):
+        The name of the route table to create. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to associate with the route table. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the route table will be created. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -2535,6 +3482,24 @@ def delete_route_table(
 ):
     """
     Delete a route table by id or name.
+
+    route_table_id (str, optional):
+        The ID of the route table to delete. Defaults to None.
+
+    route_table_name (str, optional):
+        The name of the route table to delete. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the route table exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -2590,6 +3555,27 @@ def route_table_exists(
 ):
     """
     Return ``{"exists": True}`` if the route table exists.
+
+    route_table_id (str, optional):
+        The ID of the route table to check. Defaults to None.
+
+    route_table_name (str, optional):
+        The name of the route table to check. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to filter the route tables. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the route table exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -2660,6 +3646,30 @@ def describe_route_tables(
     """
     Return a list of route tables matching the filter criteria.
 
+    route_table_id (str, optional):
+        The ID of the route table to describe. Defaults to None.
+
+    route_table_name (str, optional):
+        The name of the route table to describe. Defaults to None.
+
+    vpc_id (str, optional):
+        The ID of the VPC to which the route table belongs. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to filter the route tables. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the route table exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -2708,6 +3718,45 @@ def route_exists(
     """
     Return ``{"exists": True}`` if a matching route is present in the
     specified route table.
+
+    destination_cidr_block (str):
+        The destination CIDR block of the route to check.
+
+    route_table_name (str, optional):
+        The name of the route table to check. Defaults to None.
+
+    route_table_id (str, optional):
+        The ID of the route table to check. Defaults to None.
+
+    gateway_id (str, optional):
+        The ID of the gateway for the route. Defaults to None.
+
+    instance_id (str, optional):
+        The ID of the instance for the route. Defaults to None.
+
+    interface_id (str, optional):
+        The ID of the network interface for the route. Defaults to None.
+
+    tags (dict, optional):
+        A dictionary of tags to filter the route tables. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the route table exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
+    vpc_peering_connection_id (str, optional):
+        The ID of the VPC peering connection for the route. Defaults to None.
+
+    nat_gateway_id (str, optional):
+        The ID of the NAT gateway for the route. Defaults to None.
 
     CLI Example:
 
@@ -2769,6 +3818,30 @@ def associate_route_table(
     """
     Associate a route table with a subnet.
 
+    route_table_id (str, optional):
+        The ID of the route table to associate. Defaults to None.
+
+    subnet_id (str, optional):
+        The ID of the subnet to associate with the route table. Defaults to None.
+
+    route_table_name (str, optional):
+        The name of the route table to associate. Defaults to None.
+
+    subnet_name (str, optional):
+        The name of the subnet to associate with the route table. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the route table and subnet exist. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -2814,6 +3887,21 @@ def disassociate_route_table(association_id, region=None, key=None, keyid=None, 
     """
     Disassociate a route table.
 
+    association_id (str):
+        The ID of the route table association to disassociate.
+
+    region (str, optional):
+        The AWS region where the route table association exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -2833,6 +3921,24 @@ def replace_route_table_association(
 ):
     """
     Replace a route table association with a new route table.
+
+    association_id (str):
+        The ID of the route table association to replace.
+
+    route_table_id (str):
+        The ID of the new route table to associate.
+
+    region (str, optional):
+        The AWS region where the route table association exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -2870,6 +3976,54 @@ def create_route(
 ):
     """
     Create a route in a route table.
+
+    route_table_id (str, optional):
+        The ID of the route table where the route will be created. Defaults to None.
+
+    destination_cidr_block (str):
+        The destination CIDR block for the route.
+
+    route_table_name (str, optional):
+        The name of the route table where the route will be created. Defaults to None.
+
+    gateway_id (str, optional):
+        The ID of the gateway for the route. Defaults to None.
+
+    internet_gateway_name (str, optional):
+        The name of the internet gateway for the route. Defaults to None.
+
+    instance_id (str, optional):
+        The ID of the instance for the route. Defaults to None.
+
+    interface_id (str, optional):
+        The ID of the network interface for the route. Defaults to None.
+
+    vpc_peering_connection_id (str, optional):
+        The ID of the VPC peering connection for the route. Defaults to None.
+
+    vpc_peering_connection_name (str, optional):
+        The name of the VPC peering connection for the route. Defaults to None.
+
+    nat_gateway_id (str, optional):
+        The ID of the NAT gateway for the route. Defaults to None.
+
+    nat_gateway_subnet_name (str, optional):
+        The name of the subnet for the NAT gateway. Defaults to None.
+
+    nat_gateway_subnet_id (str, optional):
+        The ID of the subnet for the NAT gateway. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the route table exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -3017,6 +4171,27 @@ def delete_route(
     """
     Delete a route from a route table.
 
+    route_table_id (str, optional):
+        The ID of the route table where the route will be deleted. Defaults to None.
+
+    destination_cidr_block (str):
+        The destination CIDR block for the route to be deleted.
+
+    route_table_name (str, optional):
+        The name of the route table where the route will be deleted. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the route table exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -3067,6 +4242,42 @@ def replace_route(
 ):
     """
     Replace an existing route in a route table.
+
+    route_table_id (str, optional):
+        The ID of the route table where the route will be replaced. Defaults to None.
+
+    destination_cidr_block (str):
+        The destination CIDR block for the route to be replaced.
+
+    route_table_name (str, optional):
+        The name of the route table where the route will be replaced. Defaults to None.
+
+    gateway_id (str, optional):
+        The ID of the gateway for the route. Defaults to None.
+
+    instance_id (str, optional):
+        The ID of the instance for the route. Defaults to None.
+
+    interface_id (str, optional):
+        The ID of the network interface for the route. Defaults to None.
+
+    vpc_peering_connection_id (str, optional):
+        The ID of the VPC peering connection for the route. Defaults to None.
+
+    nat_gateway_id (str, optional):
+        The ID of the NAT gateway for the route. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the route table exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -3158,6 +4369,42 @@ def request_vpc_peering_connection(
     """
     Request a VPC peering connection between two VPCs.
 
+    requester_vpc_id (str, optional):
+        The ID of the requester VPC. Defaults to None.
+
+    requester_vpc_name (str, optional):
+        The name of the requester VPC. Defaults to None.
+
+    peer_vpc_id (str, optional):
+        The ID of the peer VPC. Defaults to None.
+
+    peer_vpc_name (str, optional):
+        The name of the peer VPC. Defaults to None.
+
+    name (str, optional):
+        The name to assign to the VPC peering connection. Defaults to None.
+
+    peer_owner_id (str, optional):
+        The AWS account ID of the owner of the peer VPC. Defaults to None.
+
+    peer_region (str, optional):
+        The AWS region of the peer VPC. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the requester VPC exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
+    dry_run (bool, optional):
+        Whether to perform a dry run of the request. Defaults to False.
+
     CLI Example:
 
     .. code-block:: bash
@@ -3218,6 +4465,21 @@ def describe_vpc_peering_connection(name, region=None, key=None, keyid=None, pro
     connection name that are ``active``, ``pending-acceptance`` or
     ``provisioning``.
 
+    name (str):
+        The name of the VPC peering connection to describe.
+
+    region (str, optional):
+        The AWS region where the VPC peering connection exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     CLI Example:
 
     .. code-block:: bash
@@ -3275,6 +4537,27 @@ def delete_vpc_peering_connection(
     """
     Delete a VPC peering connection by id or name.
 
+    conn_id (str, optional):
+        The ID of the VPC peering connection to delete. Defaults to None.
+
+    conn_name (str, optional):
+        The name of the VPC peering connection to delete. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the VPC peering connection exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
+    dry_run (bool, optional):
+        Whether to perform a dry run of the request. Defaults to False.
+
     CLI Example:
 
     .. code-block:: bash
@@ -3308,6 +4591,24 @@ def is_peering_connection_pending(
     """
     Return ``True`` if the VPC peering connection is in the
     ``pending-acceptance`` state.
+
+    conn_id (str, optional):
+        The ID of the VPC peering connection to check. Defaults to None.
+
+    conn_name (str, optional):
+        The name of the VPC peering connection to check. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the VPC peering connection exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
@@ -3356,6 +4657,30 @@ def peering_connection_pending_from_vpc(
     """
     Return ``True`` if a VPC peering connection is pending from the given
     requester VPC.
+
+    conn_id (str, optional):
+        The ID of the VPC peering connection to check. Defaults to None.
+
+    conn_name (str, optional):
+        The name of the VPC peering connection to check. Defaults to None.
+
+    vpc_id (str, optional):
+        The ID of the requester VPC. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the requester VPC. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the VPC peering connection exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     CLI Example:
 
