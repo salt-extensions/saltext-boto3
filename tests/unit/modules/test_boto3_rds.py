@@ -80,6 +80,13 @@ def test_subnet_group_exists_true(conn):
     assert boto3_rds.subnet_group_exists("sg") == {"exists": True}
 
 
+def test_subnet_group_exists_not_found(conn, client_error):
+    conn.describe_db_subnet_groups.side_effect = client_error(
+        "DBSubnetGroupNotFoundFault", "DescribeDBSubnetGroups"
+    )
+    assert boto3_rds.subnet_group_exists("sg") == {"exists": False}
+
+
 def _create_args(**over):
     args = {
         "name": "r",

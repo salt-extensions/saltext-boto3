@@ -2,6 +2,8 @@
 Unit tests for the ``boto3_rds`` state module.
 """
 
+import json
+
 import pytest
 
 from saltext.boto3.states import boto3_rds as rds_state
@@ -56,6 +58,67 @@ def test_present_create_ok(mock_salt):
         ret = rds_state.present(*PRESENT_ARGS)
     assert ret["result"] is True
     assert "created" in ret["comment"]
+
+
+ENDPOINT = "myrds.abc123.us-east-1.rds.amazonaws.com"
+
+
+def _endpoint_salt(stored_host):
+    return {
+        "boto3_rds.get_endpoint": ENDPOINT,
+        "boto3_secretsmanager.get": {
+            "exists": True,
+            "secret_string": json.dumps({"password": "p", "host": stored_host}),
+        },
+        "boto3_secretsmanager.put": {"updated": True, "version_id": "v2"},
+    }
+
+
+def test_endpoint_secret_present_writes_endpoint(mock_salt):
+    with mock_salt(rds_state, _endpoint_salt("")) as salt_mocks:
+        ret = rds_state.endpoint_secret_present("app/dev/rds", "myrds")
+    assert ret["result"] is True
+    assert ret["changes"] == {"host": {"old": "", "new": ENDPOINT}}
+    written = json.loads(salt_mocks["boto3_secretsmanager.put"].call_args[0][1])
+    assert written["host"] == ENDPOINT
+    assert written["password"] == "p"
+
+
+def test_endpoint_secret_present_is_idempotent(mock_salt):
+    with mock_salt(rds_state, _endpoint_salt(ENDPOINT)) as salt_mocks:
+        ret = rds_state.endpoint_secret_present("app/dev/rds", "myrds")
+    assert ret["result"] is True
+    assert not ret["changes"]
+    salt_mocks["boto3_secretsmanager.put"].assert_not_called()
+
+
+def test_endpoint_secret_present_test_mode(mock_salt):
+    with mock_salt(rds_state, _endpoint_salt(""), test=True) as salt_mocks:
+        ret = rds_state.endpoint_secret_present("app/dev/rds", "myrds")
+    assert ret["result"] is None
+    salt_mocks["boto3_secretsmanager.put"].assert_not_called()
+
+
+def test_endpoint_secret_present_without_endpoint(mock_salt):
+    with mock_salt(rds_state, {"boto3_rds.get_endpoint": False, "boto3_secretsmanager.get": {}}):
+        ret = rds_state.endpoint_secret_present("app/dev/rds", "myrds")
+    assert ret["result"] is False
+    assert "not available" in ret["comment"]
+
+
+def test_endpoint_secret_present_requires_secretsmanager(mock_salt):
+    with mock_salt(rds_state, {"boto3_rds.get_endpoint": ENDPOINT}):
+        ret = rds_state.endpoint_secret_present("app/dev/rds", "myrds")
+    assert ret["result"] is False
+    assert "boto3_secretsmanager" in ret["comment"]
+
+
+def test_endpoint_secret_present_missing_secret(mock_salt):
+    salt_map = {"boto3_rds.get_endpoint": ENDPOINT, "boto3_secretsmanager.get": {"exists": False}}
+    with mock_salt(rds_state, salt_map):
+        ret = rds_state.endpoint_secret_present("app/dev/rds", "myrds")
+    assert ret["result"] is False
+    assert "does not exist" in ret["comment"]
 
 
 def test_present_create_fail(mock_salt):
