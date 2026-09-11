@@ -72,6 +72,7 @@ config:
 .. versionadded:: 1.0.0
 """
 
+import json
 import logging
 import os
 
@@ -141,166 +142,166 @@ def present(
     """
     Ensure RDS instance exists.
 
-    name
+    name (str):
         Name of the RDS state definition.
 
-    allocated_storage
+    allocated_storage (int):
         The amount of storage (in gigabytes) to be initially allocated for the
         database instance.
 
-    db_instance_class
+    db_instance_class (str):
         The compute and memory capacity of the Amazon RDS DB instance.
 
-    engine
+    engine (str):
         The name of the database engine to be used for this instance. Supported
         engine types are: MySQL, mariadb, oracle-se1, oracle-se, oracle-ee, sqlserver-ee,
         sqlserver-se, sqlserver-ex, sqlserver-web, postgres and aurora. For more
         information, please see the ``engine`` argument in the Boto3 RDS
         `create_db_instance`_ documentation.
 
-    master_username
+    master_username (str):
         The name of master user for the client DB instance.
 
-    master_user_password
+    master_user_password (str):
         The password for the master database user. Can be any printable ASCII
         character except "/", '"', or "@".
 
-    db_name
+    db_name (str, optional):
         The meaning of this parameter differs according to the database engine you use.
         See the Boto3 RDS documentation to determine the appropriate value for your configuration.
         https://docs.aws.amazon.com/boto3/latest/reference/services/rds/client/create_db_instance.html
 
-    storage_type
+    storage_type (str, optional):
         Specifies the storage type to be associated with the DB instance.
         Options are standard, gp2 and io1. If you specify io1, you must also include
         a value for the Iops parameter.
 
-    db_security_groups
+    db_security_groups (list, optional):
         A list of DB security groups to associate with this DB instance.
 
-    vpc_security_group_ids
+    vpc_security_group_ids (list, optional):
         A list of EC2 VPC security group IDs to associate with this DB instance.
 
-    vpc_security_groups
+    vpc_security_groups (list, optional):
         A list of EC2 VPC security groups (IDs or Name tags) to associate with this DB instance.
 
-    availability_zone
+    availability_zone (str, optional):
         The EC2 Availability Zone that the database instance will be created
         in.
 
-    db_subnet_group_name
+    db_subnet_group_name (str, optional):
         A DB subnet group to associate with this DB instance.
 
-    preferred_maintenance_window
+    preferred_maintenance_window (str, optional):
         The weekly time range (in UTC) during which system maintenance can
         occur.
 
-    db_parameter_group_name
+    db_parameter_group_name (str, optional):
         A DB parameter group to associate with this DB instance.
 
-    db_cluster_identifier
+    db_cluster_identifier (str, optional):
         If the DB instance is a member of a DB cluster, contains the name of
         the DB cluster that the DB instance is a member of.
 
-    tde_credential_arn
+    tde_credential_arn (str, optional):
         The ARN from the Key Store with which the instance is associated for
         TDE encryption.
 
-    tde_credential_password
+    tde_credential_password (str, optional):
         The password to use for TDE encryption if an encryption key is not used.
 
-    storage_encrypted
+    storage_encrypted (bool, optional):
         Specifies whether the DB instance is encrypted.
 
-    kms_keyid
+    kms_keyid (str, optional):
         If storage_encrypted is true, the KMS key identifier for the encrypted
         DB instance.
 
-    backup_retention_period
+    backup_retention_period (int, optional):
         The number of days for which automated backups are retained.
 
-    preferred_backup_window
+    preferred_backup_window (str, optional):
         The daily time range during which automated backups are created if
         automated backups are enabled.
 
-    port
+    port (int, optional):
         The port number on which the database accepts connections.
 
-    multi_az
+    multi_az (bool, optional):
         Specifies if the DB instance is a Multi-AZ deployment. You cannot set
         the AvailabilityZone parameter if the MultiAZ parameter is set to true.
 
-    engine_version
+    engine_version (str, optional):
         The version number of the database engine to use.
 
-    auto_minor_version_upgrade
+    auto_minor_version_upgrade (bool, optional):
         Indicates that minor engine upgrades will be applied automatically to
         the DB instance during the maintenance window.
 
-    license_model
+    license_model (str, optional):
         License model information for this DB instance.
 
-    iops
+    iops (int, optional):
         The amount of Provisioned IOPS (input/output operations per second) to
         be initially allocated for the DB instance.
 
-    option_group_name
+    option_group_name (str, optional):
         Indicates that the DB instance should be associated with the specified
         option group.
 
-    character_set_name
+    character_set_name (str, optional):
         For supported engines, indicates that the DB instance should be
         associated with the specified CharacterSet.
 
-    publicly_accessible
+    publicly_accessible (bool, optional):
         Specifies the accessibility options for the DB instance. A value of
         true specifies an Internet-facing instance with a publicly resolvable
         DNS name, which resolves to a public IP address. A value of false
         specifies an internal instance with a DNS name that resolves to a
         private IP address.
 
-    wait_status
+    wait_status (str, optional):
         Wait for the RDS instance to reach a desired status before finishing
         the state. Available states: available, modifying, backing-up
 
-    tags
+    tags (dict, optional):
         A dict of tags.
 
-    copy_tags_to_snapshot
+    copy_tags_to_snapshot (bool, optional):
         Specifies whether tags are copied from the DB instance to snapshots of
         the DB instance.
 
-    region
+    region (str, optional):
         Region to connect to.
 
-    domain
+    domain (str, optional):
         The identifier of the Active Directory Domain.
 
-    key
+    key (str, optional):
         AWS secret key to be used.
 
-    keyid
+    keyid (str, optional):
         AWS access key to be used.
 
-    monitoring_interval
+    monitoring_interval (int, optional):
         The interval, in seconds, between points when Enhanced Monitoring
         metrics are collected for the DB instance.
 
-    monitoring_role_arn
+    monitoring_role_arn (str, optional):
         The ARN for the IAM role that permits RDS to send Enhanced Monitoring
         metrics to CloudWatch Logs.
 
-    domain_iam_role_name
+    domain_iam_role_name (str, optional):
         Specify the name of the IAM role to be used when making API calls to
         the Directory Service.
 
-    promotion_tier
+    promotion_tier (int, optional):
         A value that specifies the order in which an Aurora Replica is
         promoted to the primary instance after a failure of the existing
         primary instance. For more information, see Fault Tolerance for an
         Aurora DB Cluster .
 
-    profile
+    profile (dict or str, optional):
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -413,6 +414,51 @@ def replica_present(
     """
     Ensure RDS replica exists.
 
+    name (str):
+        The name of the RDS read replica.
+
+    source (str):
+        The name of the source DB instance from which to create the read replica.
+
+    db_instance_class (str, optional):
+        The compute and memory capacity of the read replica.
+
+    availability_zone (str, optional):
+        The Availability Zone where the read replica will be created.
+
+    port (int, optional):
+        The port number on which the database accepts connections.
+
+    auto_minor_version_upgrade (bool, optional):
+        Indicates whether minor engine upgrades are applied automatically to the read replica.
+
+    iops (int, optional):
+        The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for the read replica.
+
+    option_group_name (str, optional):
+        The option group to associate with the read replica.
+
+    publicly_accessible (bool, optional):
+        Specifies whether the read replica is publicly accessible.
+
+    tags (dict, optional):
+        A dictionary of tags to assign to the read replica.
+
+    region (str, optional):
+        The AWS region where the read replica will be created.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (dict or str, optional):
+        The AWS profile to use.
+
+    db_parameter_group_name (str, optional):
+        The name of the DB parameter group to associate with the read replica.
+
     .. code-block:: yaml
 
         Ensure myrds replica RDS exists:
@@ -503,33 +549,33 @@ def subnet_group_present(
     """
     Ensure DB subnet group exists.
 
-    name
+    name (str):
         The name for the DB subnet group. This value is stored as a lowercase string.
 
-    subnet_ids
+    subnet_ids (list, optional):
         A list of the EC2 Subnet IDs for the DB subnet group.
         Either subnet_ids or subnet_names must be provided.
 
-    subnet_names
+    subnet_names (list, optional):
         A list of The EC2 Subnet names for the DB subnet group.
         Either subnet_ids or subnet_names must be provided.
 
-    description
+    description (str):
         Subnet group description.
 
-    tags
+    tags (dict, optional):
         A dict of tags.
 
-    region
+    region (str, optional):
         Region to connect to.
 
-    key
+    key (str, optional):
         Secret key to be used.
 
-    keyid
+    keyid (str, optional):
         Access key to be used.
 
-    profile
+    profile (dict or str, optional):
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -616,38 +662,38 @@ def absent(
     """
     Ensure RDS instance is absent.
 
-    name
+    name (str):
         Name of the RDS instance.
 
-    skip_final_snapshot
+    skip_final_snapshot (bool, optional):
         Whether a final db snapshot is created before the instance is deleted.
         If True, no snapshot is created.
         If False, a snapshot is created before deleting the instance.
 
-    final_db_snapshot_identifier
+    final_db_snapshot_identifier (str, optional):
         If a final snapshot is requested, this is the identifier used for that
         snapshot.
 
-    tags
+    tags (dict, optional):
         A dict of tags.
 
-    wait_for_deletion (bool)
+    wait_for_deletion (bool, optional):
         Wait for the RDS instance to be deleted completely before finishing
         the state.
 
-    timeout (in seconds)
+    timeout (int, optional):
         The amount of time that can pass before raising an Exception.
 
-    region
+    region (str, optional):
         Region to connect to.
 
-    key
+    key (str, optional):
         Secret key to be used.
 
-    keyid
+    keyid (str, optional):
         Access key to be used.
 
-    profile
+    profile (dict or str, optional):
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -700,6 +746,25 @@ def subnet_group_absent(name, tags=None, region=None, key=None, keyid=None, prof
     """
     Ensure an RDS DB subnet group is absent.
 
+    name (str):
+        The name of the RDS DB subnet group to ensure is absent.
+
+    tags (dict, optional):
+        Tags associated with the RDS DB subnet group.
+
+    region (str, optional):
+        Region to connect to.
+
+    key (str, optional):
+        Secret key to be used.
+
+    keyid (str, optional):
+        Access key to be used.
+
+    profile (dict or str, optional):
+        A dict with region, key and keyid, or a pillar key (string) that
+        contains a dict with region, key and keyid.
+
     Example:
 
     .. code-block:: yaml
@@ -733,6 +798,117 @@ def subnet_group_absent(name, tags=None, region=None, key=None, keyid=None, prof
     return ret
 
 
+def endpoint_secret_present(
+    name,
+    db_instance_name,
+    host_key="host",
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+):
+    """
+    Ensure a Secrets Manager JSON secret records the instance's current endpoint.
+
+    The endpoint is only known after the instance is available, so this is
+    normally declared after :py:func:`present` with a ``require`` on it.
+
+    name (str):
+        The Secrets Manager secret ID holding the JSON credentials document.
+
+    db_instance_name (str):
+        Name of the RDS instance whose endpoint should be published.
+
+    host_key (str, optional):
+        Key within the JSON document to write the endpoint to. Defaults to ``host``.
+
+    region (str, optional):
+        Region to connect to.
+
+    key (str, optional):
+        AWS secret key to be used.
+
+    keyid (str, optional):
+        AWS access key to be used.
+
+    profile (dict or str, optional):
+        A dict with region, key and keyid, or a pillar key (string) that
+        contains a dict with region, key and keyid.
+
+    Example:
+
+    .. code-block:: yaml
+
+        publish-endpoint:
+          boto3_rds.endpoint_secret_present:
+            - name: myapp/dev/rds
+            - db_instance_name: myrds
+            - region: us-east-1
+
+    """
+    ret = {"name": name, "result": True, "comment": "", "changes": {}}
+
+    if "boto3_secretsmanager.get" not in __salt__:
+        ret["result"] = False
+        ret["comment"] = "The boto3_secretsmanager execution module is unavailable."
+        return ret
+
+    endpoint = __salt__["boto3_rds.get_endpoint"](
+        db_instance_name, region=region, key=key, keyid=keyid, profile=profile
+    )
+    if not endpoint or isinstance(endpoint, dict):
+        ret["result"] = False
+        ret["comment"] = f"RDS endpoint for {db_instance_name} is not available."
+        return ret
+
+    current = __salt__["boto3_secretsmanager.get"](
+        name, region=region, key=key, keyid=keyid, profile=profile
+    )
+    if current.get("error"):
+        ret["result"] = False
+        ret["comment"] = current["error"]
+        return ret
+    if not current.get("exists"):
+        ret["result"] = False
+        ret["comment"] = f"Secrets Manager secret {name} does not exist."
+        return ret
+
+    try:
+        secret_data = json.loads(current.get("secret_string") or "{}")
+    except (TypeError, ValueError) as exc:
+        ret["result"] = False
+        ret["comment"] = f"Secret {name} is not valid JSON: {exc}"
+        return ret
+
+    if secret_data.get(host_key) == endpoint:
+        ret["comment"] = f"Secret {name} already records the current endpoint."
+        return ret
+
+    if __opts__["test"]:
+        ret["result"] = None
+        ret["comment"] = f"Secret {name} {host_key} would be set to {endpoint}."
+        return ret
+
+    old_host = secret_data.get(host_key)
+    secret_data[host_key] = endpoint
+    updated = __salt__["boto3_secretsmanager.put"](
+        name,
+        json.dumps(secret_data, separators=(",", ":"), sort_keys=True),
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
+    if not updated.get("updated"):
+        ret["result"] = False
+        ret["comment"] = updated.get("error", f"Failed to update secret {name}.")
+        return ret
+
+    ret["changes"] = {host_key: {"old": old_host, "new": endpoint}}
+    ret["comment"] = f"Secret {name} endpoint updated."
+    return ret
+
+
 def parameter_present(
     name,
     db_parameter_group_family,
@@ -748,23 +924,23 @@ def parameter_present(
     """
     Ensure DB parameter group exists and update parameters.
 
-    name
+    name (str):
         The name for the parameter group.
 
-    db_parameter_group_family
+    db_parameter_group_family (str):
         The DB parameter group family name. A
         DB parameter group can be associated with one and only one DB
         parameter group family, and can be applied only to a DB instance
         running a database engine and engine version compatible with that
         DB parameter group family.
 
-    description
+    description (str):
         Parameter group description.
 
-    parameters
+    parameters (dict, optional):
         The DB parameters that need to be changed of type dictionary.
 
-    apply_method
+    apply_method (str, optional):
         The `apply-immediate` method can be used only for dynamic
         parameters; the `pending-reboot` method can be used with MySQL
         and Oracle DB instances for either dynamic or static
@@ -772,19 +948,19 @@ def parameter_present(
         `pending-reboot` method can be used only for static
         parameters.
 
-    tags
+    tags (dict, optional):
         A dict of tags.
 
-    region
+    region (str, optional):
         Region to connect to.
 
-    key
+    key (str, optional):
         Secret key to be used.
 
-    keyid
+    keyid (str, optional):
         Access key to be used.
 
-    profile
+    profile (dict or str, optional):
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
