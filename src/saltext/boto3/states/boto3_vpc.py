@@ -81,6 +81,7 @@ def __virtual__():
 def present(
     name,
     cidr_block,
+    secondary_cidr_blocks=None,
     instance_tenancy=None,
     dns_support=None,
     dns_hostnames=None,
@@ -97,7 +98,12 @@ def present(
         Name of the VPC.
 
     cidr_block
-        The range of IPs in CIDR format, e.g. ``10.0.0.0/24``.
+        The primary VPC CIDR block, e.g. ``10.0.0.0/24``.
+
+    secondary_cidr_blocks
+        Optional list of additional CIDR blocks to associate to the VPC.
+        For backward compatibility, ``cidr_block`` can still be provided as
+        a list where the first entry is primary and the rest are secondary.
 
     instance_tenancy
         Tenancy for instances launched in this VPC (``default`` or
@@ -126,6 +132,51 @@ def present(
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
+    if isinstance(cidr_block, str):
+        primary_cidr = cidr_block.strip()
+        secondary_from_primary = []
+    elif isinstance(cidr_block, (list, tuple, set)):
+        cidr_items = [item for item in cidr_block if isinstance(item, str) and item.strip()]
+        if not cidr_items:
+            ret["result"] = False
+            ret["comment"] = "cidr_block must include at least one CIDR block."
+            return ret
+        primary_cidr = cidr_items[0].strip()
+        secondary_from_primary = [item.strip() for item in cidr_items[1:]]
+    else:
+        ret["result"] = False
+        ret["comment"] = "cidr_block must be a CIDR string or list of CIDR strings."
+        return ret
+
+    if not primary_cidr:
+        ret["result"] = False
+        ret["comment"] = "cidr_block must be a non-empty CIDR string."
+        return ret
+
+    normalized_secondary = []
+    for item in secondary_from_primary:
+        if item and item != primary_cidr and item not in normalized_secondary:
+            normalized_secondary.append(item)
+
+    if secondary_cidr_blocks is not None:
+        secondary_input = (
+            [secondary_cidr_blocks]
+            if isinstance(secondary_cidr_blocks, str)
+            else secondary_cidr_blocks
+        )
+        if not isinstance(secondary_input, (list, tuple, set)):
+            ret["result"] = False
+            ret["comment"] = "secondary_cidr_blocks must be a CIDR string or list of CIDR strings."
+            return ret
+        for item in secondary_input:
+            if not isinstance(item, str) or not item.strip():
+                ret["result"] = False
+                ret["comment"] = "secondary_cidr_blocks values must be non-empty CIDR strings."
+                return ret
+            normalized = item.strip()
+            if normalized != primary_cidr and normalized not in normalized_secondary:
+                normalized_secondary.append(normalized)
+
     r = __salt__["boto3_vpc.exists"](
         name=name, tags=tags, region=region, key=key, keyid=keyid, profile=profile
     )
@@ -135,6 +186,39 @@ def present(
         return ret
 
     if r.get("exists"):
+        if not normalized_secondary:
+            ret["comment"] = "VPC present."
+            return ret
+        if __opts__["test"]:
+            ret["result"] = None
+            ret["comment"] = f"Secondary CIDR blocks will be associated to VPC {name}."
+            ret["changes"] = {
+                "old": {"secondary_cidr_blocks": []},
+                "new": {"secondary_cidr_blocks": normalized_secondary},
+            }
+            return ret
+
+        assoc = __salt__["boto3_vpc.associate_vpc_cidr_blocks"](
+            normalized_secondary,
+            vpc_name=name,
+            region=region,
+            key=key,
+            keyid=keyid,
+            profile=profile,
+        )
+        if not assoc.get("associated"):
+            ret["result"] = False
+            ret["comment"] = "Failed to associate VPC CIDR blocks: {}.".format(
+                assoc["error"]["message"]
+            )
+            return ret
+        if assoc.get("associated_cidrs"):
+            ret["changes"] = {
+                "old": {"secondary_cidr_blocks": []},
+                "new": {"secondary_cidr_blocks": assoc["associated_cidrs"]},
+            }
+            ret["comment"] = f"VPC present; associated CIDR blocks to {name}."
+            return ret
         ret["comment"] = "VPC present."
         return ret
 
@@ -145,7 +229,7 @@ def present(
         return ret
 
     r = __salt__["boto3_vpc.create"](
-        cidr_block,
+        primary_cidr,
         instance_tenancy=instance_tenancy,
         vpc_name=name,
         enable_dns_support=dns_support,
@@ -160,11 +244,32 @@ def present(
         ret["result"] = False
         ret["comment"] = "Error in creating VPC: {}.".format(r["error"]["message"])
         return ret
+
+    if normalized_secondary:
+        assoc = __salt__["boto3_vpc.associate_vpc_cidr_blocks"](
+            normalized_secondary,
+            vpc_id=r["id"],
+            region=region,
+            key=key,
+            keyid=keyid,
+            profile=profile,
+        )
+        if not assoc.get("associated"):
+            ret["result"] = False
+            ret["comment"] = (
+                "VPC created, but failed to associate secondary CIDR blocks: {}.".format(
+                    assoc["error"]["message"]
+                )
+            )
+            return ret
+
     described = __salt__["boto3_vpc.describe"](
         vpc_id=r["id"], region=region, key=key, keyid=keyid, profile=profile
     )
     ret["changes"]["old"] = {"vpc": None}
     ret["changes"]["new"] = described
+    if normalized_secondary:
+        ret["changes"]["secondary_cidr_blocks"] = normalized_secondary
     ret["comment"] = f"VPC {name} created."
     return ret
 
@@ -266,6 +371,7 @@ def dhcp_options_present(
         "netbios_name_servers": netbios_name_servers,
         "netbios_node_type": netbios_node_type,
     }
+
     desired_vpc = None
     if vpc_id or vpc_name:
         desired_vpc = __salt__["boto3_vpc.describe"](
@@ -318,6 +424,9 @@ def dhcp_options_present(
                 return ret
             dhcp_id = dhcp_id.get("id")
             current_dhcp_id = desired_vpc.get("dhcp_options_id")
+            if not dhcp_id:
+                ret["comment"] = "DHCP options already present."
+                return ret
             if current_dhcp_id == dhcp_id:
                 ret["comment"] = "DHCP options already present and associated."
                 return ret
@@ -1220,6 +1329,26 @@ def route_table_absent(name, region=None, key=None, keyid=None, profile=None):
         ret["comment"] = f"Route table {name} is set to be removed."
         ret["result"] = None
         return ret
+
+    tables = __salt__["boto3_vpc.describe_route_tables"](
+        route_table_name=name, region=region, key=key, keyid=keyid, profile=profile
+    )
+    if isinstance(tables, dict) and "error" in tables:
+        ret["result"] = False
+        ret["comment"] = tables["error"]["message"]
+        return ret
+
+    associations = tables[0].get("associations", []) if tables else []
+    for association in associations:
+        if association.get("main") or not association.get("id"):
+            continue
+        r = __salt__["boto3_vpc.disassociate_route_table"](
+            association["id"], region, key, keyid, profile
+        )
+        if "error" in r:
+            ret["result"] = False
+            ret["comment"] = "Failed to disassociate route table: {}".format(r["error"]["message"])
+            return ret
 
     r = __salt__["boto3_vpc.delete_route_table"](
         route_table_name=name, region=region, key=key, keyid=keyid, profile=profile

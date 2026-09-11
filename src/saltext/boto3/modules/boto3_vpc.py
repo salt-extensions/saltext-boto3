@@ -341,7 +341,7 @@ def create(
     profile=None,
 ):
     """
-    Create a VPC with the given CIDR block.
+    Create a VPC with the primary CIDR block.
 
     CLI Example:
 
@@ -349,6 +349,9 @@ def create(
 
         salt myminion boto3_vpc.create '10.0.0.0/24'
     """
+    if not isinstance(cidr_block, str):
+        raise SaltInvocationError("cidr_block must be a CIDR string")
+
     try:
         conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
         kwargs = {"CidrBlock": cidr_block}
@@ -387,6 +390,89 @@ def create(
         return {"created": True, "id": vpc_id}
     except botocore.exceptions.ClientError as exc:
         return {"created": False, "error": boto3mod.get_error(exc)}
+
+
+def associate_vpc_cidr_blocks(
+    cidr_blocks,
+    vpc_id=None,
+    vpc_name=None,
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+):
+    """
+    Associate one or more secondary CIDR blocks to an existing VPC.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt myminion boto3_vpc.associate_vpc_cidr_blocks '10.0.1.0/24' vpc_name='myvpc'
+    """
+    if not exactly_one((vpc_name, vpc_id)):
+        raise SaltInvocationError("One (but not both) of vpc_name or vpc_id must be provided.")
+
+    if isinstance(cidr_blocks, str):
+        requested_cidrs = [cidr_blocks]
+    elif isinstance(cidr_blocks, (list, tuple, set)):
+        requested_cidrs = list(cidr_blocks)
+    else:
+        raise SaltInvocationError("cidr_blocks must be a CIDR string or list of CIDR strings")
+
+    normalized_cidrs = []
+    for cidr in requested_cidrs:
+        if not isinstance(cidr, str) or not cidr.strip():
+            raise SaltInvocationError("cidr_blocks values must be non-empty CIDR strings")
+        normalized = cidr.strip()
+        if normalized not in normalized_cidrs:
+            normalized_cidrs.append(normalized)
+
+    if not normalized_cidrs:
+        raise SaltInvocationError("cidr_blocks must include at least one CIDR block")
+
+    try:
+        conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
+        if not vpc_id:
+            vpc_id = _get_id(
+                vpc_name=vpc_name,
+                region=region,
+                key=key,
+                keyid=keyid,
+                profile=profile,
+            )
+            if not vpc_id:
+                return {
+                    "associated": False,
+                    "error": {"message": f"VPC named {vpc_name} does not exist."},
+                }
+
+        described = conn.describe_vpcs(VpcIds=[vpc_id]).get("Vpcs", [])
+        if not described:
+            return {
+                "associated": False,
+                "error": {"message": f"VPC id {vpc_id} does not exist."},
+            }
+
+        vpc = described[0]
+        existing_cidrs = {vpc.get("CidrBlock")}
+        for assoc in vpc.get("CidrBlockAssociationSet", []):
+            state = assoc.get("CidrBlockState", {}).get("State")
+            if state != "disassociated":
+                cidr = assoc.get("CidrBlock")
+                if cidr:
+                    existing_cidrs.add(cidr)
+
+        to_associate = [cidr for cidr in normalized_cidrs if cidr not in existing_cidrs]
+        associated = []
+        for cidr in to_associate:
+            conn.associate_vpc_cidr_block(VpcId=vpc_id, CidrBlock=cidr)
+            associated.append(cidr)
+            log.info("Associated CIDR %s with VPC %s", cidr, vpc_id)
+
+        return {"associated": True, "associated_cidrs": associated}
+    except botocore.exceptions.ClientError as exc:
+        return {"associated": False, "error": boto3mod.get_error(exc)}
 
 
 def delete(
