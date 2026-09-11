@@ -94,32 +94,45 @@ def present(
     """
     Ensure a VPC with the supplied properties exists.
 
-    name
+    .. versionchanged:: 1.1.0
+        Support associating secondary CIDR blocks through
+        ``secondary_cidr_blocks`` or backward-compatible list input.
+
+    name (str):
         Name of the VPC.
 
-    cidr_block
+    cidr_block (str):
         The primary VPC CIDR block, e.g. ``10.0.0.0/24``.
 
-    secondary_cidr_blocks
+    secondary_cidr_blocks (list, optional):
         Optional list of additional CIDR blocks to associate to the VPC.
         For backward compatibility, ``cidr_block`` can still be provided as
         a list where the first entry is primary and the rest are secondary.
 
-    instance_tenancy
+    instance_tenancy (str, optional):
         Tenancy for instances launched in this VPC (``default`` or
         ``dedicated``).
 
-    dns_support
+    dns_support (bool, optional):
         Whether DNS resolution is supported for the VPC.
 
-    dns_hostnames
+    dns_hostnames (bool, optional):
         Whether instances launched in the VPC receive DNS hostnames.
 
-    tags
-        Dict of tag key/values to apply.
+    tags (dict, optional):
+        Dict of tag key/values to apply. Defaults to None.
 
-    region, key, keyid, profile
-        Standard boto3 connection arguments.
+    region (str, optional):
+        The AWS region where the VPC exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     Example:
 
@@ -278,11 +291,24 @@ def absent(name, tags=None, region=None, key=None, keyid=None, profile=None):
     """
     Ensure the named VPC is absent.
 
-    name
+    name (str):
         Name of the VPC.
 
-    tags
-        Optional tag filter; all tags must match.
+    tags (dict, optional):
+        Optional tag filter; all tags must match. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the VPC exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
 
     Example:
 
@@ -349,8 +375,47 @@ def dhcp_options_present(
         This implementation only sets values during option set creation. It
         cannot update an existing option set in place.
 
-    name
+    name (str):
         Name of the DHCP options set.
+
+    dhcp_options_id (str, optional):
+        The ID of the DHCP options set. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC to associate with the DHCP options set. Defaults to None.
+
+    vpc_id (str, optional):
+        The ID of the VPC to associate with the DHCP options set. Defaults to None.
+
+    domain_name (str, optional):
+        The domain name for the DHCP options set. Defaults to None.
+
+    domain_name_servers (list, optional):
+        A list of domain name servers for the DHCP options set. Defaults to None.
+
+    ntp_servers (list, optional):
+        A list of NTP servers for the DHCP options set. Defaults to None.
+
+    netbios_name_servers (list, optional):
+        A list of NetBIOS name servers for the DHCP options set. Defaults to None.
+
+    netbios_node_type (int, optional):
+        The NetBIOS node type for the DHCP options set. Defaults to None.
+
+    tags (dict, optional):
+        Dict of tag key/values to apply. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the DHCP options set exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     .. versionchanged:: 1.0.1
 
@@ -498,6 +563,48 @@ def dhcp_options_absent(
     """
     Ensure a DHCP options set is absent.
 
+    name (str):
+        The name of the DHCP options set.
+
+    dhcp_options_id (str, optional):
+        The ID of the DHCP options set. Defaults to None.
+
+    vpc_name (str, optional):
+        The name of the VPC to associate with the DHCP options set. Defaults to None.
+
+    vpc_id (str, optional):
+        The ID of the VPC to associate with the DHCP options set. Defaults to None.
+
+    domain_name (str, optional):
+        The domain name for the DHCP options set. Defaults to None.
+
+    domain_name_servers (list, optional):
+        A list of domain name servers for the DHCP options set. Defaults to None.
+
+    ntp_servers (list, optional):
+        A list of NTP servers for the DHCP options set. Defaults to None.
+
+    netbios_name_servers (list, optional):
+        A list of NetBIOS name servers for the DHCP options set. Defaults to None.
+
+    netbios_node_type (int, optional):
+        The NetBIOS node type for the DHCP options set. Defaults to None.
+
+    tags (dict, optional):
+        Dict of tag key/values to apply. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the DHCP options set exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     Example:
 
     .. code-block:: yaml
@@ -582,21 +689,24 @@ def subnet_present(
         Route table association is not handled by the boto3_vpc subnet
         states yet; that will land with the route_table port.
 
-    name
+    name (str):
         Name of the subnet.
 
-    cidr_block
+    cidr_block (str):
         The range of IPs for the subnet, in CIDR format.
 
-    vpc_name / vpc_id
-        Identify the VPC the subnet belongs to (one is required).
+    vpc_name (str, optional):
+        The name of the VPC the subnet belongs to. Defaults to None.
 
-    availability_zone
-        Optional AZ to place the subnet in.
+    vpc_id (str, optional):
+        The ID of the VPC the subnet belongs to. Defaults to None.
 
-    auto_assign_public_ipv4
+    availability_zone (str, optional):
+        Optional AZ to place the subnet in. Defaults to None.
+
+    auto_assign_public_ipv4 (bool, optional):
         If ``True``, instances launched into this subnet will be assigned a
-        public IPv4 address by default.
+        public IPv4 address by default. Defaults to False.
 
     Example:
 
@@ -661,6 +771,24 @@ def subnet_present(
 def subnet_absent(name=None, subnet_id=None, region=None, key=None, keyid=None, profile=None):
     """
     Ensure a subnet is absent.
+
+    name (str):
+        The name of the subnet.
+
+    subnet_id (str, optional):
+        The ID of the subnet. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the subnet exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     Example:
 
@@ -727,21 +855,30 @@ def internet_gateway_present(
     """
     Ensure an internet gateway exists.
 
-    name
+    name (str):
         Name of the internet gateway.
 
-    vpc_name
-        Name of the VPC to which the internet gateway should be attached.
+    vpc_name (str, optional):
+        Name of the VPC to which the internet gateway should be attached. Defaults to None.
 
-    vpc_id
+    vpc_id (str, optional):
         Id of the VPC to which the internet_gateway should be attached.
-        Only one of vpc_name or vpc_id may be provided.
+        Only one of vpc_name or vpc_id may be provided. Defaults to None.
 
-    tags
-        A list of tags.
+    tags (list, optional):
+        A list of tags. Defaults to None.
 
-    region, key, keyid, profile
-        Standard boto3 connection arguments.
+    region (str, optional):
+        The AWS region where the internet gateway exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     Example:
 
@@ -798,11 +935,23 @@ def internet_gateway_absent(name, detach=False, region=None, key=None, keyid=Non
     """
     Ensure the named internet gateway is absent.
 
-    name
+    name (str):
         Name of the internet gateway.
 
-    detach
-        First detach the internet gateway from a VPC, if attached.
+    detach (bool, optional):
+        First detach the internet gateway from a VPC, if attached. Defaults to False.
+
+    region (str, optional):
+        The AWS region where the internet gateway exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     Example:
 
@@ -871,6 +1020,39 @@ def route_table_present(
 ):
     """
     Ensure route table with routes exists and is associated to a VPC.
+
+    name (str):
+        The name of the route table.
+
+    vpc_name (str, optional):
+        The name of the VPC to which the route table belongs. Defaults to None.
+
+    vpc_id (str, optional):
+        The ID of the VPC to which the route table belongs. Defaults to None.
+
+    routes (list, optional):
+        A list of routes to be added to the route table. Defaults to None.
+
+    subnet_ids (list, optional):
+        A list of subnet IDs to be associated with the route table. Defaults to None.
+
+    subnet_names (list, optional):
+        A list of subnet names to be associated with the route table. Defaults to None.
+
+    tags (list, optional):
+        A list of tags to be applied to the route table. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the route table exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     Example:
 
@@ -1301,6 +1483,24 @@ def route_table_absent(name, region=None, key=None, keyid=None, profile=None):
     """
     Ensure the named route table is absent.
 
+    .. versionchanged:: 1.1.0
+        Disassociate non-main route table associations before deletion.
+
+    name (str):
+        The name of the route table to be removed.
+
+    region (str, optional):
+        The AWS region where the route table exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     Example:
 
     .. code-block:: yaml
@@ -1376,6 +1576,29 @@ def nat_gateway_present(
     """
     Ensure a nat gateway exists within the specified subnet.
 
+    name (str):
+        The name of the nat gateway.
+
+    subnet_name (str, optional):
+        The name of the subnet where the nat gateway should exist. Defaults to None.
+
+    subnet_id (str, optional):
+        The ID of the subnet where the nat gateway should exist. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the nat gateway exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
+    allocation_id (str, optional):
+        The allocation ID for the nat gateway. Defaults to None.
 
     Example:
 
@@ -1437,6 +1660,30 @@ def nat_gateway_absent(
 ):
     """
     Ensure the nat gateway in the named subnet is absent.
+
+    name (str):
+        The name of the nat gateway.
+
+    subnet_name (str, optional):
+        The name of the subnet where the nat gateway exists. Defaults to None.
+
+    subnet_id (str, optional):
+        The ID of the subnet where the nat gateway exists. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the nat gateway exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
+    wait_for_delete_retries (int, optional):
+        The number of retries to wait for the nat gateway to be deleted. Defaults to 0.
 
     Example:
 
@@ -1501,6 +1748,26 @@ def accept_vpc_peering_connection(
     """
     Accept a VPC pending requested peering connection between two VPCs.
 
+    name (str):
+        The name of the VPC peering connection to accept.
+
+    conn_id (str, optional):
+        The ID of the VPC peering connection to accept. Defaults to None.
+
+    conn_name (str, optional):
+        The name of the VPC peering connection to accept. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the VPC peering connection exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     Example:
 
@@ -1572,6 +1839,41 @@ def request_vpc_peering_connection(
     """
     Request a VPC peering connection between two VPCs.
 
+    name (str):
+        The name of the VPC peering connection to request.
+
+    requester_vpc_id (str, optional):
+        The ID of the requester VPC. Defaults to None.
+
+    requester_vpc_name (str, optional):
+        The name of the requester VPC. Defaults to None.
+
+    peer_vpc_id (str, optional):
+        The ID of the peer VPC. Defaults to None.
+
+    peer_vpc_name (str, optional):
+        The name of the peer VPC. Defaults to None.
+
+    conn_name (str, optional):
+        The name of the VPC peering connection. Defaults to None.
+
+    peer_owner_id (str, optional):
+        The AWS account ID of the owner of the peer VPC. Defaults to None.
+
+    peer_region (str, optional):
+        The AWS region where the peer VPC exists. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the requester VPC exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     Example:
 
@@ -1646,6 +1948,42 @@ def vpc_peering_connection_present(
     """
     Ensure a VPC peering connection is present.
 
+    name (str):
+        The name of the VPC peering connection to ensure is present.
+
+    requester_vpc_id (str, optional):
+        The ID of the requester VPC. Defaults to None.
+
+    requester_vpc_name (str, optional):
+        The name of the requester VPC. Defaults to None.
+
+    peer_vpc_id (str, optional):
+        The ID of the peer VPC. Defaults to None.
+
+    peer_vpc_name (str, optional):
+        The name of the peer VPC. Defaults to None.
+
+    conn_name (str, optional):
+        The name of the VPC peering connection. Defaults to None.
+
+    peer_owner_id (str, optional):
+        The AWS account ID of the owner of the peer VPC. Defaults to None.
+
+    peer_region (str, optional):
+        The AWS region where the peer VPC exists. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the requester VPC exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     Example:
 
     .. code-block:: yaml
@@ -1704,6 +2042,27 @@ def vpc_peering_connection_absent(
     """
     Ensure a VPC peering connection is absent.
 
+    name (str):
+        The name of the VPC peering connection to ensure is absent.
+
+    conn_id (str, optional):
+        The ID of the VPC peering connection to ensure is absent. Defaults to None.
+
+    conn_name (str, optional):
+        The name of the VPC peering connection to ensure is absent. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the VPC peering connection exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
+
     Example:
 
     .. code-block:: yaml
@@ -1721,6 +2080,27 @@ def delete_vpc_peering_connection(
 ):
     """
     Delete a VPC peering connection.
+
+    name (str):
+        The name of the VPC peering connection to delete.
+
+    conn_id (str, optional):
+        The ID of the VPC peering connection to delete. Defaults to None.
+
+    conn_name (str, optional):
+        The name of the VPC peering connection to delete. Defaults to None.
+
+    region (str, optional):
+        The AWS region where the VPC peering connection exists. Defaults to None.
+
+    key (str, optional):
+        The AWS access key. Defaults to None.
+
+    keyid (str, optional):
+        The AWS secret key. Defaults to None.
+
+    profile (str, optional):
+        The AWS profile to use. Defaults to None.
 
     Example:
 
