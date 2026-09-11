@@ -2,6 +2,8 @@
 Unit tests for the ``boto3_vpc`` execution module.
 """
 
+from unittest.mock import call
+
 import pytest
 from salt.exceptions import CommandExecutionError
 from salt.exceptions import SaltInvocationError
@@ -144,6 +146,70 @@ def test_create_with_name_tags_and_dns(conn):
     conn.modify_vpc_attribute.assert_any_call(VpcId="vpc-x", EnableDnsHostnames={"Value": False})
     # Caches the new id.
     assert boto3_vpc.__context__["boto3_ec2:us-east-1:myvpc:id"] == "vpc-x"
+
+
+def test_create_with_multiple_cidr_blocks(conn):
+    with pytest.raises(SaltInvocationError, match="cidr_block must be a CIDR string"):
+        boto3_vpc.create(["10.0.0.0/24", "10.0.1.0/24"])
+
+
+def test_associate_vpc_cidr_blocks_by_id(conn):
+    conn.describe_vpcs.return_value = {
+        "Vpcs": [
+            {
+                "VpcId": "vpc-multi",
+                "CidrBlock": "10.0.0.0/24",
+                "CidrBlockAssociationSet": [
+                    {
+                        "CidrBlock": "10.0.0.0/24",
+                        "CidrBlockState": {"State": "associated"},
+                    }
+                ],
+            }
+        ]
+    }
+    result = boto3_vpc.associate_vpc_cidr_blocks(
+        ["10.0.1.0/24", "10.0.2.0/24", "10.0.2.0/24"],
+        vpc_id="vpc-multi",
+    )
+    assert result == {
+        "associated": True,
+        "associated_cidrs": ["10.0.1.0/24", "10.0.2.0/24"],
+    }
+    assert conn.associate_vpc_cidr_block.call_args_list == [
+        call(VpcId="vpc-multi", CidrBlock="10.0.1.0/24"),
+        call(VpcId="vpc-multi", CidrBlock="10.0.2.0/24"),
+    ]
+
+
+def test_associate_vpc_cidr_blocks_skips_existing(conn):
+    conn.describe_vpcs.return_value = {
+        "Vpcs": [
+            {
+                "VpcId": "vpc-multi",
+                "CidrBlock": "10.0.0.0/24",
+                "CidrBlockAssociationSet": [
+                    {
+                        "CidrBlock": "10.0.1.0/24",
+                        "CidrBlockState": {"State": "associated"},
+                    }
+                ],
+            }
+        ]
+    }
+    result = boto3_vpc.associate_vpc_cidr_blocks("10.0.1.0/24", vpc_id="vpc-multi")
+    assert result == {"associated": True, "associated_cidrs": []}
+    conn.associate_vpc_cidr_block.assert_not_called()
+
+
+def test_associate_vpc_cidr_blocks_requires_vpc_ref():
+    with pytest.raises(SaltInvocationError, match=r"One \(but not both\) of vpc_name or vpc_id"):
+        boto3_vpc.associate_vpc_cidr_blocks(["10.0.1.0/24"])
+
+
+def test_create_rejects_empty_cidr_list():
+    with pytest.raises(SaltInvocationError, match="cidr_block must be a CIDR string"):
+        boto3_vpc.create([])
 
 
 def test_create_handles_client_error(conn, client_error):

@@ -56,6 +56,48 @@ def test_vpc_present_create(mock_salt):
     assert result["changes"]["new"] == {"vpc": {"id": "vpc-1"}}
 
 
+def test_vpc_present_passes_secondary_cidrs(mock_salt):
+    create_mock = MagicMock(return_value={"created": True, "id": "vpc-1"})
+    associate_mock = MagicMock(
+        return_value={"associated": True, "associated_cidrs": ["10.0.1.0/24"]}
+    )
+    salt_map = {
+        "boto3_vpc.exists": {"exists": False},
+        "boto3_vpc.create": create_mock,
+        "boto3_vpc.associate_vpc_cidr_blocks": associate_mock,
+        "boto3_vpc.describe": {"vpc": {"id": "vpc-1"}},
+    }
+    with mock_salt(boto3_vpc_state, salt_map):
+        result = boto3_vpc_state.present(
+            "myvpc",
+            "10.0.0.0/24",
+            secondary_cidr_blocks=["10.0.1.0/24"],
+        )
+    assert result["result"] is True
+    assert create_mock.call_args.args[0] == "10.0.0.0/24"
+    assert associate_mock.call_args.args[0] == ["10.0.1.0/24"]
+    assert associate_mock.call_args.kwargs["vpc_id"] == "vpc-1"
+
+
+def test_vpc_present_existing_associates_secondary_cidrs(mock_salt):
+    associate_mock = MagicMock(
+        return_value={"associated": True, "associated_cidrs": ["10.0.1.0/24"]}
+    )
+    salt_map = {
+        "boto3_vpc.exists": {"exists": True},
+        "boto3_vpc.associate_vpc_cidr_blocks": associate_mock,
+    }
+    with mock_salt(boto3_vpc_state, salt_map):
+        result = boto3_vpc_state.present(
+            "myvpc",
+            "10.0.0.0/24",
+            secondary_cidr_blocks=["10.0.1.0/24"],
+        )
+    assert result["result"] is True
+    assert result["changes"]["new"] == {"secondary_cidr_blocks": ["10.0.1.0/24"]}
+    assert "associated CIDR blocks" in result["comment"]
+
+
 def test_vpc_present_create_failure(mock_salt):
     salt_map = {
         "boto3_vpc.exists": {"exists": False},
@@ -264,6 +306,15 @@ def test_route_table_absent_missing(mock_salt):
 def test_route_table_absent_delete(mock_salt):
     salt_map = {
         "boto3_vpc.get_resource_id": {"id": "rtb-1"},
+        "boto3_vpc.describe_route_tables": [
+            {
+                "id": "rtb-1",
+                "associations": [
+                    {"id": "rtbassoc-1", "main": False},
+                ],
+            }
+        ],
+        "boto3_vpc.disassociate_route_table": {"disassociated": True},
         "boto3_vpc.delete_route_table": {"deleted": True},
     }
     with mock_salt(boto3_vpc_state, salt_map):
