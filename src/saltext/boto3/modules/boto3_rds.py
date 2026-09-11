@@ -145,6 +145,24 @@ def exists(
     """
     Check to see if an RDS exists.
 
+    name (str):
+        Name of the RDS instance to check.
+
+    tags (list):
+        Optional list of tags to filter the RDS instance by.
+
+    region (str):
+        AWS region where the RDS instance is located.
+
+    key (str):
+        AWS access key ID.
+
+    keyid (str):
+        AWS secret access key.
+
+    profile (str):
+        AWS profile to use for the connection.
+
     CLI Example:
 
     .. code-block:: bash
@@ -166,11 +184,30 @@ def option_group_exists(
     """
     Check to see if an RDS option group exists.
 
+    name (str):
+        Name of the RDS option group to check.
+
+    tags (list):
+        Optional list of tags to filter the RDS option group by.
+
+    region (str):
+        AWS region where the RDS option group is located.
+
+    key (str):
+        AWS access key ID.
+
+    keyid (str):
+        AWS secret access key.
+
+    profile (str):
+        AWS profile to use for the connection.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_rds.option_group_exists myoptiongr region=us-east-1
+        salt myminion boto3_rds.option_group_exists myoptiongr \
+            region=us-east-1
     """
     conn = _get_conn("rds", region=region, key=key, keyid=keyid, profile=profile)
 
@@ -187,12 +224,30 @@ def parameter_group_exists(
     """
     Check to see if an RDS parameter group exists.
 
+    name (str):
+        Name of the RDS parameter group to check.
+
+    tags (list):
+        Optional list of tags to filter the RDS parameter group by.
+
+    region (str):
+        AWS region where the RDS parameter group is located.
+
+    key (str):
+        AWS access key ID.
+
+    keyid (str):
+        AWS secret access key.
+
+    profile (str):
+        AWS profile to use for the connection.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_rds.parameter_group_exists myparametergroup \
-                region=us-east-1
+            region=us-east-1
     """
     conn = _get_conn("rds", region=region, key=key, keyid=keyid, profile=profile)
 
@@ -213,12 +268,34 @@ def subnet_group_exists(
     """
     Check to see if an RDS subnet group exists.
 
+    .. versionchanged:: 1.1.0
+        Updated exception handling to properly check for the
+        existence of the subnet group.
+
+    name (str):
+        Name of the RDS subnet group to check.
+
+    tags (list):
+        Optional list of tags to filter the RDS subnet group by.
+
+    region (str):
+        AWS region where the RDS subnet group is located.
+
+    key (str):
+        AWS access key ID.
+
+    keyid (str):
+        AWS secret access key.
+
+    profile (str):
+        AWS profile to use for the connection.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_rds.subnet_group_exists my-param-group \
-                region=us-east-1
+        salt myminion boto3_rds.subnet_group_exists my-param-group /
+            region=us-east-1
     """
     try:
         conn = _get_conn("rds", region=region, key=key, keyid=keyid, profile=profile)
@@ -228,10 +305,9 @@ def subnet_group_exists(
         rds = conn.describe_db_subnet_groups(DBSubnetGroupName=name)
         return {"exists": bool(rds)}
     except ClientError as e:
-        if "DBSubnetGroupNotFoundFault" in e.message:
+        if e.response["Error"]["Code"] == "DBSubnetGroupNotFoundFault":
             return {"exists": False}
-        else:
-            return {"error": boto3mod.get_error(e)}
+        return {"error": boto3mod.get_error(e)}
 
 
 def create(
@@ -282,15 +358,141 @@ def create(
     """
     Create an RDS Instance
 
-    CLI example to create an RDS Instance::
+    name (str):
+        Name of the RDS instance to create.
 
-        salt myminion boto3_rds.create myrds 10 db.t2.micro MySQL sqlusr sqlpassw
+    allocated_storage (int):
+        The amount of storage (in gibibytes) to allocate for the RDS instance.
+
+    db_instance_class (str):
+        The compute and memory capacity of the RDS instance.
+
+    engine (str):
+        The database engine to use for the RDS instance.
+
+    master_username (str):
+        The master username for the RDS instance.
+
+    master_user_password (str):
+        The master user password for the RDS instance.
+
+    db_name (str):
+        The name of the database to create when the RDS instance is created.
+
+    db_security_groups (list):
+        A list of DB security groups to associate with the RDS instance.
+
+    vpc_security_group_ids (list):
+        A list of VPC security group IDs to associate with the RDS instance.
+
+    vpc_security_groups (list):
+        A list of VPC security group names to associate with the RDS instance.
+
+    availability_zone (str):
+        The availability zone where the RDS instance will be created.
+
+    db_subnet_group_name (str):
+        The DB subnet group to use for the RDS instance.
+
+    preferred_maintenance_window (str):
+        The preferred maintenance window for the RDS instance.
+
+    db_parameter_group_name (str):
+        The DB parameter group to associate with the RDS instance.
+
+    backup_retention_period (int):
+        The number of days to retain backups for the RDS instance.
+
+    preferred_backup_window (str):
+        The preferred backup window for the RDS instance.
+
+    port (int):
+        The port number on which the RDS instance accepts connections.
+
+    multi_az (bool):
+        Specifies if the RDS instance is a Multi-AZ deployment.
+
+    engine_version (str):
+        The version of the database engine to use for the RDS instance.
+
+    auto_minor_version_upgrade (bool):
+        Indicates whether minor engine upgrades are applied automatically to the RDS instance.
+
+    license_model (str):
+        The license model for the RDS instance.
+
+    iops (int):
+        The amount of provisioned IOPS for the RDS instance.
+
+    option_group_name (str):
+        The option group to associate with the RDS instance.
+
+    character_set_name (str):
+        The character set to associate with the RDS instance.
+
+    publicly_accessible (bool):
+        Specifies if the RDS instance is publicly accessible.
+
+    wait_status (str):
+        The status to wait for after creating the RDS instance. Valid values are "available", "modifying", "backing-up".
+
+    tags (list):
+        A list of tags to associate with the RDS instance.
+
+    db_cluster_identifier (str):
+        The DB cluster identifier for the RDS instance.
+
+    storage_type (str):
+        The storage type to use for the RDS instance.
+
+    tde_credential_arn (str):
+        The ARN of the TDE credential for the RDS instance.
+
+    tde_credential_password (str):
+        The password for the TDE credential.
+
+    storage_encrypted (bool):
+        Specifies if the storage for the RDS instance is encrypted.
+
+    kms_key_id (str):
+        The KMS key ID to use for the RDS instance.
+
+    domain (str):
+        The Active Directory domain to associate with the RDS instance.
+
+    copy_tags_to_snapshot (bool):
+        Specifies if tags are copied to snapshots of the RDS instance.
+
+    monitoring_interval (int):
+        The interval, in seconds, for Enhanced Monitoring metrics.
+
+    monitoring_role_arn (str):
+        The ARN of the IAM role for Enhanced Monitoring.
+
+    domain_iam_role_name (str):
+        The name of the IAM role to use for the Active Directory domain.
+
+    region (str):
+        AWS region where the RDS instance will be created.
+
+    promotion_tier (int):
+        The promotion tier for the RDS instance.
+
+    key (str):
+        AWS access key ID.
+
+    keyid (str):
+        AWS secret access key.
+
+    profile (str):
+        AWS profile to use for the connection.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_rds.create
+        salt myminion boto3_rds.create myrds 10 db.t2.micro MySQL \
+            sqlusr sqlpassw
 
     """
     if not allocated_storage:
@@ -408,15 +610,69 @@ def create_read_replica(
     """
     Create an RDS read replica
 
-    CLI example to create an RDS  read replica::
+    name (str):
+        The name of the read replica to create.
 
-        salt myminion boto3_rds.create_read_replica replicaname source_name
+    source_name (str):
+        The name of the source DB instance from which to create the read replica.
+
+    db_instance_class (str):
+        The compute and memory capacity of the read replica.
+
+    availability_zone (str):
+        The availability zone in which to create the read replica.
+
+    port (int):
+        The port number on which the read replica accepts connections.
+
+    auto_minor_version_upgrade (bool):
+        Indicates whether minor engine upgrades are applied automatically to the read replica.
+
+    iops (int):
+        The amount of Provisioned IOPS (input/output operations per second) to be initially allocated for the read replica.
+
+    option_group_name (str):
+        The option group to associate with the read replica.
+
+    publicly_accessible (bool):
+        Specifies whether the read replica is publicly accessible.
+
+    tags (list):
+        A list of tags to associate with the read replica.
+
+    db_subnet_group_name (str):
+        The DB subnet group to associate with the read replica.
+
+    storage_type (str):
+        The storage type to be associated with the read replica.
+
+    copy_tags_to_snapshot (bool):
+        Specifies whether to copy tags from the read replica to snapshots of the read replica.
+
+    monitoring_interval (int):
+        The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the read replica.
+
+    monitoring_role_arn (str):
+        The ARN for the IAM role that permits RDS to send Enhanced Monitoring metrics to CloudWatch Logs for the read replica.
+
+    region (str):
+        The AWS region in which to create the read replica.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_rds.create_read_replica
+        salt myminion boto3_rds.create_read_replica \
+            replicaname source_name
 
     """
     res = __salt__["boto3_rds.exists"](source_name, tags, region, key, keyid, profile)
@@ -481,16 +737,39 @@ def create_option_group(
     """
     Create an RDS option group
 
-    CLI example to create an RDS option group::
+    name (str):
+        The name of the option group.
 
-        salt myminion boto3_rds.create_option_group my-opt-group mysql 5.6 \
-                "group description"
+    engine_name (str):
+        The name of the database engine.
+
+    major_engine_version (str):
+        The major version of the database engine.
+
+    option_group_description (str):
+        The description of the option group.
+
+    tags (list):
+        A list of tags to associate with the option group.
+
+    region (str):
+        The AWS region in which to create the option group.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_rds.create_option_group
+        salt myminion boto3_rds.create_option_group my-opt-group mysql 5.6 \
+            "group description"
 
     """
     res = __salt__["boto3_rds.option_group_exists"](name, tags, region, key, keyid, profile)
@@ -529,16 +808,36 @@ def create_parameter_group(
     """
     Create an RDS parameter group
 
-    CLI example to create an RDS parameter group::
+    name (str):
+        The name of the parameter group.
 
-        salt myminion boto3_rds.create_parameter_group my-param-group mysql5.6 \
-                "group description"
+    db_parameter_group_family (str):
+        The database engine family for the parameter group.
+
+    description (str):
+        The description of the parameter group.
+
+    tags (list):
+        A list of tags to associate with the parameter group.
+
+    region (str):
+        The AWS region in which to create the parameter group.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_rds.create_parameter_group
+        salt myminion boto3_rds.create_parameter_group my-param-group \
+            mysql5.6 "group description"
 
     """
     res = __salt__["boto3_rds.parameter_group_exists"](name, tags, region, key, keyid, profile)
@@ -584,17 +883,37 @@ def create_subnet_group(
     """
     Create an RDS subnet group
 
-    CLI example to create an RDS subnet group::
+    name (str):
+        The name of the subnet group.
 
-        salt myminion boto3_rds.create_subnet_group my-subnet-group \
-            "group description" '[subnet-12345678, subnet-87654321]' \
-            region=us-east-1
+    description (str):
+        The description of the subnet group.
+
+    subnet_ids (list):
+        A list of subnet IDs to include in the subnet group.
+
+    tags (list):
+        A list of tags to associate with the subnet group.
+
+    region (str):
+        The AWS region in which to create the subnet group.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_rds.create_subnet_group
+        salt myminion boto3_rds.create_subnet_group my-subnet-group \
+            "group description" '[subnet-12345678, subnet-87654321]' \
+            region=us-east-1
 
     """
     res = __salt__["boto3_rds.subnet_group_exists"](name, tags, region, key, keyid, profile)
@@ -632,13 +951,37 @@ def update_parameter_group(
     """
     Update an RDS parameter group.
 
+    name (str):
+        The name of the parameter group.
+
+    parameters (dict):
+        A dictionary of parameters to update in the parameter group.
+
+    apply_method (str):
+        The method to apply the parameter changes. Valid values are "immediate" and "pending-reboot".
+
+    tags (list):
+        A list of tags to associate with the parameter group.
+
+    region (str):
+        The AWS region in which the parameter group exists.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_rds.update_parameter_group my-param-group \
-                parameters='{"back_log":1, "binlog_cache_size":4096}' \
-                region=us-east-1
+            parameters='{"back_log":1, "binlog_cache_size":4096}' \
+            region=us-east-1
     """
 
     res = __salt__["boto3_rds.parameter_group_exists"](name, tags, region, key, keyid, profile)
@@ -676,6 +1019,24 @@ def update_parameter_group(
 def describe(name, tags=None, region=None, key=None, keyid=None, profile=None):
     """
     Return RDS instance details.
+
+    name (str):
+        The name of the RDS instance.
+
+    tags (list):
+        A list of tags to filter the RDS instances.
+
+    region (str):
+        The AWS region in which the RDS instance exists.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -757,11 +1118,33 @@ def describe_db_instances(
     current scope.  Arbitrary subelements or subsections of the returned dataset
     can be selected by passing in a valid JMSEPath filter as well.
 
+    name (str):
+        The name of the DB instance to describe. If not provided, all DB instances will be described.
+
+    filters (list):
+        A list of filters to apply to the DB instances.
+
+    jmespath (str):
+        A JMESPath expression to filter the returned data.
+
+    region (str):
+        The AWS region in which the DB instance exists.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_rds.describe_db_instances jmespath='DBInstances[*].DBInstanceIdentifier'
+        salt myminion boto3_rds.describe_db_instances \
+            jmespath='DBInstances[*].DBInstanceIdentifier'
 
     """
     conn = _get_conn("rds", region=region, key=key, keyid=keyid, profile=profile)
@@ -796,6 +1179,27 @@ def describe_db_subnet_groups(
     current scope.  Arbitrary subelements or subsections of the returned dataset
     can be selected by passing in a valid JMSEPath filter as well.
 
+    name (str):
+        The name of the DB subnet group to describe. If not provided, all DB subnet groups will be described.
+
+    filters (list):
+        A list of filters to apply to the DB subnet groups.
+
+    jmespath (str):
+        A JMESPath expression to filter the returned data.
+
+    region (str):
+        The AWS region in which the DB subnet group exists.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
+
     CLI Example:
 
     .. code-block:: bash
@@ -818,6 +1222,24 @@ def describe_db_subnet_groups(
 def get_endpoint(name, tags=None, region=None, key=None, keyid=None, profile=None):
     """
     Return the endpoint of an RDS instance.
+
+    name (str):
+        The name of the RDS instance.
+
+    tags (list):
+        A list of tags to filter the RDS instances.
+
+    region (str):
+        The AWS region in which the RDS instance exists.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -859,12 +1281,42 @@ def delete(
     """
     Delete an RDS instance.
 
+    name (str):
+        The name of the RDS instance to delete.
+
+    skip_final_snapshot (bool):
+        Whether to skip the creation of a final DB snapshot before deletion.
+
+    final_db_snapshot_identifier (str):
+        The identifier for the final DB snapshot if skip_final_snapshot is False.
+
+    region (str):
+        The AWS region in which the RDS instance exists.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
+
+    tags (list):
+        A list of tags to filter the RDS instances.
+
+    wait_for_deletion (bool):
+        Whether to wait for the RDS instance to be completely deleted.
+
+    timeout (int):
+        The maximum time to wait for deletion, in seconds.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_rds.delete myrds skip_final_snapshot=True \
-                region=us-east-1
+            region=us-east-1
     """
     if timeout == 180 and not skip_final_snapshot:
         timeout = 420
@@ -932,12 +1384,27 @@ def delete_option_group(name, region=None, key=None, keyid=None, profile=None):
     """
     Delete an RDS option group.
 
+    name (str):
+        The name of the RDS option group to delete.
+
+    region (str):
+        The AWS region in which the RDS option group exists.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_rds.delete_option_group my-opt-group \
-                region=us-east-1
+            region=us-east-1
     """
     try:
         conn = _get_conn("rds", region=region, key=key, keyid=keyid, profile=profile)
@@ -963,12 +1430,27 @@ def delete_parameter_group(name, region=None, key=None, keyid=None, profile=None
     """
     Delete an RDS parameter group.
 
+    name (str):
+        The name of the RDS parameter group to delete.
+
+    region (str):
+        The AWS region in which the RDS parameter group exists.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_rds.delete_parameter_group my-param-group \
-                region=us-east-1
+            region=us-east-1
     """
     try:
         conn = _get_conn("rds", region=region, key=key, keyid=keyid, profile=profile)
@@ -988,12 +1470,27 @@ def delete_subnet_group(name, region=None, key=None, keyid=None, profile=None):
     """
     Delete an RDS subnet group.
 
+    name (str):
+        The name of the RDS subnet group to delete.
+
+    region (str):
+        The AWS region in which the RDS subnet group exists.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_rds.delete_subnet_group my-subnet-group \
-                region=us-east-1
+            region=us-east-1
     """
     try:
         conn = _get_conn("rds", region=region, key=key, keyid=keyid, profile=profile)
@@ -1021,16 +1518,37 @@ def describe_parameter_group(
 ):  # pylint: disable=unused-argument
     """
     Returns a list of `DBParameterGroup` descriptions.
-    CLI example to description of parameter group::
 
-        salt myminion boto3_rds.describe_parameter_group parametergroupname\
-            region=us-east-1
+    name (str):
+        The name of the RDS parameter group to describe.
+
+    Filters (list, optional):
+        A list of filters to apply to the description.
+
+    MaxRecords (int, optional):
+        The maximum number of records to return.
+
+    Marker (str, optional):
+        The marker for pagination.
+
+    region (str):
+        The AWS region in which the RDS parameter group exists.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_rds.describe_parameter_group
+        salt myminion boto3_rds.describe_parameter_group \
+            name-of-parameter-group region=us-east-1
 
     """
     res = __salt__["boto3_rds.parameter_group_exists"](
@@ -1080,16 +1598,36 @@ def describe_parameters(
 ):  # pylint: disable=unused-argument
     """
     Returns a list of `DBParameterGroup` parameters.
-    CLI example to description of parameters ::
 
-        salt myminion boto3_rds.describe_parameters parametergroupname\
-            region=us-east-1
+    name (str):
+        The name of the RDS parameter group whose parameters are to be described.
+
+    Source (str, optional):
+        The source of the parameters to return. Valid values are `user`, `system`, or `engine-default`.
+
+    MaxRecords (int, optional):
+        The maximum number of records to return.
+
+    Marker (str, optional):
+        The marker for pagination.
+
+    region (str):
+        The AWS region in which the RDS parameter group exists.
+
+    key (str):
+        The AWS access key ID.
+
+    keyid (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_rds.describe_parameters
+        salt myminion boto3_rds.describe_parameters name-of-parameter-group
 
     """
     res = __salt__["boto3_rds.parameter_group_exists"](
@@ -1196,15 +1734,136 @@ def modify_db_instance(
 ):  # pylint: disable=too-many-arguments,unused-argument
     """
     Modify settings for a DB instance.
-    CLI example to description of parameters ::
 
-        salt myminion boto3_rds.modify_db_instance db_instance_identifier region=us-east-1
+    name (str):
+        The name of the RDS DB instance to modify.
+
+    allocated_storage (int, optional):
+        The new allocated storage size for the DB instance, in gigabytes.
+
+    allow_major_version_upgrade (bool, optional):
+        Indicates whether major version upgrades are allowed for the DB instance.
+
+    apply_immediately (bool, optional):
+        Specifies whether the modifications should be applied immediately.
+
+    auto_minor_version_upgrade (bool, optional):
+        Indicates whether minor version upgrades are applied automatically to the DB instance.
+
+    backup_retention_period (int, optional):
+        The number of days to retain backups for the DB instance.
+
+    ca_certificate_identifier (str, optional):
+        The identifier of the CA certificate for the DB instance.
+
+    character_set_name (str, optional):
+        The character set name for the DB instance.
+
+    copy_tags_to_snapshot (bool, optional):
+        Indicates whether to copy tags to the DB instance snapshot.
+
+    db_cluster_identifier (str, optional):
+        The DB cluster identifier to associate with the DB instance.
+
+    db_instance_class (str, optional):
+        The compute and memory capacity of the DB instance, for example, db.m4.large.
+
+    db_name (str, optional):
+        The name of the database to create when the DB instance is created.
+
+    db_parameter_group_name (str, optional):
+        The name of the DB parameter group to associate with the DB instance.
+
+    db_port_number (int, optional):
+        The port number on which the DB instance accepts connections.
+
+    db_security_groups (list, optional):
+        A list of DB security groups to associate with the DB instance.
+
+    db_subnet_group_name (str, optional):
+        The name of the DB subnet group to associate with the DB instance.
+
+    domain (str, optional):
+        The Active Directory domain to associate with the DB instance.
+
+    domain_iam_role_name (str, optional):
+        The name of the IAM role to associate with the Active Directory domain for the DB instance.
+
+    engine_version (str, optional):
+        The version of the database engine to use for the DB instance.
+
+    iops (int, optional):
+        The amount of provisioned IOPS for the DB instance.
+
+    kms_key_id (str, optional):
+        The AWS KMS key identifier for the DB instance.
+
+    license_model (str, optional):
+        The license model for the DB instance.
+
+    master_user_password (str, optional):
+        The password for the master database user.
+
+    monitoring_interval (int, optional):
+        The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the DB instance.
+
+    monitoring_role_arn (str, optional):
+        The ARN for the IAM role that permits RDS to send Enhanced Monitoring metrics to CloudWatch Logs.
+
+    multi_az (bool, optional):
+        Indicates whether the DB instance is a Multi-AZ deployment.
+
+    new_db_instance_identifier (str, optional):
+        The new DB instance identifier for the DB instance.
+
+    option_group_name (str, optional):
+        The name of the option group to associate with the DB instance.
+
+    preferred_backup_window (str, optional):
+        The daily time range during which automated backups are created for the DB instance.
+
+    preferred_maintenance_window (str, optional):
+        The weekly time range during which system maintenance can occur for the DB instance.
+
+    promotion_tier (int, optional):
+        The promotion tier of the DB instance.
+
+    publicly_accessible (bool, optional):
+        Indicates whether the DB instance is publicly accessible.
+
+    storage_encrypted (bool, optional):
+        Indicates whether the DB instance is encrypted.
+
+    storage_type (str, optional):
+        The storage type for the DB instance.
+
+    tde_credential_arn (str, optional):
+        The ARN for the IAM role that permits RDS to use TDE encryption for the DB instance.
+
+    tde_credential_password (str, optional):
+        The password for the TDE encryption credential.
+
+    vpc_security_group_ids (list, optional):
+        A list of VPC security group IDs to associate with the DB instance.
+
+    region (str, optional):
+        The AWS region in which the RDS DB instance exists.
+
+    key (str, optional):
+        The AWS access key ID.
+
+    keyid (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_rds.modify_db_instance
+        salt myminion boto3_rds.modify_db_instance name-of-db-instance \
+            db_instance_identifier region=us-east-1
 
     """
     res = __salt__["boto3_rds.exists"](
