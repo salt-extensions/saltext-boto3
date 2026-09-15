@@ -585,7 +585,7 @@ def add_tags(Name, region=None, key=None, keyid=None, profile=None, **kwargs):
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **kwargs:
+    ``**kwargs``:
         The tags to add to the CloudTrail trail.
 
     CLI Example:
@@ -626,7 +626,7 @@ def remove_tags(Name, region=None, key=None, keyid=None, profile=None, **kwargs)
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **kwargs:
+    ``**kwargs``:
         The tags to remove from the CloudTrail trail.
 
     CLI Example:

@@ -1172,7 +1172,7 @@ def put_tagging(Bucket, region=None, key=None, keyid=None, profile=None, **kwarg
     profile (str, optional):
         The AWS profile to use.
 
-    **kwargs:
+    ``**kwargs``:
         The tags to apply to the bucket as key-value pairs.
 
     CLI Example:

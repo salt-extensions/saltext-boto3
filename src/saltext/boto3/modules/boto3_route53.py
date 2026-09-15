@@ -243,8 +243,8 @@ def get_hosted_zones_by_domain(Name, region=None, key=None, keyid=None, profile=
     Find any zones with the given domain name and return detailed info about them.
 
     .. note::
-    This can return multiple Route53 zones, since a domain name can be used in
-    both public and private zones.
+        This can return multiple Route53 zones, since a domain name can be used in
+        both public and private zones.
 
     Name (str):
         The domain name associated with the Hosted Zone(s).
