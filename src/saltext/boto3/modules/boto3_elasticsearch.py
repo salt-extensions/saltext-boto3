@@ -257,8 +257,8 @@ def create_elasticsearch_domain(
             {
               "InstanceType": "t2.micro.elasticsearch",
               "InstanceCount": 1,
-              "DedicatedMasterEnabled": False,
-              "ZoneAwarenessEnabled": False
+              "DedicatedMasterEnabled": false,
+              "ZoneAwarenessEnabled": false
             }
 
     ebs_options (dict, optional):
@@ -269,7 +269,7 @@ def create_elasticsearch_domain(
         .. code-block:: json
 
             {
-              "EBSEnabled": True,
+              "EBSEnabled": true,
               "VolumeType": "gp2",
               "VolumeSize": 10,
               "Iops": 0
@@ -326,7 +326,7 @@ def create_elasticsearch_domain(
         .. code-block:: json
 
             {
-              "Enabled": True,
+              "Enabled": true,
               "UserPoolId": "us-east-1_123456789",
               "IdentityPoolId": "us-east-1:12345678-1234-1234-1234-123456789012",
               "RoleArn": "arn:aws:iam::111111111111:role/CognitoAccessRole"
@@ -340,7 +340,7 @@ def create_elasticsearch_domain(
         .. code-block:: json
 
             {
-              "Enabled": True,
+              "Enabled": true,
               "KmsKeyId": "arn:aws:kms:us-east-1:111111111111:key/12345678-1234-1234-1234-123456789012"
             }
 
@@ -352,7 +352,7 @@ def create_elasticsearch_domain(
         .. code-block:: json
 
             {
-              "Enabled": True
+              "Enabled": true
             }
 
     advanced_options (dict, optional):
@@ -376,15 +376,15 @@ def create_elasticsearch_domain(
             {
               "INDEX_SLOW_LOGS": {
                 "CloudWatchLogsLogGroupArn": "arn:aws:logs:us-east-1:111111111111:log-group:my-log-group",
-                "Enabled": True
+                "Enabled": true
               },
               "SEARCH_SLOW_LOGS": {
                 "CloudWatchLogsLogGroupArn": "arn:aws:logs:us-east-1:111111111111:log-group:my-log-group",
-                "Enabled": True
+                "Enabled": true
               },
               "ES_APPLICATION_LOGS": {
                 "CloudWatchLogsLogGroupArn": "arn:aws:logs:us-east-1:111111111111:log-group:my-log-group",
-                "Enabled": True
+                "Enabled": true
               }
             }
 

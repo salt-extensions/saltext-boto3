@@ -111,7 +111,7 @@ def create_target_group(
     vpc_id (string)
         The identifier of the virtual private cloud (VPC).
 
-            region (string)
+    region (string)
         The AWS region where the target group will be created. If not specified, the default region will be used.
 
     key (string)
@@ -280,7 +280,7 @@ def targets_registered(name, targets, region=None, key=None, keyid=None, profile
     profile (string)
         The AWS profile to use. If not specified, the default profile will be used.
 
-    **kwargs
+    ``**kwargs``
         Additional keyword arguments to pass to the underlying boto3 call.
 
     Example:
@@ -375,7 +375,7 @@ def targets_deregistered(name, targets, region=None, key=None, keyid=None, profi
     profile (string)
         The AWS profile to use. If not specified, the default profile will be used.
 
-    **kwargs
+    ``**kwargs``
         Additional keyword arguments to pass to the underlying boto3 call.
 
     Example:

@@ -12,11 +12,11 @@ http://boto3.readthedocs.io/en/latest/reference/services/elasticache.html as an
 excellent source for details too involved to reiterate here.
 
 .. note::
-This module is designed to be transparent ("intentionally ignorant" is the
-phrase I used to describe it to my boss) to new AWS / boto options - since all
-AWS API params are passed directly through both the state and executions modules,
-any new args to existing functions which become available after this documentation
-is written should work immediately.
+    This module is designed to be transparent ("intentionally ignorant" is the
+    phrase I used to describe it to my boss) to new AWS / boto options - since all
+    AWS API params are passed directly through both the state and executions modules,
+    any new args to existing functions which become available after this documentation
+    is written should work immediately.
 
 Brand new API calls, of course, would still require new functions to be added :)
 

@@ -128,7 +128,7 @@ def create_file_system(
     creation_token (str, optional):
         The creation token for the EFS file system. If not specified, it will default to the name.
 
-    **kwargs (optional):
+    ``**kwargs`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
@@ -202,7 +202,7 @@ def create_mount_target(
     region (str, optional):
         The AWS region where the EFS file system is located.
 
-    **kwargs (optional):
+    ``**kwargs`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
@@ -250,7 +250,7 @@ def create_tags(
     region (str, optional):
         The AWS region where the EFS file system is located.
 
-    **kwargs (optional):
+    ``**kwargs`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
@@ -292,7 +292,7 @@ def delete_file_system(
     region (str, optional):
         The AWS region where the EFS file system is located.
 
-    **kwargs (optional):
+    ``**kwargs`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
@@ -332,7 +332,7 @@ def delete_mount_target(
     region (str, optional):
         The AWS region where the EFS mount target is located.
 
-    **kwargs (optional):
+    ``**kwargs`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
@@ -375,7 +375,7 @@ def delete_tags(
     region (str, optional):
         The AWS region where the EFS file system is located.
 
-    **kwargs (optional):
+    ``**kwargs`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
@@ -425,7 +425,7 @@ def get_file_systems(
     region (str, optional):
         The AWS region where the EFS file system is located.
 
-    **kwargs (optional):
+    ``**kwargs`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
@@ -491,7 +491,7 @@ def get_mount_targets(
     region (str, optional):
         The AWS region where the EFS file system is located.
 
-    **kwargs (optional):
+    ``**kwargs`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
@@ -543,7 +543,7 @@ def get_tags(
     region (str, optional):
         The AWS region where the EFS file system is located.
 
-    **kwargs (optional):
+    ``**kwargs`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
@@ -599,7 +599,7 @@ def set_security_groups(
     region (str, optional):
         The AWS region where the EFS file system is located.
 
-    **kwargs (optional):
+    ``**kwargs`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:

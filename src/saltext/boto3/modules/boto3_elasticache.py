@@ -380,7 +380,7 @@ def describe_cache_clusters(
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
@@ -426,7 +426,7 @@ def cache_cluster_exists(name, conn=None, region=None, key=None, keyid=None, pro
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
@@ -477,7 +477,7 @@ def create_cache_cluster(
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
@@ -556,7 +556,7 @@ def modify_cache_cluster(
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
@@ -613,7 +613,7 @@ def delete_cache_cluster(name, wait=600, region=None, key=None, keyid=None, prof
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
@@ -747,7 +747,7 @@ def create_replication_group(
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (dict, optional):
+    ``**args`` (dict, optional):
         Additional arguments to pass to the create_replication_group call.
 
     CLI Example:
@@ -816,7 +816,7 @@ def modify_replication_group(
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (dict, optional):
+    ``**args`` (dict, optional):
         Additional arguments to pass to the modify_replication_group call.
 
     CLI Example:
@@ -875,7 +875,7 @@ def delete_replication_group(
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (dict, optional):
+    ``**args`` (dict, optional):
         Additional arguments to pass to the delete_replication_group call.
 
     CLI Example:
@@ -1027,7 +1027,7 @@ def create_cache_subnet_group(
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional arguments to pass to the underlying boto3 create_cache_subnet_group call.
 
     CLI Example:
@@ -1100,7 +1100,7 @@ def modify_cache_subnet_group(
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional arguments to pass to the underlying boto3 modify_cache_subnet_group call.
 
     CLI Example:
@@ -1167,7 +1167,7 @@ def delete_cache_subnet_group(name, region=None, key=None, keyid=None, profile=N
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional arguments to pass to the underlying boto3 delete_cache_subnet_group call.
 
     CLI Example:
@@ -1210,7 +1210,7 @@ def describe_cache_security_groups(
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional arguments to pass to the underlying boto3 describe_cache_security_groups call.
 
     CLI Example:
@@ -1285,7 +1285,7 @@ def create_cache_security_group(name, region=None, key=None, keyid=None, profile
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional arguments to pass to the underlying boto3 create_cache_security_group call.
 
     CLI Example:
@@ -1327,7 +1327,7 @@ def delete_cache_security_group(name, region=None, key=None, keyid=None, profile
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional arguments to pass to the underlying boto3 delete_cache_security_group call.
 
     CLI Example:
@@ -1371,7 +1371,7 @@ def authorize_cache_security_group_ingress(
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional arguments to pass to the underlying boto3 authorize_cache_security_group_ingress call.
 
     CLI Example:
@@ -1428,7 +1428,7 @@ def revoke_cache_security_group_ingress(
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional arguments to pass to the underlying boto3 revoke_cache_security_group_ingress call.
 
     CLI Example:
@@ -1490,7 +1490,7 @@ def list_tags_for_resource(name, region=None, key=None, keyid=None, profile=None
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional arguments to pass to the underlying boto3 list_tags_for_resource call.
 
     CLI Example:
@@ -1548,7 +1548,7 @@ def add_tags_to_resource(name, region=None, key=None, keyid=None, profile=None, 
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional arguments to pass to the underlying boto3 add_tags_to_resource call.
 
     CLI Example:
@@ -1605,7 +1605,7 @@ def remove_tags_from_resource(name, region=None, key=None, keyid=None, profile=N
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional arguments to pass to the underlying boto3 remove_tags_from_resource call.
 
     CLI Example:
@@ -1653,7 +1653,7 @@ def copy_snapshot(name, region=None, key=None, keyid=None, profile=None, **args)
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional arguments to pass to the underlying boto3 copy_snapshot call.
 
     CLI Example:
@@ -1743,7 +1743,7 @@ def create_cache_parameter_group(name, region=None, key=None, keyid=None, profil
     profile (str, optional):
         The profile to use for AWS credentials.
 
-    **args (optional):
+    ``**args`` (optional):
         Additional arguments to pass to the underlying boto3 create_cache_parameter_group call.
 
     CLI Example:
