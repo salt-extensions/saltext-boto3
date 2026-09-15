@@ -113,6 +113,24 @@ def create_alias(alias_name, target_key_id, region=None, key=None, keyid=None, p
     """
     Create a display name for a key.
 
+    alias_name (str):
+        The display name for the key, must start with "alias/".
+
+    target_key_id (str):
+        The ID of the key for which to create the alias.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -141,6 +159,36 @@ def create_grant(
 ):
     """
     Add a grant to a key.
+
+    key_id (str):
+        The ID or alias of the key to which the grant will be added.
+
+    grantee_principal (str):
+        The principal that will be given the permissions specified in the grant.
+
+    retiring_principal (str, optional):
+        The principal that can retire the grant.
+
+    operations (list, optional):
+        A list of operations that the grantee principal is allowed to perform.
+
+    constraints (dict, optional):
+        A dictionary specifying the conditions under which the grant is valid.
+
+    grant_tokens (list, optional):
+        A list of grant tokens.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -177,6 +225,27 @@ def create_key(
     """
     Create a customer master key.
 
+    policy (dict, optional):
+        The key policy to attach to the new key.
+
+    description (str, optional):
+        A description for the new key.
+
+    key_usage (str, optional):
+        The intended use of the key. For example, "ENCRYPT_DECRYPT".
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -210,6 +279,27 @@ def decrypt(
     """
     Decrypt ciphertext.
 
+    ciphertext_blob (bytes):
+        The encrypted data to be decrypted.
+
+    encryption_context (dict, optional):
+        The encryption context used when encrypting the data.
+
+    grant_tokens (list, optional):
+        A list of grant tokens.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -233,6 +323,21 @@ def key_exists(key_id, region=None, key=None, keyid=None, profile=None):
     """
     Check whether a KMS key exists.
 
+    key_id (str):
+        The ID or alias of the key to check for existence.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -254,6 +359,21 @@ def describe_key(key_id, region=None, key=None, keyid=None, profile=None):
     """
     Get detailed information about a key.
 
+    key_id (str):
+        The ID or alias of the key to describe.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -271,6 +391,21 @@ def describe_key(key_id, region=None, key=None, keyid=None, profile=None):
 def disable_key(key_id, region=None, key=None, keyid=None, profile=None):
     """
     Mark a key as disabled.
+
+    key_id (str):
+        The ID or alias of the key to disable.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -290,6 +425,21 @@ def disable_key_rotation(key_id, region=None, key=None, keyid=None, profile=None
     """
     Disable key rotation for a key.
 
+    key_id (str):
+        The ID or alias of the key to disable key rotation.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -308,6 +458,21 @@ def enable_key(key_id, region=None, key=None, keyid=None, profile=None):
     """
     Mark a key as enabled.
 
+    key_id (str):
+        The ID or alias of the key to enable.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -325,6 +490,21 @@ def enable_key(key_id, region=None, key=None, keyid=None, profile=None):
 def enable_key_rotation(key_id, region=None, key=None, keyid=None, profile=None):
     """
     Enable key rotation for a key.
+
+    key_id (str):
+        The ID or alias of the key to enable key rotation.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -352,6 +532,30 @@ def encrypt(
 ):
     """
     Encrypt plaintext using a KMS key.
+
+    key_id (str):
+        The ID or alias of the key to use for encryption.
+
+    plaintext (str):
+        The plaintext data to encrypt.
+
+    encryption_context (dict, optional):
+        The encryption context to use for encryption.
+
+    grant_tokens (list, optional):
+        The grant tokens to use for encryption.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -385,6 +589,33 @@ def generate_data_key(
 ):
     """
     Generate a secure data key.
+
+    key_id (str):
+        The ID or alias of the key to use for generating the data key.
+
+    encryption_context (dict, optional):
+        The encryption context to use for generating the data key.
+
+    number_of_bytes (int, optional):
+        The length of the data key in bytes.
+
+    key_spec (str, optional):
+        The specification of the data key (e.g., AES_128, AES_256).
+
+    grant_tokens (list, optional):
+        The grant tokens to use for generating the data key.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -422,6 +653,33 @@ def generate_data_key_without_plaintext(
     """
     Generate a secure data key without a plaintext copy.
 
+    key_id (str):
+        The ID or alias of the key to use for generating the data key.
+
+    encryption_context (dict, optional):
+        The encryption context to use for generating the data key.
+
+    number_of_bytes (int, optional):
+        The length of the data key in bytes.
+
+    key_spec (str, optional):
+        The specification of the data key (e.g., AES_128, AES_256).
+
+    grant_tokens (list, optional):
+        The grant tokens to use for generating the data key.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -448,6 +706,21 @@ def generate_random(number_of_bytes=None, region=None, key=None, keyid=None, pro
     """
     Generate cryptographically secure random bytes.
 
+    number_of_bytes (int, optional):
+        The length of the random data to generate.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -468,6 +741,24 @@ def generate_random(number_of_bytes=None, region=None, key=None, keyid=None, pro
 def get_key_policy(key_id, policy_name, region=None, key=None, keyid=None, profile=None):
     """
     Get the policy for the specified key.
+
+    key_id (str):
+        The ID or alias of the key for which to retrieve the policy.
+
+    policy_name (str):
+        The name of the policy to retrieve.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -491,6 +782,21 @@ def get_key_rotation_status(key_id, region=None, key=None, keyid=None, profile=N
     """
     Return whether key rotation is enabled for the specified key.
 
+    key_id (str):
+        The ID or alias of the key for which to check the rotation status.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -508,6 +814,27 @@ def get_key_rotation_status(key_id, region=None, key=None, keyid=None, profile=N
 def list_grants(key_id, limit=None, marker=None, region=None, key=None, keyid=None, profile=None):
     """
     List grants for the specified key.
+
+    key_id (str):
+        The ID or alias of the key for which to list grants.
+
+    limit (int, optional):
+        The maximum number of grants to return.
+
+    marker (str, optional):
+        The marker for paginated results.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -543,6 +870,27 @@ def list_key_policies(
     """
     List key policies for the specified key.
 
+    key_id (str):
+        The ID or alias of the key for which to list key policies.
+
+    limit (int, optional):
+        The maximum number of key policies to return.
+
+    marker (str, optional):
+        The marker for paginated results.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -566,6 +914,27 @@ def list_key_policies(
 def put_key_policy(key_id, policy_name, policy, region=None, key=None, keyid=None, profile=None):
     """
     Attach a key policy to the specified key.
+
+    key_id (str):
+        The ID or alias of the key to which to attach the policy.
+
+    policy_name (str):
+        The name of the policy to attach.
+
+    policy (str):
+        The policy document to attach.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -599,6 +968,33 @@ def re_encrypt(
     """
     Re-encrypt ciphertext with a new master key.
 
+    ciphertext_blob (str):
+        The encrypted data to re-encrypt.
+
+    destination_key_id (str):
+        The ID or alias of the new KMS key to use for re-encryption.
+
+    source_encryption_context (dict, optional):
+        The encryption context used when the ciphertext was originally encrypted.
+
+    destination_encryption_context (dict, optional):
+        The encryption context to use for the re-encrypted ciphertext.
+
+    grant_tokens (list, optional):
+        A list of grant tokens to use for the re-encryption operation.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -626,6 +1022,24 @@ def revoke_grant(key_id, grant_id, region=None, key=None, keyid=None, profile=No
     """
     Revoke a grant from a key.
 
+    key_id (str):
+        The ID or alias of the key from which to revoke the grant.
+
+    grant_id (str):
+        The ID of the grant to revoke.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -644,6 +1058,24 @@ def revoke_grant(key_id, grant_id, region=None, key=None, keyid=None, profile=No
 def update_key_description(key_id, description, region=None, key=None, keyid=None, profile=None):
     """
     Update a key's description.
+
+    key_id (str):
+        The ID or alias of the key to update.
+
+    description (str):
+        The new description for the key.
+
+    region (str, optional):
+        The AWS region where the KMS key is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 

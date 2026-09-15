@@ -107,14 +107,42 @@ def thing_type_present(
     """
     Ensure thing type exists.
 
+    name (string)
+        The name of the state declaration.
+
+    thingTypeName (string)
+        The name of the thing type.
+
+    thingTypeDescription (string)
+        The description of the thing type.
+
+    searchableAttributesList (list)
+        A list of searchable attributes for the thing type.
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (dict)
+        A dict with region, key and keyid, or a pillar key (string)
+        that contains a dict with region, key and keyid.
+
     Example:
 
     .. code-block:: yaml
 
         ensure-thing-type-present:
           boto3_iot.thing_type_present:
-            - name: example
-
+            - thingTypeName: mythingtype
+            - thingTypeDescription: 'My thing type description'
+            - searchableAttributesList:
+              - attribute1
+              - attribute2
     """
     ret = {"name": thingTypeName, "result": True, "comment": "", "changes": {}}
 
@@ -175,14 +203,32 @@ def thing_type_absent(
     """
     Ensure thing type with passed properties is absent.
 
+    name (string)
+        The name of the state declaration.
+
+    thingTypeName (string)
+        The name of the thing type.
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (dict)
+        A dict with region, key and keyid, or a pillar key (string)
+        that contains a dict with region, key and keyid.
+
     Example:
 
     .. code-block:: yaml
 
         ensure-thing-type-absent:
           boto3_iot.thing_type_absent:
-            - name: example
-
+            - thingTypeName: mythingtype
     """
     ret = {"name": thingTypeName, "result": True, "comment": "", "changes": {}}
 
@@ -281,14 +327,36 @@ def policy_present(
     """
     Ensure policy exists.
 
+    name (string)
+        The name of the state declaration.
+
+    policyName (string)
+        The name of the policy.
+
+    policyDocument (string)
+        The JSON document of the policy.
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (dict)
+        A dict with region, key and keyid, or a pillar key (string)
+        that contains a dict with region, key and keyid.
+
     Example:
 
     .. code-block:: yaml
 
         ensure-policy-present:
           boto3_iot.policy_present:
-            - name: example
-
+            - policyName: mypolicy
+            - policyDocument: 'salt://path/to/policyDocument.json'
     """
     ret = {"name": policyName, "result": True, "comment": "", "changes": {}}
 
@@ -386,14 +454,32 @@ def policy_absent(
     """
     Ensure policy with passed properties is absent.
 
+    name (string)
+        The name of the state declaration.
+
+    policyName (string)
+        The name of the policy.
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (dict)
+        A dict with region, key and keyid, or a pillar key (string)
+        that contains a dict with region, key and keyid.
+
     Example:
 
     .. code-block:: yaml
 
         ensure-policy-absent:
           boto3_iot.policy_absent:
-            - name: example
-
+            - policyName: mypolicy
     """
     ret = {"name": policyName, "result": True, "comment": "", "changes": {}}
 
@@ -511,14 +597,36 @@ def policy_detached(
     """
     Ensure policy is detached from the given principal.
 
+    name (string)
+        The name of the state declaration.
+
+    policyName (string)
+        The name of the policy.
+
+    principal (string)
+        The principal from which the policy should be detached.
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (dict)
+        A dict with region, key and keyid, or a pillar key (string)
+        that contains a dict with region, key and keyid.
+
     Example:
 
     .. code-block:: yaml
 
         ensure-policy-detached:
           boto3_iot.policy_detached:
-            - name: example
-
+            - policyName: mypolicy
+            - principal: myprincipal
     """
     ret = {"name": policyName, "result": True, "comment": "", "changes": {}}
 
@@ -578,14 +686,50 @@ def topic_rule_present(
     """
     Ensure topic rule exists.
 
+    name (string)
+        The name of the state declaration.
+
+    ruleName (string)
+        The name of the topic rule.
+
+    sql (string)
+        The SQL statement that defines the rule.
+
+    actions (list)
+        The actions associated with the rule.
+
+    description (string)
+        A description of the rule.
+
+    ruleDisabled (bool)
+        Whether the rule is disabled.
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (dict)
+        A dict with region, key and keyid, or a pillar key (string)
+        that contains a dict with region, key and keyid.
+
     Example:
 
     .. code-block:: yaml
 
         ensure-topic-rule-present:
           boto3_iot.topic_rule_present:
-            - name: example
-
+            - ruleName: myrule
+            - sql: "SELECT * FROM 'topic/test'"
+            - actions:
+                - lambda:
+                    functionArn: "arn:aws:lambda:us-west-2:123456789012:function:my-function"
+            - description: "My test rule"
+            - ruleDisabled: False
     """
     ret = {"name": ruleName, "result": True, "comment": "", "changes": {}}
 
@@ -679,6 +823,25 @@ def topic_rule_absent(
     """
     Ensure topic rule with passed properties is absent.
 
+    name (string)
+        The name of the state declaration.
+
+    ruleName (string)
+        The name of the topic rule.
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (dict)
+        A dict with region, key and keyid, or a pillar key (string)
+        that contains a dict with region, key and keyid.
+
     Example:
 
     .. code-block:: yaml
@@ -686,7 +849,7 @@ def topic_rule_absent(
         ensure-topic-rule-absent:
           boto3_iot.topic_rule_absent:
             - name: example
-
+            - ruleName: myrule
     """
     ret = {"name": ruleName, "result": True, "comment": "", "changes": {}}
 

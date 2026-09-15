@@ -141,7 +141,7 @@ def present(
         ensure-present:
           boto3_vpc.present:
             - name: example
-
+            - cidr_block: 10.0.0.0/24
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -317,7 +317,6 @@ def absent(name, tags=None, region=None, key=None, keyid=None, profile=None):
         ensure-absent:
           boto3_vpc.absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -426,7 +425,7 @@ def dhcp_options_present(
         ensure-dhcp-options-present:
           boto3_vpc.dhcp_options_present:
             - name: example
-
+            - cidr_block: 10.0.0.0/24
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     new = {
@@ -612,7 +611,6 @@ def dhcp_options_absent(
         ensure-dhcp-options-absent:
           boto3_vpc.dhcp_options_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -715,7 +713,8 @@ def subnet_present(
         ensure-subnet-present:
           boto3_vpc.subnet_present:
             - name: example
-
+            - cidr_block: 10.0.0.0/24
+            - vpc_name: my-vpc
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -797,7 +796,6 @@ def subnet_absent(name=None, subnet_id=None, region=None, key=None, keyid=None, 
         ensure-subnet-absent:
           boto3_vpc.subnet_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -887,7 +885,7 @@ def internet_gateway_present(
         ensure-internet-gateway-present:
           boto3_vpc.internet_gateway_present:
             - name: example
-
+            - vpc_name: my-vpc
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -960,7 +958,6 @@ def internet_gateway_absent(name, detach=False, region=None, key=None, keyid=Non
         ensure-internet-gateway-absent:
           boto3_vpc.internet_gateway_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -1508,7 +1505,6 @@ def route_table_absent(name, region=None, key=None, keyid=None, profile=None):
         ensure-route-table-absent:
           boto3_vpc.route_table_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -1692,7 +1688,6 @@ def nat_gateway_absent(
         ensure-nat-gateway-absent:
           boto3_vpc.nat_gateway_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -1991,7 +1986,7 @@ def vpc_peering_connection_present(
         ensure-vpc-peering-connection-present:
           boto3_vpc.vpc_peering_connection_present:
             - name: example
-
+            - vpc_name: my-vpc
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     if __salt__["boto3_vpc.is_peering_connection_pending"](
@@ -2070,7 +2065,6 @@ def vpc_peering_connection_absent(
         ensure-vpc-peering-connection-absent:
           boto3_vpc.vpc_peering_connection_absent:
             - name: example
-
     """
     return delete_vpc_peering_connection(name, conn_id, conn_name, region, key, keyid, profile)
 
@@ -2109,7 +2103,6 @@ def delete_vpc_peering_connection(
         ensure-delete-vpc-peering-connection:
           boto3_vpc.delete_vpc_peering_connection:
             - name: example
-
     """
     log.debug("Called state to delete VPC peering connection")
     ret = {

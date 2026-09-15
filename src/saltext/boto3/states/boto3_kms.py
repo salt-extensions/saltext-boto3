@@ -99,42 +99,42 @@ def key_present(
     Ensure the KMS key exists. KMS keys can not be deleted, so this function
     must be used to ensure the key is enabled or disabled.
 
-    name
+    name (string)
         Name of the key.
 
-    policy
+    policy (string)
         Key usage policy.
 
-    description
+    description (string)
         Description of the key.
 
-    key_usage
+    key_usage (string)
         Specifies the intended use of the key. Can only be set on creation,
         defaults to ENCRYPT_DECRYPT, which is also the only supported option.
 
-    grants
+    grants (list)
         A list of grants to apply to the key. Not currently implemented.
 
-    manage_grants
+    manage_grants (bool)
         Whether or not to manage grants. False by default, which will not
         manage any grants.
 
-    key_rotation
+    key_rotation (bool)
         Whether or not key rotation is enabled for the key. False by default.
 
-    enabled
+    enabled (bool)
         Whether or not the key is enabled. True by default.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (dict)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -145,7 +145,7 @@ def key_present(
         ensure-key-present:
           boto3_kms.key_present:
             - name: example
-
+            - policy: '{"Version": "2012-10-17","Statement": [{"Effect": "Allow","Principal": {"AWS": "*"},"Action": "kms:*","Resource": "*"}]}'
     """
     if not policy:
         raise SaltInvocationError("policy is a required argument.")

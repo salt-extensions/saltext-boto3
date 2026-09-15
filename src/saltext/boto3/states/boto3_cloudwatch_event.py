@@ -96,41 +96,41 @@ def present(
     """
     Ensure the CloudWatch event rule exists.
 
-    name
+    name (string)
         The name of the state definition.
 
-    Name
+    Name (string)
         Name of the event rule. Defaults to the value of ``name`` if not provided.
 
-    ScheduleExpression
+    ScheduleExpression (string)
         The scheduling expression. For example, ``cron(0 20 * * ? *)`` or
         ``rate(5 minutes)``.
 
-    EventPattern
+    EventPattern (string)
         The event pattern.
 
-    Description
+    Description (string)
         A description of the rule.
 
-    State
+    State (string)
         Indicates whether the rule is ENABLED or DISABLED.
 
-    RoleArn
+    RoleArn (string)
         The ARN of the IAM role associated with the rule.
 
-    Targets
+    Targets (list)
         A list of resources to be invoked when the rule is triggered.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (string)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -141,7 +141,6 @@ def present(
         ensure-present:
           boto3_cloudwatch_event.present:
             - name: example
-
     """
     ret = {"name": Name, "result": True, "comment": "", "changes": {}}
 
@@ -320,22 +319,22 @@ def absent(name, Name=None, region=None, key=None, keyid=None, profile=None):
     """
     Ensure CloudWatch event rule with passed properties is absent.
 
-    name
+    name (string)
         The name of the state definition.
 
-    Name
+    Name (string)
         Name of the event rule. Defaults to the value of ``name`` if not provided.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (string)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -346,7 +345,6 @@ def absent(name, Name=None, region=None, key=None, keyid=None, profile=None):
         ensure-absent:
           boto3_cloudwatch_event.absent:
             - name: example
-
     """
     ret = {"name": Name, "result": True, "comment": "", "changes": {}}
 

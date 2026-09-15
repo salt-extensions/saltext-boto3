@@ -109,40 +109,59 @@ def create_target_group(
     """
     Create target group if not present.
 
-    name
-        (string) - The name of the target group.
-    protocol
-        (string) - The protocol to use for routing traffic to the targets
-    port
-        (int) - The port on which the targets receive traffic. This port is used unless
-        you specify a port override when registering the traffic.
-    vpc_id
-        (string) - The identifier of the virtual private cloud (VPC).
-    health_check_protocol
-        (string) - The protocol the load balancer uses when performing health check on
+    name (str):
+        The name of the target group.
+
+    protocol (str):
+        The protocol to use for routing traffic to the targets.
+
+    port (int):
+        The port on which the targets receive traffic. This port is used unless
+        you specify a port override when registering the target.
+
+    vpc_id (str):
+        The identifier of the virtual private cloud (VPC).
+
+    region (str, optional):
+        The AWS region where the target group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    health_check_protocol (str, optional):
+        The protocol the load balancer uses when performing health check on
         targets. The default is the HTTP protocol.
-    health_check_port
-        (string) - The port the load balancer uses when performing health checks on
+
+    health_check_port (str, optional):
+        The port the load balancer uses when performing health checks on
         targets. The default is 'traffic-port', which indicates the port on which each
         target receives traffic from the load balancer.
-    health_check_path
-        (string) - The ping path that is the destination on the targets for health
-        checks. The default is /.
-    health_check_interval_seconds
-        (integer) - The approximate amount of time, in seconds, between health checks
-        of an individual target. The default is 30 seconds.
-    health_check_timeout_seconds
-        (integer) - The amount of time, in seconds, during which no response from a
-        target means a failed health check. The default is 5 seconds.
-    healthy_threshold_count
-        (integer) - The number of consecutive health checks successes required before
-        considering an unhealthy target healthy. The default is 5.
-    unhealthy_threshold_count
-        (integer) - The number of consecutive health check failures required before
-        considering a target unhealthy. The default is 2.
 
-    returns
-        (bool) - True on success, False on failure.
+    health_check_path (str, optional):
+        The ping path that is the destination on the targets for health
+        checks. The default is /.
+
+    health_check_interval_seconds (int, optional):
+        The approximate amount of time, in seconds, between health checks
+        of an individual target. The default is 30 seconds.
+
+    health_check_timeout_seconds (int, optional):
+        The amount of time, in seconds, during which no response from a
+        target means a failed health check. The default is 5 seconds.
+
+    healthy_threshold_count (int, optional):
+        The number of consecutive health checks successes required before
+        considering an unhealthy target healthy. The default is 5.
+
+    unhealthy_threshold_count (int, optional):
+        The number of consecutive health check failures required before
+        considering a target unhealthy. The default is 2.
 
     CLI Example:
 
@@ -189,11 +208,20 @@ def delete_target_group(name, region=None, key=None, keyid=None, profile=None):
     """
     Delete target group.
 
-    name
-        (string) - Target Group Name or Amazon Resource Name (ARN).
+    name (str):
+        The name or Amazon Resource Name (ARN) of the target group to delete.
 
-    returns
-        (bool) - True on success, False on failure.
+    region (str, optional):
+        The AWS region where the target group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -231,7 +259,22 @@ def delete_target_group(name, region=None, key=None, keyid=None, profile=None):
 
 def target_group_exists(name, region=None, key=None, keyid=None, profile=None):
     """
-    Check to see if an target group exists.
+    Check to see if a target group exists.
+
+    name (str):
+        The name or Amazon Resource Name (ARN) of the target group to check for existence.
+
+    region (str, optional):
+        The AWS region where the target group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -258,13 +301,33 @@ def target_group_exists(name, region=None, key=None, keyid=None, profile=None):
 
 def describe_target_health(name, targets=None, region=None, key=None, keyid=None, profile=None):
     """
-    Get the curret health check status for targets in a target group.
+    Get the current health check status for targets in a target group.
+
+    name (str):
+        The name or Amazon Resource Name (ARN) of the target group.
+
+    targets (list, optional):
+        A list of target instance IDs to check the health status for.
+
+    region (str, optional):
+        The AWS region where the target group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_elbv2.describe_target_health arn:aws:elasticloadbalancing:us-west-2:644138682826:targetgroup/learn1give1-api/414788a16b5cf163 targets=["i-isdf23ifjf"]
+        salt myminion boto3_elbv2.describe_target_health \
+            arn:aws:elasticloadbalancing:us-west-2:644138682826:targetgroup/learn1give1-api/414788a16b5cf163 \
+            targets=["i-isdf23ifjf"]
     """
     conn = _get_conn("elbv2", region=region, key=key, keyid=keyid, profile=profile)
 
@@ -288,13 +351,26 @@ def describe_target_health(name, targets=None, region=None, key=None, keyid=None
 
 def register_targets(name, targets, region=None, key=None, keyid=None, profile=None):
     """
-    Register targets to a target froup of an ALB. ``targets`` is either a
-    instance id string or a list of instance id's.
+    Register targets to a target group of an ALB. ``targets`` is either a
+    single instance id string or a list of instance id's.
 
-    Returns:
+    name (str):
+        The name or Amazon Resource Name (ARN) of the target group.
 
-    - ``True``: instance(s) registered successfully
-    - ``False``: instance(s) failed to be registered
+    targets (str or list):
+        A single target instance ID or a list of target instance IDs to register with the target group.
+
+    region (str, optional):
+        The AWS region where the target group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -323,13 +399,26 @@ def register_targets(name, targets, region=None, key=None, keyid=None, profile=N
 
 def deregister_targets(name, targets, region=None, key=None, keyid=None, profile=None):
     """
-    Deregister targets to a target froup of an ALB. ``targets`` is either a
-    instance id string or a list of instance id's.
+    Deregister targets from a target group of an ALB. ``targets`` is either a
+    single instance id string or a list of instance id's.
 
-    Returns:
+    name (str):
+        The name or Amazon Resource Name (ARN) of the target group.
 
-    - ``True``: instance(s) deregistered successfully
-    - ``False``: instance(s) failed to be deregistered
+    targets (str or list):
+        A single target instance ID or a list of target instance IDs to deregister from the target group.
+
+    region (str, optional):
+        The AWS region where the target group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 

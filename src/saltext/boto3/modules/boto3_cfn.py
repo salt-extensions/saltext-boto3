@@ -125,6 +125,21 @@ def exists(name, region=None, key=None, keyid=None, profile=None):
     """
     Check to see if a stack exists.
 
+    name (str):
+        The name of the CloudFormation stack.
+
+    region (str, optional):
+        The AWS region where the CloudFormation stack is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -144,6 +159,21 @@ def exists(name, region=None, key=None, keyid=None, profile=None):
 def describe(name, region=None, key=None, keyid=None, profile=None):
     """
     Describe a stack.
+
+    name (str):
+        The name of the CloudFormation stack.
+
+    region (str, optional):
+        The AWS region where the CloudFormation stack is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -196,6 +226,54 @@ def create(
 ):
     """
     Create a CFN stack.
+
+    name (str):
+        The name of the CloudFormation stack.
+
+    template_body (str, optional):
+        The body of the CloudFormation template.
+
+    template_url (str, optional):
+        The URL of the CloudFormation template.
+
+    parameters (dict, optional):
+        A dictionary of parameters to pass to the CloudFormation stack.
+
+    notification_arns (list, optional):
+        A list of SNS topic ARNs to send notifications to.
+
+    disable_rollback (bool, optional):
+        Whether to disable rollback on stack creation failure.
+
+    timeout_in_minutes (int, optional):
+        The amount of time that can pass before the stack status becomes CREATE_FAILED.
+
+    capabilities (list, optional):
+        A list of capabilities that the stack requires.
+
+    tags (dict, optional):
+        A dictionary of tags to associate with the stack.
+
+    on_failure (str, optional):
+        The action to take if stack creation fails.
+
+    stack_policy_body (str, optional):
+        The body of the stack policy.
+
+    stack_policy_url (str, optional):
+        The URL of the stack policy.
+
+    region (str, optional):
+        The AWS region where the CloudFormation stack is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -259,6 +337,54 @@ def update_stack(
     """
     Update a CFN stack.
 
+    name (str):
+        The name of the CloudFormation stack.
+
+    template_body (str, optional):
+        The body of the CloudFormation template.
+
+    template_url (str, optional):
+        The URL of the CloudFormation template.
+
+    parameters (dict, optional):
+        A dictionary of parameters to pass to the CloudFormation stack.
+
+    notification_arns (list, optional):
+        A list of SNS topic ARNs to send notifications to.
+
+    capabilities (list, optional):
+        A list of capabilities that the stack requires.
+
+    tags (dict, optional):
+        A dictionary of tags to associate with the stack.
+
+    use_previous_template (bool, optional):
+        Whether to use the previous template.
+
+    stack_policy_during_update_body (str, optional):
+        The body of the stack policy during update.
+
+    stack_policy_during_update_url (str, optional):
+        The URL of the stack policy during update.
+
+    stack_policy_body (str, optional):
+        The body of the stack policy.
+
+    stack_policy_url (str, optional):
+        The URL of the stack policy.
+
+    region (str, optional):
+        The AWS region where the CloudFormation stack is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -307,6 +433,21 @@ def delete(name, region=None, key=None, keyid=None, profile=None):
     """
     Delete a CFN stack.
 
+    name (str):
+        The name of the CloudFormation stack.
+
+    region (str, optional):
+        The AWS region where the CloudFormation stack is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -325,6 +466,21 @@ def delete(name, region=None, key=None, keyid=None, profile=None):
 def get_template(name, region=None, key=None, keyid=None, profile=None):
     """
     Retrieve the template body of a CFN stack.
+
+    name (str):
+        The name of the CloudFormation stack.
+
+    region (str, optional):
+        The AWS region where the CloudFormation stack is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -353,6 +509,24 @@ def validate_template(
 ):
     """
     Validate cloudformation template.
+
+    template_body (str, optional):
+        The body of the CloudFormation template.
+
+    template_url (str, optional):
+        The URL of the CloudFormation template.
+
+    region (str, optional):
+        The AWS region where the CloudFormation stack is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 

@@ -172,6 +172,21 @@ def function_exists(FunctionName, region=None, key=None, keyid=None, profile=Non
     """
     Check whether a Lambda function exists.
 
+    FunctionName (str):
+        The name of the Lambda function to check.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -209,6 +224,66 @@ def create_function(
 ):
     """
     Create a Lambda function.
+
+    FunctionName (str):
+        The name of the Lambda function to create.
+
+    Runtime (str):
+        The runtime environment for the Lambda function (e.g., python3.9).
+
+    Role (str):
+        The IAM role ARN that the Lambda function assumes when it is invoked.
+
+    Handler (str):
+        The function within your code that Lambda calls to begin execution.
+
+    ZipFile (str, optional):
+        The path to the deployment package zip file.
+
+    S3Bucket (str, optional):
+        The S3 bucket containing the deployment package.
+
+    S3Key (str, optional):
+        The S3 key of the deployment package.
+
+    S3ObjectVersion (str, optional):
+        The version of the S3 object containing the deployment package.
+
+    Description (str, optional):
+        A description of the Lambda function.
+
+    Timeout (int, optional):
+        The amount of time that Lambda allows a function to run before stopping it.
+
+    MemorySize (int, optional):
+        The amount of memory available to the function at runtime.
+
+    Publish (bool, optional):
+        Whether to publish a new version of the function.
+
+    WaitForRole (bool, optional):
+        Whether to wait for the IAM role to propagate before creating the function.
+
+    RoleRetries (int, optional):
+        The number of times to retry if waiting for the IAM role.
+
+    region (str, optional):
+        The AWS region where the Lambda function is to be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    VpcConfig (dict, optional):
+        The VPC configuration for the Lambda function.
+
+    Environment (dict, optional):
+        The environment variables for the Lambda function.
 
     CLI Example:
 
@@ -285,6 +360,24 @@ def delete_function(FunctionName, Qualifier=None, region=None, key=None, keyid=N
     """
     Delete a Lambda function.
 
+    FunctionName (str):
+        The name of the Lambda function to delete.
+
+    Qualifier (str, optional):
+        The version or alias of the function to delete.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -305,6 +398,21 @@ def delete_function(FunctionName, Qualifier=None, region=None, key=None, keyid=N
 def describe_function(FunctionName, region=None, key=None, keyid=None, profile=None):
     """
     Describe the given Lambda function.
+
+    FunctionName (str):
+        The name of the Lambda function to describe.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -339,6 +447,48 @@ def update_function_config(
 ):
     """
     Update the named Lambda function configuration.
+
+    FunctionName (str):
+        The name of the Lambda function to update.
+
+    Role (str, optional):
+        The IAM role ARN that the Lambda function assumes when it is invoked.
+
+    Handler (str, optional):
+        The function within your code that Lambda calls to begin execution.
+
+    Description (str, optional):
+        A description of the Lambda function.
+
+    Timeout (int, optional):
+        The amount of time that Lambda allows a function to run before stopping it.
+
+    MemorySize (int, optional):
+        The amount of memory available to the function at runtime.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    VpcConfig (dict, optional):
+        The VPC configuration for the Lambda function.
+
+    WaitForRole (bool, optional):
+        Whether to wait for the IAM role to propagate before updating the function.
+
+    RoleRetries (int, optional):
+        The number of times to retry if waiting for the IAM role.
+
+    Environment (dict, optional):
+        The environment variables for the Lambda function.
 
     CLI Example:
 
@@ -402,6 +552,36 @@ def update_function_code(
     """
     Update the named Lambda function's code.
 
+    FunctionName (str):
+        The name of the Lambda function to update.
+
+    ZipFile (str, optional):
+        The path to the deployment package zip file.
+
+    S3Bucket (str, optional):
+        The S3 bucket containing the deployment package.
+
+    S3Key (str, optional):
+        The S3 key of the deployment package.
+
+    S3ObjectVersion (str, optional):
+        The version of the S3 object containing the deployment package.
+
+    Publish (bool, optional):
+        Whether to publish a new version of the function.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -451,6 +631,39 @@ def add_permission(
     """
     Add a permission to a Lambda function.
 
+    FunctionName (str):
+        The name of the Lambda function to which the permission will be added.
+
+    StatementId (str):
+        A unique identifier for the statement.
+
+    Action (str):
+        The action that the principal is allowed to perform.
+
+    Principal (str):
+        The AWS service or account that is allowed to invoke the function.
+
+    SourceArn (str, optional):
+        The ARN of the source resource.
+
+    SourceAccount (str, optional):
+        The AWS account ID of the source.
+
+    Qualifier (str, optional):
+        The version or alias of the function.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -487,6 +700,27 @@ def remove_permission(
     """
     Remove a permission from a Lambda function.
 
+    FunctionName (str):
+        The name of the Lambda function from which the permission will be removed.
+
+    StatementId (str):
+        The ID of the statement to remove.
+
+    Qualifier (str, optional):
+        The version or alias of the function.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -507,6 +741,24 @@ def remove_permission(
 def get_permissions(FunctionName, Qualifier=None, region=None, key=None, keyid=None, profile=None):
     """
     Get resource permissions for the given Lambda function.
+
+    FunctionName (str):
+        The name of the Lambda function for which to retrieve permissions.
+
+    Qualifier (str, optional):
+        The version or alias of the function.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -553,6 +805,18 @@ def list_functions(region=None, key=None, keyid=None, profile=None):
     """
     List all Lambda functions visible in the current scope.
 
+    region (str, optional):
+        The AWS region where the Lambda functions are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -569,6 +833,21 @@ def list_functions(region=None, key=None, keyid=None, profile=None):
 def list_function_versions(FunctionName, region=None, key=None, keyid=None, profile=None):
     """
     List the versions available for the given function.
+
+    FunctionName (str):
+        The name of the Lambda function for which to list versions.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -601,6 +880,30 @@ def create_alias(
     """
     Create an alias for a Lambda function.
 
+    FunctionName (str):
+        The name of the Lambda function for which to create an alias.
+
+    Name (str):
+        The name of the alias to create.
+
+    FunctionVersion (str):
+        The version of the Lambda function that the alias points to.
+
+    Description (str, optional):
+        A description for the alias.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -627,6 +930,24 @@ def create_alias(
 def delete_alias(FunctionName, Name, region=None, key=None, keyid=None, profile=None):
     """
     Delete an alias.
+
+    FunctionName (str):
+        The name of the Lambda function from which to delete the alias.
+
+    Name (str):
+        The name of the alias to delete.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -666,6 +987,24 @@ def alias_exists(FunctionName, Name, region=None, key=None, keyid=None, profile=
     """
     Check whether a Lambda alias exists.
 
+    FunctionName (str):
+        The name of the Lambda function for which to check the alias.
+
+    Name (str):
+        The name of the alias to check.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -684,6 +1023,24 @@ def alias_exists(FunctionName, Name, region=None, key=None, keyid=None, profile=
 def describe_alias(FunctionName, Name, region=None, key=None, keyid=None, profile=None):
     """
     Describe a Lambda alias.
+
+    FunctionName (str):
+        The name of the Lambda function for which to describe the alias.
+
+    Name (str):
+        The name of the alias to describe.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -715,6 +1072,30 @@ def update_alias(
 ):
     """
     Update a Lambda alias.
+
+    FunctionName (str):
+        The name of the Lambda function for which to update the alias.
+
+    Name (str):
+        The name of the alias to update.
+
+    FunctionVersion (str, optional):
+        The version of the Lambda function that the alias points to.
+
+    Description (str, optional):
+        A description for the alias.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -753,6 +1134,33 @@ def create_event_source_mapping(
     """
     Create an event source mapping.
 
+    EventSourceArn (str):
+        The ARN of the event source.
+
+    FunctionName (str):
+        The name of the Lambda function to associate with the event source.
+
+    StartingPosition (str):
+        The position in the stream where AWS Lambda should start reading.
+
+    Enabled (bool, optional):
+        Whether the event source mapping is enabled. Defaults to True.
+
+    BatchSize (int, optional):
+        The maximum number of items to retrieve in a single batch. Defaults to 100.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -782,6 +1190,24 @@ def get_event_source_mapping_ids(
 ):
     """
     Given an event source and function name, return a list of mapping IDs.
+
+    EventSourceArn (str):
+        The ARN of the event source.
+
+    FunctionName (str):
+        The name of the Lambda function associated with the event source.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -846,6 +1272,24 @@ def delete_event_source_mapping(
     """
     Delete an event source mapping.
 
+    EventSourceArn (str):
+        The ARN of the event source.
+
+    FunctionName (str):
+        The name of the Lambda function associated with the event source.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -873,6 +1317,24 @@ def event_source_mapping_exists(
 ):
     """
     Check whether an event source mapping exists.
+
+    EventSourceArn (str):
+        The ARN of the event source.
+
+    FunctionName (str):
+        The name of the Lambda function associated with the event source.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -906,6 +1368,24 @@ def describe_event_source_mapping(
     """
     Describe an event source mapping.
 
+    EventSourceArn (str):
+        The ARN of the event source.
+
+    FunctionName (str):
+        The name of the Lambda function associated with the event source.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -938,6 +1418,30 @@ def update_event_source_mapping(
 ):
     """
     Update an event source mapping.
+
+    UUID (str):
+        The identifier of the event source mapping.
+
+    FunctionName (str, optional):
+        The name of the Lambda function associated with the event source.
+
+    Enabled (bool, optional):
+        Whether the event source mapping is enabled.
+
+    BatchSize (int, optional):
+        The maximum number of items to retrieve in a single batch.
+
+    region (str, optional):
+        The AWS region where the Lambda function is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 

@@ -102,22 +102,22 @@ def hosted_zone_present(
     """
     Ensure a hosted zone exists with the given attributes.
 
-    name
+    name (str):
         The name of the state definition.
 
-    Name
+    Name (str, optional):
         The name of the domain. This should be a fully-specified domain, and should terminate with a
         period. This is the name you have registered with your DNS registrar. It is also the name
         you will delegate from your registrar to the Amazon Route 53 delegation servers returned in
         response to this request.  If not provided, the value of name will be used.
 
-    PrivateZone
+    PrivateZone (bool, optional):
         Set True if creating a private hosted zone.  If true, then 'VPCs' is also required.
 
-    Comment
+    Comment (str, optional):
         Any comments you want to include about the hosted zone.
 
-    CallerReference
+    CallerReference (str, optional):
         A unique string that identifies the request and that allows create_hosted_zone() calls to be
         retried without the risk of executing the operation twice.  This helps ensure idempotency
         across state calls, but can cause issues if a zone is deleted and then an attempt is made
@@ -126,19 +126,19 @@ def hosted_zone_present(
         the state is run again while the previous zone creation is still in PENDING status (which
         can occasionally take several minutes to clear).  Maximum length of 128.
 
-    VPCs
+    VPCs (list of dicts, optional):
         A list of dicts, each dict composed of a VPCRegion, and either a VPCId or a VPCName.
         Note that this param is ONLY used if PrivateZone == True
 
-        VPCId
+        VPCId (str):
             When creating a private hosted zone, either the VPC ID or VPC Name to associate with is
             required.  Exclusive with VPCName.
 
-        VPCName
+        VPCName (str):
             When creating a private hosted zone, either the VPC ID or VPC Name to associate with is
             required.  Exclusive with VPCId.
 
-        VPCRegion
+        VPCRegion (str):
             When creating a private hosted zone, the region of the associated VPC is required.  If
             not provided, an effort will be made to determine it from VPCId or VPCName, if
             possible.  This will fail if a given VPCName exists in multiple regions visible to the
@@ -151,7 +151,12 @@ def hosted_zone_present(
         ensure-hosted-zone-present:
           boto3_route53.hosted_zone_present:
             - name: example
-
+            - PrivateZone: False
+            - Comment: "Example comment"
+            - CallerReference: "unique-string"
+            - VPCs:
+              - VPCId: vpc-12345678
+                VPCRegion: us-east-1
     """
     Name = Name if Name else name
 
@@ -379,16 +384,16 @@ def hosted_zone_absent(
     name, Name=None, PrivateZone=False, region=None, key=None, keyid=None, profile=None
 ):
     """
-    Ensure the Route53 Hostes Zone described is absent
+    Ensure the Route53 Hosted Zone described is absent
 
-    name
+    name (str):
         The name of the state definition.
 
-    Name
+    Name (str, optional):
         The name of the domain. This should be a fully-specified domain, and should terminate with a
         period.  If not provided, the value of name will be used.
 
-    PrivateZone
+    PrivateZone (bool, optional):
         Set True if deleting a private hosted zone.
 
     Example:
@@ -398,7 +403,6 @@ def hosted_zone_absent(
         ensure-hosted-zone-absent:
           boto3_route53.hosted_zone_absent:
             - name: example
-
     """
     Name = Name if Name else name
 
@@ -472,33 +476,33 @@ def rr_present(
     """
     Ensure the Route53 record is present.
 
-    name
+    name (str):
         The name of the state definition.  This will be used for Name if the latter is
         not provided.
 
-    HostedZoneId
+    HostedZoneId (str, optional):
         The ID of a zone to create the record in.  Exclusive with DomainName.
 
-    DomainName
+    DomainName (str, optional):
         The domain name of a zone to create the record in.  Exclusive with HostedZoneId.
 
-    PrivateZone
+    PrivateZone (bool, optional):
         Set to True if the resource record should be in a private zone, False if public.
 
-    Name
+    Name (str, optional):
         Name of the Route 53 resource record being managed.
 
-    Type
+    Type (str, optional):
         The record type (A, NS, MX, TXT, etc.)
 
-    SetIdentifier
+    SetIdentifier (str, optional):
         Valid for Weighted, Latency, Geolocation, and Failover resource record sets only.
         An identifier that differentiates among multiple resource record sets that have the same
         combination of DNS name and type.  The value of SetIdentifier must be unique for each
         resource record set that has the same combination of DNS name and type. Omit SetIdentifier
         for any other types of record sets.
 
-    Weight
+    Weight (int, optional):
         Valid for Weighted resource record sets only.  Among resource record sets that have the
         same combination of DNS name and type, a value that determines the proportion of DNS
         queries that Amazon Route 53 responds to using the current resource record set. Amazon Route
@@ -506,32 +510,31 @@ def rr_present(
         combination of DNS name and type. Amazon Route 53 then responds to queries based on the
         ratio of a resource's weight to the total.
 
-        Note the following:
+        .. note::
+            - You must specify a value for the Weight element for every weighted resource record set.
+            - You can only specify one ResourceRecord per weighted resource record set.
+            - You can't create latency, failover, or geolocation resource record sets that have the
+            same values for the Name and Type elements as weighted resource record sets.
+            - You can create a maximum of 100 weighted resource record sets that have the same values
+            for the Name and Type elements.
+            - For weighted (but not weighted alias) resource record sets, if you set Weight to 0 for a
+            resource record set, Amazon Route 53 never responds to queries with the applicable value
+            for that resource record set.  However, if you set Weight to 0 for all resource record
+            sets that have the same combination of DNS name and type, traffic is routed to all
+            resources with equal probability.  The effect of setting Weight to 0 is different when
+            you associate health checks with weighted resource record sets. For more information,
+            see `Options for Configuring Amazon Route 53 Active-Active and Active-Passive Failover`__
+            in the Amazon Route 53 Developer Guide.
 
-        - You must specify a value for the Weight element for every weighted resource record set.
-        - You can only specify one ResourceRecord per weighted resource record set.
-        - You can't create latency, failover, or geolocation resource record sets that have the
-          same values for the Name and Type elements as weighted resource record sets.
-        - You can create a maximum of 100 weighted resource record sets that have the same values
-          for the Name and Type elements.
-        - For weighted (but not weighted alias) resource record sets, if you set Weight to 0 for a
-          resource record set, Amazon Route 53 never responds to queries with the applicable value
-          for that resource record set.  However, if you set Weight to 0 for all resource record
-          sets that have the same combination of DNS name and type, traffic is routed to all
-          resources with equal probability.  The effect of setting Weight to 0 is different when
-          you associate health checks with weighted resource record sets. For more information,
-          see `Options for Configuring Amazon Route 53 Active-Active and Active-Passive Failover`__
-          in the Amazon Route 53 Developer Guide.
+            .. __: http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-failover-configuring-options.html
 
-          .. __: http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/dns-failover-configuring-options.html
-
-    Region
+    Region (str, optional):
         Valid for Latency-based resource record sets only.  The Amazon EC2 Region where the resource
         that is specified in this resource record set resides. The resource typically is an AWS
         resource, such as an EC2 instance or an ELB load balancer, and is referred to by an IP
         address or a DNS domain name, depending on the record type.
 
-    GeoLocation
+    GeoLocation (dict, optional):
         Geo location resource record sets only.  A dict that lets you control how Route 53 responds
         to DNS queries based on the geographic origin of the query.  For example, if you want all
         queries from Africa to be routed to a web server with an IP address of 192.0.2.111, create a
@@ -550,58 +553,59 @@ def rr_present(
                 The code for the subdivision, for example, a state in the United States or a
                 province in Canada.
 
-        Notes
+        .. note::
+            - Creating geolocation and geolocation alias resource record sets in private hosted zones
+            is not supported.
+            - If you create separate resource record sets for overlapping geographic regions (for
+            example, one resource record set for a continent and one for a country on the same
+            continent), priority goes to the smallest geographic region. This allows you to route
+            most queries for a continent to one resource and to route queries for a country on that
+            continent to a different resource.
+            - You can't create two geolocation resource record sets that specify the same geographic
+            location.
+            - The value ``*`` in the CountryCode element matches all geographic locations that aren't
+            specified in other geolocation resource record sets that have the same values for the
+            Name and Type elements.
+            - Geolocation works by mapping IP addresses to locations.  However, some IP addresses
+            aren't mapped to geographic locations, so even if you create geolocation resource
+            record sets that cover all seven continents, Amazon Route 53 will receive some DNS
+            queries from locations that it can't identify.  We recommend that you
+            create a resource record set for which the value of CountryCode is
+            ``*``, which handles both queries that come from locations for which you
+            haven't created geolocation resource record sets and queries from IP
+            addresses that aren't mapped to a location.  If you don't create a ``*``
+            resource record set, Amazon Route 53 returns a "no answer" response
+            for queries from those locations.
+            - You can't create non-geolocation resource record sets that have the same values for the
+            Name and Type elements as geolocation resource record sets.
 
-        - Creating geolocation and geolocation alias resource record sets in private hosted zones
-          is not supported.
-        - If you create separate resource record sets for overlapping geographic regions (for
-          example, one resource record set for a continent and one for a country on the same
-          continent), priority goes to the smallest geographic region. This allows you to route
-          most queries for a continent to one resource and to route queries for a country on that
-          continent to a different resource.
-        - You can't create two geolocation resource record sets that specify the same geographic
-          location.
-        - The value ``*`` in the CountryCode element matches all geographic locations that aren't
-          specified in other geolocation resource record sets that have the same values for the
-          Name and Type elements.
-        - Geolocation works by mapping IP addresses to locations.  However, some IP addresses
-          aren't mapped to geographic locations, so even if you create geolocation resource
-          record sets that cover all seven continents, Amazon Route 53 will receive some DNS
-          queries from locations that it can't identify.  We recommend that you
-          create a resource record set for which the value of CountryCode is
-          ``*``, which handles both queries that come from locations for which you
-          haven't created geolocation resource record sets and queries from IP
-          addresses that aren't mapped to a location.  If you don't create a ``*``
-          resource record set, Amazon Route 53 returns a "no answer" response
-          for queries from those locations.
-        - You can't create non-geolocation resource record sets that have the same values for the
-          Name and Type elements as geolocation resource record sets.
-
-    TTL
+    TTL (int)
         The resource record cache time to live (TTL), in seconds.
-        Note the following:
 
-        - If you're creating an alias resource record set, omit TTL. Amazon Route 53 uses the
-          value of TTL for the alias target.
-        - If you're associating this resource record set with a health check (if you're adding
-          a HealthCheckId element), we recommend that you specify a TTL of 60 seconds or less so
-          clients respond quickly to changes in health status.
-        - All of the resource record sets in a group of weighted, latency, geolocation, or
-          failover resource record sets must have the same value for TTL.
-        - If a group of weighted resource record sets includes one or more weighted alias
-          resource record sets for which the alias target is an ELB load balancer, we recommend
-          that you specify a TTL of 60 seconds for all of the non-alias weighted resource record
-          sets that have the same name and type. Values other than 60 seconds (the TTL for load
-          balancers) will change the effect of the values that you specify for Weight.
+        .. note::
+            - If you're creating an alias resource record set, omit TTL. Amazon Route 53 uses the
+            value of TTL for the alias target.
+            - If you're associating this resource record set with a health check (if you're adding
+            a HealthCheckId element), we recommend that you specify a TTL of 60 seconds or less so
+            clients respond quickly to changes in health status.
+            - All of the resource record sets in a group of weighted, latency, geolocation, or
+            failover resource record sets must have the same value for TTL.
+            - If a group of weighted resource record sets includes one or more weighted alias
+            resource record sets for which the alias target is an ELB load balancer, we recommend
+            that you specify a TTL of 60 seconds for all of the non-alias weighted resource record
+            sets that have the same name and type. Values other than 60 seconds (the TTL for load
+            balancers) will change the effect of the values that you specify for Weight.
 
-    ResourceRecords
+    ResourceRecords (list)
         A list, containing one or more values for the resource record.  No single value can exceed
         4,000 characters.  For details on how to format values for different record types, see
         `Supported DNS Resource Record Types`__ in the Amazon Route 53 Developer Guide.
 
         .. __: http://docs.aws.amazon.com/Route53/latest/DeveloperGuide/ResourceRecordTypes.html
 
-        Note:  You can specify more than one value for all record types except CNAME and SOA.
+        .. note::
+
+            You can specify more than one value for all record types except CNAME and SOA.
 
         It is also possible to pass "magic" strings as resource record values.  This functionality
         can easily be extended, but for the moment supports the following:
@@ -620,7 +624,7 @@ def rr_present(
         we always populate with the host's FQDN) to lookup the public or private IPs bound to the
         instance, so we can then automgically create Route 53 records for them.
 
-    AliasTarget
+    AliasTarget (dict)
         The rules governing how to define an AliasTarget for the various supported use-cases are
         obtuse beyond reason and attempting to paraphrase them (or even worse, cut-and-paste them
         in their entirety) would be silly and counterproductive.  If you need this feature, then
@@ -630,16 +634,16 @@ def rr_present(
         .. __: https://docs.aws.amazon.com/boto3/latest/reference/services/route53/client/change_resource_record_sets.html
         .. __: http://docs.aws.amazon.com/Route53/latest/APIReference/API_AliasTarget.html
 
-    region
+    region (str)
         The region to connect to.
 
-    key
+    key (str)
         Secret key to be used.
 
-    keyid
+    keyid (str)
         Access key to be used.
 
-    profile
+    profile (dict)
         Dict, or pillar key pointing to a dict, containing AWS region/key/keyid.
 
     Example:
@@ -649,7 +653,9 @@ def rr_present(
         ensure-rr-present:
           boto3_route53.rr_present:
             - name: example
-
+            - type: A
+            - resource_records:
+              - magic:ec2_instance_tag:Name:example:public_ip
     """
     Name = Name if Name else name
 
@@ -882,42 +888,42 @@ def rr_absent(
     """
     Ensure the Route53 record is deleted.
 
-    name
+    name (str)
         The name of the state definition.  This will be used for Name if the latter is
         not provided.
 
-    HostedZoneId
+    HostedZoneId (str)
         The ID of the zone to delete the record from.  Exclusive with DomainName.
 
-    DomainName
+    DomainName (str)
         The domain name of the zone to delete the record from.  Exclusive with HostedZoneId.
 
-    PrivateZone
+    PrivateZone (bool)
         Set to True if the RR to be removed is in a private zone, False if public.
 
-    Name
+    Name (str)
         Name of the resource record.
 
-    Type
+    Type (str)
         The record type (A, NS, MX, TXT, etc.)
 
-    SetIdentifier
+    SetIdentifier (str)
         Valid for Weighted, Latency, Geolocation, and Failover resource record sets only.
         An identifier that differentiates among multiple resource record sets that have the same
         combination of DNS name and type.  The value of SetIdentifier must be unique for each
         resource record set that has the same combination of DNS name and type. Omit SetIdentifier
         for any other types of record sets.
 
-    region
+    region (str)
         The region to connect to.
 
-    key
+    key (str)
         Secret key to be used.
 
-    keyid
+    keyid (str)
         Access key to be used.
 
-    profile
+    profile (dict)
         Dict, or pillar key pointing to a dict, containing AWS region/key/keyid.
 
     Example:
@@ -927,7 +933,6 @@ def rr_absent(
         ensure-rr-absent:
           boto3_route53.rr_absent:
             - name: example
-
     """
     Name = Name if Name else name
 

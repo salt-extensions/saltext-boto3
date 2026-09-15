@@ -355,63 +355,63 @@ def present(
     """
     Ensure bucket exists.
 
-    name
+    name (str)
         The name of the state definition
 
-    Bucket
+    Bucket (str)
         Name of the bucket.
 
-    LocationConstraint
+    LocationConstraint (str)
         'EU'|'eu-west-1'|'us-west-1'|'us-west-2'|'ap-southeast-1'|'ap-southeast-2'|'ap-northeast-1'|'sa-east-1'|'cn-north-1'|'eu-central-1'
 
-    ACL
+    ACL (dict)
         The permissions on a bucket using access control lists (ACL).
 
-    CORSRules
+    CORSRules (list)
         The cors configuration for a bucket.
 
-    LifecycleConfiguration
+    LifecycleConfiguration (dict)
         Lifecycle configuration for your bucket
 
-    Logging
+    Logging (dict)
         The logging parameters for a bucket and to specify permissions for who
         can view and modify the logging parameters.
 
-    NotificationConfiguration
+    NotificationConfiguration (dict)
         notifications of specified events for a bucket
 
-    Policy
+    Policy (dict)
         Policy on the bucket
 
-    Replication
+    Replication (dict)
         Replication rules. You can add as many as 1,000 rules.
         Total replication configuration size can be up to 2 MB
 
-    RequestPayment
+    RequestPayment (dict)
         The request payment configuration for a bucket. By default, the bucket
         owner pays for downloads from the bucket. This configuration parameter
         enables the bucket owner (only) to specify that the person requesting
         the download will be charged for the download
 
-    Tagging
+    Tagging (dict)
         A dictionary of tags that should be set on the bucket
 
-    Versioning
+    Versioning (dict)
         The versioning state of the bucket
 
-    Website
+    Website (dict)
         The website configuration of the bucket
 
-    region
+    region (str)
         Region to connect to.
 
-    key
+    key (str)
         Secret key to be used.
 
-    keyid
+    keyid (str)
         Access key to be used.
 
-    profile
+    profile (dict)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -421,8 +421,7 @@ def present(
 
         ensure-present:
           boto3_s3_bucket.present:
-            - name: example
-
+            - Bucket: example-bucket
     """
     ret = {"name": Bucket, "result": True, "comment": "", "changes": {}}
 
@@ -703,25 +702,25 @@ def absent(
     """
     Ensure bucket with passed properties is absent.
 
-    name
+    name (str)
         The name of the state definition.
 
-    Bucket
+    Bucket (str)
         Name of the bucket.
 
-    Force
+    Force (bool)
         Empty the bucket first if necessary - Boolean.
 
-    region
+    region (str)
         Region to connect to.
 
-    key
+    key (str)
         Secret key to be used.
 
-    keyid
+    keyid (str)
         Access key to be used.
 
-    profile
+    profile (dict)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -731,8 +730,7 @@ def absent(
 
         ensure-absent:
           boto3_s3_bucket.absent:
-            - name: example
-
+            - Bucket: example-bucket
     """
 
     ret = {"name": Bucket, "result": True, "comment": "", "changes": {}}

@@ -94,22 +94,22 @@ def present(
     """
     Ensure the SQS queue exists.
 
-    name
+    name (str)
         Name of the SQS queue.
 
-    attributes
+    attributes (dict)
         A dict of key/value SQS attributes.
 
-    region
+    region (str)
         Region to connect to.
 
-    key
+    key (str)
         Secret key to be used.
 
-    keyid
+    keyid (str)
         Access key to be used.
 
-    profile
+    profile (str or dict)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -120,7 +120,8 @@ def present(
         ensure-present:
           boto3_sqs.present:
             - name: example
-
+            - attributes:
+                ReceiveMessageWaitTimeSeconds: 20
     """
     ret = {
         "name": name,
@@ -272,19 +273,19 @@ def absent(
     """
     Ensure the named sqs queue is deleted.
 
-    name
+    name (str)
         Name of the SQS queue.
 
-    region
+    region (str)
         Region to connect to.
 
-    key
+    key (str)
         Secret key to be used.
 
-    keyid
+    keyid (str)
         Access key to be used.
 
-    profile
+    profile (str or dict)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -295,7 +296,6 @@ def absent(
         ensure-absent:
           boto3_sqs.absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 

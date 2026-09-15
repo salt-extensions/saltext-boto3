@@ -513,12 +513,29 @@ def upgraded(
     elasticsearch. Only upgrades are possible as downgrades require a manual snapshot
     and an S3 bucket to store them in.
 
-    Note that this operation is blocking until the upgrade is complete.
+    .. note::
+        This operation is blocking until the upgrade is complete.
 
-    :param str name: The name of the Elasticsearch domain to upgrade.
-    :param str elasticsearch_version: String of format X.Y to specify version for
-        the Elasticsearch domain eg. "1.5" or "2.3".
+    name (String)
+        The name of the Elasticsearch domain to upgrade.
 
+    elasticsearch_version (String)
+        The version of Elasticsearch to upgrade the domain to. Only upgrades are possible; downgrades require a manual snapshot and an S3 bucket to store them in.
+
+    blocking (Boolean)
+        Whether to block until the upgrade is complete. Defaults to True.
+
+    region (String)
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (String)
+        The AWS access key ID.
+
+    key (String)
+        The AWS secret access key.
+
+    profile (String)
+        The AWS profile to use.
 
     Example:
 
@@ -671,11 +688,26 @@ def latest(name, minor_only=True, region=None, keyid=None, key=None, profile=Non
     Ensures the Elasticsearch domain specifies runs on the latest compatible
     version of elasticsearch, upgrading it if it is not.
 
-    Note that this operation is blocking until the upgrade is complete.
+    .. note::
+        This operation is blocking until the upgrade is complete.
 
-    :param str name: The name of the Elasticsearch domain to upgrade.
-    :param bool minor_only: Only upgrade to the latest minor version.
+    name (String)
+        The name of the Elasticsearch domain to upgrade.
 
+    minor_only (Boolean)
+        Only upgrade to the latest minor version.
+
+    region (String)
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (String)
+        The AWS access key ID.
+
+    key (String)
+        The AWS secret access key.
+
+    profile (String)
+        The AWS profile to use.
 
     Example:
 
@@ -783,10 +815,26 @@ def tagged(name, tags=None, replace=False, region=None, keyid=None, key=None, pr
     case all existing tags will be replaced with the tags provided in ``tags``.
     (This will remove all tags if ``replace`` is ``True`` and ``tags`` is empty).
 
-    :param str name: The Elasticsearch domain to work with.
-    :param dict tags: The tags to add to/replace on the Elasticsearch domain.
-    :param bool replace: Whether or not to replace (``True``) all existing tags
-        on the Elasticsearch domain, or add (``False``) tags to the ES domain.
+    name (String)
+        The name of the Elasticsearch domain to work with.
+
+    tags (Dict)
+        The tags to add to/replace on the Elasticsearch domain.
+
+    replace (Boolean)
+        Whether or not to replace (``True``) all existing tags on the Elasticsearch domain, or add (``False``) tags to the ES domain.
+
+    region (String)
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (String)
+        The AWS access key ID.
+
+    key (String)
+        The AWS secret access key.
+
+    profile (String)
+        The AWS profile to use.
 
     Example:
 
@@ -795,7 +843,6 @@ def tagged(name, tags=None, replace=False, region=None, keyid=None, key=None, pr
         ensure-tagged:
           boto3_elasticsearch.tagged:
             - name: example
-
     """
     ret = {"name": name, "result": "oops", "comment": [], "changes": {}}
     current_tags = {}

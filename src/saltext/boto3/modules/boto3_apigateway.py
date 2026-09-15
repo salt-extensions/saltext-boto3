@@ -154,6 +154,24 @@ def describe_apis(name=None, description=None, region=None, key=None, keyid=None
     Returns all rest apis in the defined region.  If optional parameter name is included,
     returns all rest apis matching the name in the defined region.
 
+    name (str, optional):
+        The name of the REST API to filter by. If not provided, all APIs are returned.
+
+    description (str, optional):
+        The description of the REST API to filter by. If not provided, all APIs are returned.
+
+    region (str, optional):
+        The AWS region where the REST APIs are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -163,7 +181,6 @@ def describe_apis(name=None, description=None, region=None, key=None, keyid=None
         salt myminion boto3_apigateway.describe_apis name='api name'
 
         salt myminion boto3_apigateway.describe_apis name='api name' description='desc str'
-
     """
 
     if name:
@@ -190,12 +207,29 @@ def api_exists(name, description=None, region=None, key=None, keyid=None, profil
     """
     Check to see if the given Rest API Name and optionally description exists.
 
+    name (str):
+        The name of the REST API to check for existence.
+
+    description (str, optional):
+        The description of the REST API to check for existence.
+
+    region (str, optional):
+        The AWS region where the REST APIs are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.exists myapi_name
-
+        salt myminion boto3_apigateway.api_exists name='myapi_name'
     """
     apis = _find_apis_by_name(
         name,
@@ -212,15 +246,32 @@ def create_api(name, description, cloneFrom=None, region=None, key=None, keyid=N
     """
     Create a new REST API Service with the given name
 
-    Returns {created: True} if the rest api was created and returns
-    {created: False} if the rest api was not created.
+    name (str):
+        The name of the REST API to create.
+
+    description (str):
+        The description of the REST API to create.
+
+    cloneFrom (str, optional):
+        The ID of an existing REST API to clone. If not provided, a new API is created.
+
+    region (str, optional):
+        The AWS region where the REST API is to be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.create_api myapi_name api_description
-
+        salt myminion boto3_apigateway.create_api name='myapi_name' description='api_description'
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -238,17 +289,31 @@ def delete_api(name, description=None, region=None, key=None, keyid=None, profil
     """
     Delete all REST API Service with the given name and an optional API description
 
-    Returns {deleted: True, count: deleted_count} if apis were deleted, and
-    returns {deleted: False} if error or not found.
+    name (str):
+        The name of the REST API to delete.
+
+    description (str, optional):
+        The description of the REST API to delete.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.delete_api myapi_name
+        salt myminion boto3_apigateway.delete_api name='myapi_name'
 
-        salt myminion boto3_apigateway.delete_api myapi_name description='api description'
-
+        salt myminion boto3_apigateway.delete_api name='myapi_name' description='api description'
     """
     try:
         conn_params = {"region": region, "key": key, "keyid": keyid, "profile": profile}
@@ -274,12 +339,26 @@ def describe_api_resources(restApiId, region=None, key=None, keyid=None, profile
     """
     Given rest api id, return all resources for this api.
 
+    restApiId (str):
+        The ID of the REST API for which to describe resources.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.describe_api_resources myapi_id
-
+        salt myminion boto3_apigateway.describe_api_resources restApiId='myapi_id'
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -298,12 +377,29 @@ def describe_api_resource(restApiId, path, region=None, key=None, keyid=None, pr
     Given rest api id, and an absolute resource path, returns the resource id for
     the given path.
 
+    restApiId (str):
+        The ID of the REST API for which to describe the resource.
+
+    path (str):
+        The absolute path of the resource to describe.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.describe_api_resource myapi_id resource_path
-
+        salt myminion boto3_apigateway.describe_api_resource restApiId='myapi_id' path='resource_path'
     """
     r = describe_api_resources(restApiId, region=region, key=key, keyid=keyid, profile=profile)
     resources = r.get("resources")
@@ -320,12 +416,29 @@ def create_api_resources(restApiId, path, region=None, key=None, keyid=None, pro
     Given rest api id, and an absolute resource path, create all the resources and
     return all resources in the resourcepath, returns False on failure.
 
+    restApiId (str):
+        The ID of the REST API for which to create the resources.
+
+    path (str):
+        The absolute path of the resource to create.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.create_api_resources myapi_id resource_path
-
+        salt myminion boto3_apigateway.create_api_resources restApiId='myapi_id' path='resource_path'
     """
     path_parts = path.split("/")
     created = []
@@ -366,12 +479,29 @@ def delete_api_resources(restApiId, path, region=None, key=None, keyid=None, pro
     from the absolute resource path. If resourcepath is the root resource '/',
     the function will return False. Returns False on failure.
 
+    restApiId (str):
+        The ID of the REST API for which to delete the resources.
+
+    path (str):
+        The absolute path of the resource to delete.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.delete_api_resources myapi_id, resource_path
-
+        salt myminion boto3_apigateway.delete_api_resources restApiId='myapi_id' path='resource_path'
     """
     if path == "/":
         return {"deleted": False, "error": "use delete_api to remove the root resource"}
@@ -398,12 +528,33 @@ def describe_api_resource_method(
     GET, HEAD, OPTIONS, PATCH, POST, PUT), return the method for the
     api/resource path if defined.  Return False if method is not defined.
 
+    restApiId (str):
+        The ID of the REST API for which to describe the resource method.
+
+    resourcePath (str):
+        The absolute path of the resource for which to describe the method.
+
+    httpMethod (str):
+        The HTTP method for the resource (must be one of DELETE, GET, HEAD, OPTIONS, PATCH, POST, PUT).
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.describe_api_resource_method myapi_id resource_path httpmethod
-
+        salt myminion boto3_apigateway.describe_api_resource_method restApiId='myapi_id' \
+            resourcePath='resource_path' httpMethod='httpmethod'
     """
     r = describe_api_resource(
         restApiId, resourcePath, region=region, key=key, keyid=keyid, profile=profile
@@ -426,12 +577,26 @@ def describe_api_key(apiKey, region=None, key=None, keyid=None, profile=None):
     """
     Gets info about the given api key
 
+    apiKey (str):
+        The ID of the API key to describe.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.describe_api_key apigw_api_key
-
+        salt myminion boto3_apigateway.describe_api_key apiKey='apigw_api_key'
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -445,12 +610,23 @@ def describe_api_keys(region=None, key=None, keyid=None, profile=None):
     """
     Gets information about the defined API Keys.  Return list of apiKeys.
 
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.describe_api_keys
-
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -480,6 +656,30 @@ def create_api_key(
     An optional stageKeys argument can be provided in the form of
     list of dictionary with 'restApiId' and 'stageName' as keys.
 
+    name (str):
+        The name of the API key.
+
+    description (str):
+        The description of the API key.
+
+    enabled (bool, optional):
+        Whether the API key is enabled. Defaults to True.
+
+    stageKeys (list of dict, optional):
+        A list of stage key dictionaries, each containing 'restApiId' and 'stageName'.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -488,9 +688,8 @@ def create_api_key(
 
         salt myminion boto3_apigateway.create_api_key name description enabled=False
 
-        salt myminion boto3_apigateway.create_api_key name description \\
+        salt myminion boto3_apigateway.create_api_key name description \
              stageKeys='[{"restApiId": "id", "stageName": "stagename"}]'
-
     """
 
     try:
@@ -512,12 +711,26 @@ def delete_api_key(apiKey, region=None, key=None, keyid=None, profile=None):
     """
     Deletes a given apiKey
 
+    apiKey (str):
+        The ID of the API key to delete.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.delete_api_key apikeystring
-
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -568,12 +781,29 @@ def update_api_key_description(
     """
     update the given apiKey with the given description.
 
+    apiKey (str):
+        The ID of the API key to update.
+
+    description (str):
+        The new description for the API key.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.update_api_key_description api_key description
-
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -587,12 +817,27 @@ def enable_api_key(apiKey, region=None, key=None, keyid=None, profile=None):
     """
     enable the given apiKey.
 
+    apiKey (str):
+        The ID of the API key to enable.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.enable_api_key api_key
-
+        salt myminion boto3_apigateway.enable_api_key api_key region=us-west-2 \
+            key=mysecretkey keyid=myaccesskeyid profile=myprofile
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -606,12 +851,27 @@ def disable_api_key(apiKey, region=None, key=None, keyid=None, profile=None):
     """
     disable the given apiKey.
 
+    apiKey (str):
+        The ID of the API key to disable.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.enable_api_key api_key
-
+        salt myminion boto3_apigateway.disable_api_key api_key region=us-west-2 \
+            key=mysecretkey keyid=myaccesskeyid profile=myprofile
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -627,13 +887,31 @@ def associate_api_key_stagekeys(
     """
     associate the given stagekeyslist to the given apiKey.
 
+    apiKey (str):
+        The ID of the API key to associate the stage keys with.
+
+    stagekeyslist (list):
+        A list of stage keys to associate with the API key.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.associate_stagekeys_api_key \\
-                api_key '["restapi id/stage name", ...]'
-
+        salt myminion boto3_apigateway.associate_stagekeys_api_key \
+            api_key '["restapi id/stage name", ...]' region=us-west-2 \
+            key=mysecretkey keyid=myaccesskeyid profile=myprofile
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -650,13 +928,31 @@ def disassociate_api_key_stagekeys(
     """
     disassociate the given stagekeyslist to the given apiKey.
 
+    apiKey (str):
+        The ID of the API key to disassociate the stage keys from.
+
+    stagekeyslist (list):
+        A list of stage keys to disassociate from the API key.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.disassociate_stagekeys_api_key \\
-                api_key '["restapi id/stage name", ...]'
-
+        salt myminion boto3_apigateway.disassociate_stagekeys_api_key \
+            api_key '["restapi id/stage name", ...]' region=us-west-2 \
+            key=mysecretkey keyid=myaccesskeyid profile=myprofile
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -671,12 +967,26 @@ def describe_api_deployments(restApiId, region=None, key=None, keyid=None, profi
     """
     Gets information about the defined API Deployments.  Return list of api deployments.
 
+    restApiId (str):
+        The ID of the REST API for which to describe deployments.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.describe_api_deployments restApiId
-
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -703,12 +1013,29 @@ def describe_api_deployment(
     """
     Get API deployment for a given restApiId and deploymentId.
 
+    restApiId (str):
+        The ID of the REST API for which to describe the deployment.
+
+    deploymentId (str):
+        The ID of the deployment to describe.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.describe_api_deployent restApiId deploymentId
-
+        salt myminion boto3_apigateway.describe_api_deployment restApiId deploymentId
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -722,14 +1049,34 @@ def activate_api_deployment(
     restApiId, stageName, deploymentId, region=None, key=None, keyid=None, profile=None
 ):
     """
-    Activates previously deployed deployment for a given stage
+    Activates previously deployed deployment for a given stage.
+
+    restApiId (str):
+        The ID of the REST API for which to activate the deployment.
+
+    stageName (str):
+        The name of the stage to activate the deployment for.
+
+    deploymentId (str):
+        The ID of the deployment to activate.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.activate_api_deployent restApiId stagename deploymentId
-
+        salt myminion boto3_apigateway.activate_api_deployment restApiId stageName deploymentId
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -759,13 +1106,45 @@ def create_api_deployment(
     """
     Creates a new API deployment.
 
+    restApiId (str):
+        The ID of the REST API for which to create the deployment.
+
+    stageName (str):
+        The name of the stage to create the deployment for.
+
+    stageDescription (str, optional):
+        The description of the stage.
+
+    description (str, optional):
+        The description of the deployment.
+
+    cacheClusterEnabled (bool, optional):
+        Whether the cache cluster is enabled for the stage.
+
+    cacheClusterSize (str, optional):
+        The size of the cache cluster for the stage.
+
+    variables (dict, optional):
+        The stage variables to set for the stage.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.create_api_deployent restApiId stagename stageDescription='' \\
-        description='' cacheClusterEnabled=True|False cacheClusterSize=0.5 variables='{"name": "value"}'
-
+        salt myminion boto3_apigateway.create_api_deployment restApiId stageName stageDescription='' \
+            description='' cacheClusterEnabled=True|False cacheClusterSize=0.5 variables='{"name": "value"}'
     """
     try:
         variables = {} if variables is None else variables
@@ -789,12 +1168,29 @@ def delete_api_deployment(restApiId, deploymentId, region=None, key=None, keyid=
     """
     Deletes API deployment for a given restApiId and deploymentID
 
+    restApiId (str):
+        The ID of the REST API.
+
+    deploymentId (str):
+        The ID of the deployment to delete.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.delete_api_deployent restApiId deploymentId
-
+        salt myminion boto3_apigateway.delete_api_deployment restApiId deploymentId
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -813,12 +1209,32 @@ def overwrite_api_stage_variables(
     stage variables associated with the given restApiId and stage name, follow by the adding of all the
     variables specified in the variables dictionary
 
+    restApiId (str):
+        The ID of the REST API.
+
+    stageName (str):
+        The name of the stage.
+
+    variables (dict):
+        The stage variables to set, in the form of a dictionary.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.overwrite_api_stage_variables restApiId stageName variables='{"name": "value"}'
-
     """
     try:
         res = describe_api_stage(
@@ -855,12 +1271,29 @@ def describe_api_stage(restApiId, stageName, region=None, key=None, keyid=None, 
     """
     Get API stage for a given apiID and stage name
 
+    restApiId (str):
+        The ID of the REST API.
+
+    stageName (str):
+        The name of the stage.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.describe_api_stage restApiId stageName
-
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -874,12 +1307,29 @@ def describe_api_stages(restApiId, deploymentId, region=None, key=None, keyid=No
     """
     Get all API stages for a given apiID and deploymentID
 
+    restApiId (str):
+        The ID of the REST API.
+
+    deploymentId (str):
+        The ID of the deployment.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.describe_api_stages restApiId deploymentId
-
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -905,13 +1355,45 @@ def create_api_stage(
     """
     Creates a new API stage for a given restApiId and deploymentId.
 
+    restApiId (str):
+        The ID of the REST API.
+
+    stageName (str):
+        The name of the stage.
+
+    deploymentId (str):
+        The ID of the deployment.
+
+    description (str, optional):
+        The description of the stage.
+
+    cacheClusterEnabled (bool, optional):
+        Whether the cache cluster is enabled.
+
+    cacheClusterSize (str, optional):
+        The size of the cache cluster.
+
+    variables (dict, optional):
+        The stage variables.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.create_api_stage restApiId stagename deploymentId \\
+        salt myminion boto3_apigateway.create_api_stage restApiId stagename deploymentId \
             description='' cacheClusterEnabled=True|False cacheClusterSize='0.5' variables='{"name": "value"}'
-
     """
     try:
         variables = {} if variables is None else variables
@@ -935,12 +1417,29 @@ def delete_api_stage(restApiId, stageName, region=None, key=None, keyid=None, pr
     """
     Deletes stage identified by stageName from API identified by restApiId
 
+    restApiId (str):
+        The ID of the REST API.
+
+    stageName (str):
+        The name of the stage.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.delete_api_stage restApiId stageName
-
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -954,12 +1453,29 @@ def flush_api_stage_cache(restApiId, stageName, region=None, key=None, keyid=Non
     """
     Flushes cache for the stage identified by stageName from API identified by restApiId
 
+    restApiId (str):
+        The ID of the REST API.
+
+    stageName (str):
+        The name of the stage.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.flush_api_stage_cache restApiId stageName
-
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -985,13 +1501,45 @@ def create_api_method(
     """
     Creates API method for a resource in the given API
 
+    restApiId (str):
+        The ID of the REST API.
+
+    resourcePath (str):
+        The path of the resource.
+
+    httpMethod (str):
+        The HTTP method for the API method.
+
+    authorizationType (str):
+        The authorization type for the API method.
+
+    apiKeyRequired (bool, optional):
+        Whether an API key is required for the method.
+
+    requestParameters (dict, optional):
+        The request parameters for the method.
+
+    requestModels (dict, optional):
+        The request models for the method.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.create_api_method restApiId resourcePath, httpMethod, authorizationType, \\
+        salt myminion boto3_apigateway.create_api_method restApiId resourcePath, httpMethod, authorizationType, \
             apiKeyRequired=False, requestParameters='{"name", "value"}', requestModels='{"content-type", "value"}'
-
     """
     try:
         resource = describe_api_resource(
@@ -1029,12 +1577,32 @@ def describe_api_method(
     """
     Get API method for a resource in the given API
 
+    restApiId (str):
+        The ID of the REST API.
+
+    resourcePath (str):
+        The path of the resource.
+
+    httpMethod (str):
+        The HTTP method for the API method.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.describe_api_method restApiId resourcePath httpMethod
-
     """
     try:
         resource = describe_api_resource(
@@ -1062,12 +1630,32 @@ def delete_api_method(
     """
     Delete API method for a resource in the given API
 
+    restApiId (str):
+        The ID of the REST API.
+
+    resourcePath (str):
+        The path of the resource.
+
+    httpMethod (str):
+        The HTTP method for the API method.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.delete_api_method restApiId resourcePath httpMethod
-
     """
     try:
         resource = describe_api_resource(
@@ -1104,13 +1692,42 @@ def create_api_method_response(
     """
     Create API method response for a method on a given resource in the given API
 
+    restApiId (str):
+        The ID of the REST API.
+
+    resourcePath (str):
+        The path of the resource.
+
+    httpMethod (str):
+        The HTTP method for the API method.
+
+    statusCode (str):
+        The status code for the method response.
+
+    responseParameters (dict, optional):
+        The response parameters for the method response.
+
+    responseModels (dict, optional):
+        The response models for the method response.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.create_api_method_response restApiId resourcePath httpMethod \\
-               statusCode responseParameters='{"name", "True|False"}' responseModels='{"content-type", "model"}'
-
+        salt myminion boto3_apigateway.create_api_method_response restApiId resourcePath httpMethod \
+            statusCode responseParameters='{"name", "True|False"}' responseModels='{"content-type", "model"}'
     """
     try:
         resource = describe_api_resource(
@@ -1153,12 +1770,35 @@ def delete_api_method_response(
     """
     Delete API method response for a resource in the given API
 
+    restApiId (str):
+        The ID of the REST API.
+
+    resourcePath (str):
+        The path of the resource.
+
+    httpMethod (str):
+        The HTTP method for the API method.
+
+    statusCode (str):
+        The status code for the method response.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.delete_api_method_response restApiId resourcePath httpMethod statusCode
-
     """
     try:
         resource = describe_api_resource(
@@ -1196,12 +1836,35 @@ def describe_api_method_response(
     """
     Get API method response for a resource in the given API
 
+    restApiId (str):
+        The ID of the REST API.
+
+    resourcePath (str):
+        The path of the resource.
+
+    httpMethod (str):
+        The HTTP method for the API method.
+
+    statusCode (str):
+        The status code for the method response.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.describe_api_method_response restApiId resourcePath httpMethod statusCode
-
     """
     try:
         resource = describe_api_resource(
@@ -1230,12 +1893,26 @@ def describe_api_models(restApiId, region=None, key=None, keyid=None, profile=No
     """
     Get all models for a given API
 
+    restApiId (str):
+        The ID of the REST API.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.describe_api_models restApiId
-
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -1251,12 +1928,32 @@ def describe_api_model(
     """
     Get a model by name for a given API
 
+    restApiId (str):
+        The ID of the REST API.
+
+    modelName (str):
+        The name of the model to retrieve.
+
+    flatten (bool, optional):
+        Whether to flatten the model structure. Defaults to True.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.describe_api_model restApiId modelName [True]
-
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -1269,6 +1966,24 @@ def describe_api_model(
 def api_model_exists(restApiId, modelName, region=None, key=None, keyid=None, profile=None):
     """
     Check to see if the given modelName exists in the given restApiId
+
+    restApiId (str):
+        The ID of the REST API.
+
+    modelName (str):
+        The name of the model to check for existence.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1301,12 +2016,32 @@ def update_api_model_schema(
     """
     update the schema (in python dictionary format) for the given model in the given restApiId
 
+    restApiId (str):
+        The ID of the REST API.
+
+    modelName (str):
+        The name of the model to update.
+
+    schema (dict or str):
+        The new schema for the model. Can be a Python dictionary or a JSON string.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.update_api_model_schema restApiId modelName schema
-
     """
     try:
         schema_json = salt.utils.json.dumps(schema) if isinstance(schema, dict) else schema
@@ -1321,12 +2056,29 @@ def delete_api_model(restApiId, modelName, region=None, key=None, keyid=None, pr
     """
     Delete a model identified by name in a given API
 
+    restApiId (str):
+        The ID of the REST API.
+
+    modelName (str):
+        The name of the model to delete.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.delete_api_model restApiId modelName
-
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -1351,12 +2103,38 @@ def create_api_model(
     Create a new model in a given API with a given schema, currently only contentType supported is
     'application/json'
 
+    restApiId (str):
+        The ID of the REST API.
+
+    modelName (str):
+        The name of the model to create.
+
+    modelDescription (str):
+        A description of the model.
+
+    schema (dict or str):
+        The schema for the model. Can be a Python dictionary or a JSON string.
+
+    contentType (str, optional):
+        The content type for the model schema. Default is 'application/json'.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.create_api_model restApiId modelName modelDescription '<schema>' 'content-type'
-
     """
     try:
         schema_json = salt.utils.json.dumps(schema) if isinstance(schema, dict) else schema
@@ -1379,12 +2157,32 @@ def describe_api_integration(
     """
     Get an integration for a given method in a given API
 
+    restApiId (str):
+        The ID of the REST API.
+
+    resourcePath (str):
+        The path of the resource.
+
+    httpMethod (str):
+        The HTTP method of the integration.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.describe_api_integration restApiId resourcePath httpMethod
-
     """
     try:
         resource = describe_api_resource(
@@ -1419,12 +2217,35 @@ def describe_api_integration_response(
     """
     Get an integration response for a given method in a given API
 
+    restApiId (str):
+        The ID of the REST API.
+
+    resourcePath (str):
+        The path of the resource.
+
+    httpMethod (str):
+        The HTTP method of the integration.
+
+    statusCode (str):
+        The status code of the integration response.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.describe_api_integration_response restApiId resourcePath httpMethod statusCode
-
     """
     try:
         resource = describe_api_resource(
@@ -1455,12 +2276,32 @@ def delete_api_integration(
     """
     Deletes an integration for a given method in a given API
 
+    restApiId (str):
+        The ID of the REST API.
+
+    resourcePath (str):
+        The path of the resource.
+
+    httpMethod (str):
+        The HTTP method of the integration.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.delete_api_integration restApiId resourcePath httpMethod
-
     """
     try:
         resource = describe_api_resource(
@@ -1495,12 +2336,35 @@ def delete_api_integration_response(
     """
     Deletes an integration response for a given method in a given API
 
+    restApiId (str):
+        The ID of the REST API.
+
+    resourcePath (str):
+        The path of the resource.
+
+    httpMethod (str):
+        The HTTP method of the integration.
+
+    statusCode (str):
+        The status code of the integration response.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.delete_api_integration_response restApiId resourcePath httpMethod statusCode
-
     """
     try:
         resource = describe_api_resource(
@@ -1563,13 +2427,51 @@ def create_api_integration(
 
     credentials is in the form of an iam role name or role arn.
 
+    restApiId (str):
+        The ID of the REST API.
+
+    resourcePath (str):
+        The path of the resource.
+
+    httpMethod (str):
+        The HTTP method of the integration.
+
+    integrationType (str):
+        The type of the integration (e.g., MOCK, AWS, HTTP, HTTP_PROXY, AWS_PROXY).
+
+    integrationHttpMethod (str):
+        The HTTP method used for the integration request.
+
+    uri (str):
+        The URI of the integration endpoint.
+
+    credentials (str):
+        The IAM role name or ARN used for the integration.
+
+    requestParameters (dict, optional):
+        The request parameters for the integration.
+
+    requestTemplates (dict, optional):
+        The request templates for the integration.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.create_api_integration restApiId resourcePath httpMethod \\
-                             integrationType integrationHttpMethod uri credentials ['{}' ['{}']]
-
+        salt myminion boto3_apigateway.create_api_integration restApiId resourcePath httpMethod \
+            integrationType integrationHttpMethod uri credentials ['{}' ['{}']]
     """
     try:
         credentials = _get_role_arn(
@@ -1625,13 +2527,45 @@ def create_api_integration_response(
     """
     Creates an integration response for a given method in a given API
 
+    restApiId (str):
+        The ID of the REST API.
+
+    resourcePath (str):
+        The path of the resource.
+
+    httpMethod (str):
+        The HTTP method of the integration.
+
+    statusCode (str):
+        The status code of the integration response.
+
+    selectionPattern (str):
+        The selection pattern for the integration response.
+
+    responseParameters (dict, optional):
+        The response parameters for the integration response.
+
+    responseTemplates (dict, optional):
+        The response templates for the integration response.
+
+    region (str, optional):
+        The AWS region where the REST API is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.create_api_integration_response restApiId resourcePath httpMethod \\
-                            statusCode selectionPattern ['{}' ['{}']]
-
+        salt myminion boto3_apigateway.create_api_integration_response restApiId resourcePath httpMethod \
+            statusCode selectionPattern ['{}' ['{}']]
     """
     try:
         resource = describe_api_resource(
@@ -1673,6 +2607,24 @@ def describe_usage_plans(name=None, plan_id=None, region=None, key=None, keyid=N
     """
     Returns a list of existing usage plans, optionally filtered to match a given plan name
 
+    name (str, optional):
+        The name of the usage plan to filter by.
+
+    plan_id (str, optional):
+        The ID of the usage plan to filter by.
+
+    region (str, optional):
+        The AWS region where the usage plans are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1680,7 +2632,6 @@ def describe_usage_plans(name=None, plan_id=None, region=None, key=None, keyid=N
         salt myminion boto3_apigateway.describe_usage_plans
         salt myminion boto3_apigateway.describe_usage_plans name='usage plan name'
         salt myminion boto3_apigateway.describe_usage_plans plan_id='usage plan id'
-
     """
     try:
         conn = _get_conn("apigateway", region=region, key=key, keyid=keyid, profile=profile)
@@ -1736,11 +2687,10 @@ def create_usage_plan(
     """
     Creates a new usage plan with throttling and quotas optionally applied
 
-
-    name
+    name (str):
         Name of the usage plan
 
-    throttle
+    throttle (dict, optional):
         A dictionary consisting of the following keys:
 
         rateLimit
@@ -1749,7 +2699,7 @@ def create_usage_plan(
         burstLimit
             maximum number of requests per second, integer
 
-    quota
+    quota (dict, optional):
         A dictionary consisting of the following keys:
 
         limit
@@ -1758,15 +2708,23 @@ def create_usage_plan(
         offset
             number of requests to be subtracted from limit at the beginning of the period [optional]
 
-        period
-            quota period, must be one of DAY, WEEK, or MONTH. [required if quota parameter is present
+    region (str, optional):
+        The AWS region where the usage plan is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.]
 
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.create_usage_plan name='usage plan name' throttle='{"rateLimit": 10.0, "burstLimit": 10}'
-
     """
     try:
         _validate_throttle(throttle)
@@ -1795,11 +2753,10 @@ def update_usage_plan(
     """
     Updates an existing usage plan with throttling and quotas
 
-
-    plan_id
+    plan_id (str):
         Id of the created usage plan
 
-    throttle
+    throttle (dict, optional):
         A dictionary consisting of the following keys:
 
         rateLimit
@@ -1825,7 +2782,6 @@ def update_usage_plan(
     .. code-block:: bash
 
         salt myminion boto3_apigateway.update_usage_plan plan_id='usage plan id' throttle='{"rateLimit": 10.0, "burstLimit": 10}'
-
     """
     try:
         _validate_throttle(throttle)
@@ -1893,12 +2849,26 @@ def delete_usage_plan(plan_id, region=None, key=None, keyid=None, profile=None):
     """
     Deletes usage plan identified by plan_id
 
+    plan_id (str):
+        The ID of the usage plan to delete.
+
+    region (str, optional):
+        The AWS region where the usage plan is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt myminion boto3_apigateway.delete_usage_plan plan_id='usage plan id'
-
     """
     try:
         existing = describe_usage_plans(
@@ -1918,19 +2888,35 @@ def delete_usage_plan(plan_id, region=None, key=None, keyid=None, profile=None):
 
 def _update_usage_plan_apis(plan_id, apis, op, region=None, key=None, keyid=None, profile=None):
     """
-    Helper function that updates the usage plan identified by plan_id by adding or removing it to each of the stages, specified by apis parameter.
+    Helper function that updates the usage plan identified by plan_id by adding or removing
+    it to each of the stages, specified by apis parameter.
 
-    apis
-        a list of dictionaries, where each dictionary contains the following:
+    plan_id (str):
+        The ID of the usage plan to update.
 
-        apiId
-            a string, which is the id of the created API in AWS ApiGateway
+    apis (list):
+        A list of dictionaries, where each dictionary contains the following:
 
-        stage
-            a string, which is the stage that the created API is deployed to.
+        apiId (str):
+            A string, which is the id of the created API in AWS ApiGateway
 
-    op
-        'add' or 'remove'
+        stage (str):
+            A string, which is the stage that the created API is deployed to.
+
+    op (str):
+        A string that specifies the operation to perform. It can be either 'add' or 'remove'.
+
+    region (str, optional):
+        The AWS region where the usage plan is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
     """
     try:
         patchOperations = []
@@ -1957,22 +2943,36 @@ def attach_usage_plan_to_apis(plan_id, apis, region=None, key=None, keyid=None, 
     """
     Attaches given usage plan to each of the apis provided in a list of apiId and stage values
 
+    plan_id (str):
+        The ID of the usage plan to attach the APIs to.
 
-    apis
-        a list of dictionaries, where each dictionary contains the following:
+    apis (list):
+        A list of dictionaries, where each dictionary contains the following:
 
-        apiId
-            a string, which is the id of the created API in AWS ApiGateway
+        apiId (str):
+            A string, which is the id of the created API in AWS ApiGateway
 
-        stage
-            a string, which is the stage that the created API is deployed to.
+        stage (str):
+            A string, which is the stage that the created API is deployed to.
+
+    region (str, optional):
+        The AWS region where the usage plan is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.attach_usage_plan_to_apis plan_id='usage plan id' apis='[{"apiId": "some id 1", "stage": "some stage 1"}]'
-
+        salt myminion boto3_apigateway.attach_usage_plan_to_apis plan_id='usage plan id' \
+            apis='[{"apiId": "some id 1", "stage": "some stage 1"}]'
     """
     return _update_usage_plan_apis(
         plan_id, apis, "add", region=region, key=key, keyid=keyid, profile=profile
@@ -1983,22 +2983,36 @@ def detach_usage_plan_from_apis(plan_id, apis, region=None, key=None, keyid=None
     """
     Detaches given usage plan from each of the apis provided in a list of apiId and stage values
 
+    plan_id (str):
+        The ID of the usage plan to detach the APIs from.
 
-    apis
-        a list of dictionaries, where each dictionary contains the following:
+    apis (list):
+        A list of dictionaries, where each dictionary contains the following:
 
-        apiId
-            a string, which is the id of the created API in AWS ApiGateway
+        apiId (str):
+            A string, which is the id of the created API in AWS ApiGateway
 
-        stage
-            a string, which is the stage that the created API is deployed to.
+        stage (str):
+            A string, which is the stage that the created API is deployed to.
+
+    region (str, optional):
+        The AWS region where the usage plan is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_apigateway.detach_usage_plan_to_apis plan_id='usage plan id' apis='[{"apiId": "some id 1", "stage": "some stage 1"}]'
-
+        salt myminion boto3_apigateway.detach_usage_plan_to_apis plan_id='usage plan id' \
+            apis='[{"apiId": "some id 1", "stage": "some stage 1"}]'
     """
     return _update_usage_plan_apis(
         plan_id, apis, "remove", region=region, key=key, keyid=keyid, profile=profile

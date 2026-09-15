@@ -98,8 +98,20 @@ def exists(Bucket, region=None, key=None, keyid=None, profile=None):
     """
     Given a bucket name, check to see if the given bucket exists.
 
-    Returns True if the given bucket exists and returns False if the given
-    bucket does not exist.
+    Bucket (str):
+        The name of the S3 bucket to check for existence.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -137,8 +149,41 @@ def create(
     """
     Given a valid config, create an S3 Bucket.
 
-    Returns {created: true} if the bucket was created and returns
-    {created: False} if the bucket was not created.
+    Bucket (str):
+        The name of the S3 bucket to create.
+
+    ACL (str, optional):
+        The canned ACL to apply to the bucket.
+
+    LocationConstraint (str, optional):
+        The AWS region where the bucket will be created.
+
+    GrantFullControl (str, optional):
+        The grantee is granted FULL_CONTROL permissions on the bucket.
+
+    GrantRead (str, optional):
+        The grantee is granted READ permissions on the bucket.
+
+    GrantReadACP (str, optional):
+        The grantee is granted READ_ACP permissions on the bucket.
+
+    GrantWrite (str, optional):
+        The grantee is granted WRITE permissions on the bucket.
+
+    GrantWriteACP (str, optional):
+        The grantee is granted WRITE_ACP permissions on the bucket.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -193,8 +238,29 @@ def delete(
     """
     Given a bucket name, delete it, optionally emptying it first.
 
-    Returns {deleted: true} if the bucket was deleted and returns
-    {deleted: false} if the bucket was not deleted.
+    Bucket (str):
+        The name of the S3 bucket to delete.
+
+    MFA (str, optional):
+        The MFA authentication information.
+
+    RequestPayer (str, optional):
+        Confirms that the requester knows that they will be charged for the request.
+
+    Force (bool, optional):
+        If True, empties the bucket before deleting it.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -235,8 +301,29 @@ def delete_objects(
     """
     Delete objects in a given S3 bucket.
 
-    Returns {deleted: true} if all objects were deleted
-    and {deleted: false, failed: [key, ...]} otherwise
+    Bucket (str):
+        The name of the S3 bucket containing the objects to delete.
+
+    Delete (dict):
+        A dictionary specifying the objects to delete. Must contain an "Objects" key with a list of object keys.
+
+    MFA (str, optional):
+        The MFA authentication information.
+
+    RequestPayer (str, optional):
+        Confirms that the requester knows that they will be charged for the request.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -281,7 +368,20 @@ def describe(Bucket, region=None, key=None, keyid=None, profile=None):
     """
     Given a bucket name describe its properties.
 
-    Returns a dictionary of interesting properties.
+    Bucket (str):
+        The name of the S3 bucket to describe.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -347,8 +447,26 @@ def empty(Bucket, MFA=None, RequestPayer=None, region=None, key=None, keyid=None
     """
     Delete all objects in a given S3 bucket.
 
-    Returns {deleted: true} if all objects were deleted
-    and {deleted: false, failed: [key, ...]} otherwise
+    Bucket (str):
+        The name of the S3 bucket to empty.
+
+    MFA (str, optional):
+        The MFA authentication information.
+
+    RequestPayer (str, optional):
+        Confirms that the requester knows that they will be charged for the request.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -387,7 +505,16 @@ def list(region=None, key=None, keyid=None, profile=None):
     """
     List all buckets owned by the authenticated sender of the request.
 
-    Returns list of buckets
+    region (str, optional):
+        The AWS region to use.
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -424,7 +551,29 @@ def list_object_versions(
     """
     List objects in a given S3 bucket.
 
-    Returns a list of objects.
+    Bucket (str):
+        The name of the S3 bucket to list object versions for.
+
+    Delimiter (str, optional):
+        A delimiter is a character you use to group keys.
+
+    EncodingType (str, optional):
+        Requests Amazon S3 to encode the object keys in the response.
+
+    Prefix (str, optional):
+        Limits the response to keys that begin with the specified prefix.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -474,7 +623,35 @@ def list_objects(
     """
     List objects in a given S3 bucket.
 
-    Returns a list of objects.
+    Bucket (str):
+        The name of the S3 bucket to list objects for.
+
+    Delimiter (str, optional):
+        A delimiter is a character you use to group keys.
+
+    EncodingType (str, optional):
+        Requests Amazon S3 to encode the object keys in the response.
+
+    Prefix (str, optional):
+        Limits the response to keys that begin with the specified prefix.
+
+    FetchOwner (bool, optional):
+        Specifies whether to include the owner field in the response.
+
+    StartAfter (str, optional):
+        Start listing after this key.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -525,8 +702,41 @@ def put_acl(
     """
     Given a valid config, update the ACL for a bucket.
 
-    Returns {updated: true} if the ACL was updated and returns
-    {updated: False} if the ACL was not updated.
+    Bucket (str):
+        The name of the S3 bucket to update the ACL for.
+
+    ACL (str, optional):
+        The canned ACL to apply to the bucket.
+
+    AccessControlPolicy (dict, optional):
+        The access control policy to apply to the bucket.
+
+    GrantFullControl (str, optional):
+        Allows grantee full control over the bucket.
+
+    GrantRead (str, optional):
+        Allows grantee to read the bucket.
+
+    GrantReadACP (str, optional):
+        Allows grantee to read the bucket's ACL.
+
+    GrantWrite (str, optional):
+        Allows grantee to write to the bucket.
+
+    GrantWriteACP (str, optional):
+        Allows grantee to write the bucket's ACL.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -566,8 +776,23 @@ def put_cors(Bucket, CORSRules, region=None, key=None, keyid=None, profile=None)
     """
     Given a valid config, update the CORS rules for a bucket.
 
-    Returns {updated: true} if CORS was updated and returns
-    {updated: False} if CORS was not updated.
+    Bucket (str):
+        The name of the S3 bucket to update the CORS rules for.
+
+    CORSRules (list):
+        A list of CORS rules to apply to the bucket.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -597,8 +822,23 @@ def put_lifecycle_configuration(Bucket, Rules, region=None, key=None, keyid=None
     """
     Given a valid config, update the Lifecycle rules for a bucket.
 
-    Returns {updated: true} if Lifecycle was updated and returns
-    {updated: False} if Lifecycle was not updated.
+    Bucket (str):
+        The name of the S3 bucket to update the Lifecycle rules for.
+
+    Rules (list):
+        A list of Lifecycle rules to apply to the bucket.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -641,8 +881,29 @@ def put_logging(
     """
     Given a valid config, update the logging parameters for a bucket.
 
-    Returns {updated: true} if parameters were updated and returns
-    {updated: False} if parameters were not updated.
+    Bucket (str):
+        The name of the S3 bucket to update the logging parameters for.
+
+    TargetBucket (str, optional):
+        The name of the S3 bucket where logs should be delivered.
+
+    TargetPrefix (str, optional):
+        The prefix for the log object keys.
+
+    TargetGrants (list, optional):
+        A list of grants for the target bucket.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -688,8 +949,29 @@ def put_notification_configuration(
     """
     Given a valid config, update the notification parameters for a bucket.
 
-    Returns {updated: true} if parameters were updated and returns
-    {updated: False} if parameters were not updated.
+    Bucket (str):
+        The name of the S3 bucket to update the notification parameters for.
+
+    TopicConfigurations (list, optional):
+        A list of topic configurations for the bucket.
+
+    QueueConfigurations (list, optional):
+        A list of queue configurations for the bucket.
+
+    LambdaFunctionConfigurations (list, optional):
+        A list of Lambda function configurations for the bucket.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -734,8 +1016,22 @@ def put_policy(Bucket, Policy, region=None, key=None, keyid=None, profile=None):
     """
     Given a valid config, update the policy for a bucket.
 
-    Returns {updated: true} if policy was updated and returns
-    {updated: False} if policy was not updated.
+    Bucket (str):
+        The name of the S3 bucket to update the policy for.
+
+    Policy (str):
+        The policy to apply to the bucket.
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -775,8 +1071,26 @@ def put_replication(Bucket, Role, Rules, region=None, key=None, keyid=None, prof
     """
     Given a valid config, update the replication configuration for a bucket.
 
-    Returns {updated: true} if replication configuration was updated and returns
-    {updated: False} if replication configuration was not updated.
+    Bucket (str):
+        The name of the S3 bucket to update the replication configuration for.
+
+    Role (str):
+        The IAM role ARN to use for the replication configuration.
+
+    Rules (list):
+        A list of replication rules to apply to the bucket.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -805,8 +1119,23 @@ def put_request_payment(Bucket, Payer, region=None, key=None, keyid=None, profil
     """
     Given a valid config, update the request payment configuration for a bucket.
 
-    Returns {updated: true} if request payment configuration was updated and returns
-    {updated: False} if request payment configuration was not updated.
+    Bucket (str):
+        The name of the S3 bucket to update the request payment configuration for.
+
+    Payer (str):
+        The payer for the request payment configuration. Valid values are "BucketOwner" and "Requester".
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -828,8 +1157,23 @@ def put_tagging(Bucket, region=None, key=None, keyid=None, profile=None, **kwarg
     """
     Given a valid config, update the tags for a bucket.
 
-    Returns {updated: true} if tags were updated and returns
-    {updated: False} if tags were not updated.
+    Bucket (str):
+        The name of the S3 bucket to update the tags for.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
+
+    **kwargs:
+        The tags to apply to the bucket as key-value pairs.
 
     CLI Example:
 
@@ -865,8 +1209,29 @@ def put_versioning(
     """
     Given a valid config, update the versioning configuration for a bucket.
 
-    Returns {updated: true} if versioning configuration was updated and returns
-    {updated: False} if versioning configuration was not updated.
+    Bucket (str):
+        The name of the S3 bucket to update the versioning configuration for.
+
+    Status (str):
+        The versioning status to apply to the bucket. Valid values are "Enabled" and "Suspended".
+
+    MFADelete (str, optional):
+        The MFA delete status to apply to the bucket. Valid values are "Enabled" and "Disabled".
+
+    MFA (str, optional):
+        The MFA authentication code to use when updating the versioning configuration.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -906,8 +1271,32 @@ def put_website(
     """
     Given a valid config, update the website configuration for a bucket.
 
-    Returns {updated: true} if website configuration was updated and returns
-    {updated: False} if website configuration was not updated.
+    Bucket (str):
+        The name of the S3 bucket to update the website configuration for.
+
+    ErrorDocument (dict, optional):
+        The error document configuration for the website.
+
+    IndexDocument (dict, optional):
+        The index document configuration for the website.
+
+    RedirectAllRequestsTo (dict, optional):
+        The redirect all requests to configuration for the website.
+
+    RoutingRules (list, optional):
+        The routing rules configuration for the website.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -940,10 +1329,22 @@ def put_website(
 
 def delete_cors(Bucket, region=None, key=None, keyid=None, profile=None):
     """
-    Delete the CORS configuration for the given bucket
+    Delete the CORS configuration for the given bucket.
 
-    Returns {deleted: true} if CORS was deleted and returns
-    {deleted: False} if CORS was not deleted.
+    Bucket (str):
+        The name of the S3 bucket to delete the CORS configuration for.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -963,10 +1364,22 @@ def delete_cors(Bucket, region=None, key=None, keyid=None, profile=None):
 
 def delete_lifecycle_configuration(Bucket, region=None, key=None, keyid=None, profile=None):
     """
-    Delete the lifecycle configuration for the given bucket
+    Delete the lifecycle configuration for the given bucket.
 
-    Returns {deleted: true} if Lifecycle was deleted and returns
-    {deleted: False} if Lifecycle was not deleted.
+    Bucket (str):
+        The name of the S3 bucket to delete the lifecycle configuration for.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -986,10 +1399,22 @@ def delete_lifecycle_configuration(Bucket, region=None, key=None, keyid=None, pr
 
 def delete_policy(Bucket, region=None, key=None, keyid=None, profile=None):
     """
-    Delete the policy from the given bucket
+    Delete the policy from the given bucket.
 
-    Returns {deleted: true} if policy was deleted and returns
-    {deleted: False} if policy was not deleted.
+    Bucket (str):
+        The name of the S3 bucket to delete the policy from.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -1009,10 +1434,22 @@ def delete_policy(Bucket, region=None, key=None, keyid=None, profile=None):
 
 def delete_replication(Bucket, region=None, key=None, keyid=None, profile=None):
     """
-    Delete the replication config from the given bucket
+    Delete the replication config from the given bucket.
 
-    Returns {deleted: true} if replication configuration was deleted and returns
-    {deleted: False} if replication configuration was not deleted.
+    Bucket (str):
+        The name of the S3 bucket to delete the replication config from.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -1032,10 +1469,22 @@ def delete_replication(Bucket, region=None, key=None, keyid=None, profile=None):
 
 def delete_tagging(Bucket, region=None, key=None, keyid=None, profile=None):
     """
-    Delete the tags from the given bucket
+    Delete the tags from the given bucket.
 
-    Returns {deleted: true} if tags were deleted and returns
-    {deleted: False} if tags were not deleted.
+    Bucket (str):
+        The name of the S3 bucket to delete the tags from.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -1055,10 +1504,22 @@ def delete_tagging(Bucket, region=None, key=None, keyid=None, profile=None):
 
 def delete_website(Bucket, region=None, key=None, keyid=None, profile=None):
     """
-    Remove the website configuration from the given bucket
+    Remove the website configuration from the given bucket.
 
-    Returns {deleted: true} if website configuration was deleted and returns
-    {deleted: False} if website configuration was not deleted.
+    Bucket (str):
+        The name of the S3 bucket to remove the website configuration from.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 

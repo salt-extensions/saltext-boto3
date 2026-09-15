@@ -107,59 +107,78 @@ def present(
     """
     Ensure cloud formation stack is present.
 
-    name (string) - Name of the stack.
+    name (string)
+        Name of the stack.
 
-    template_body (string) - Structure containing the template body. Can also be
-    loaded from a file by using ``salt://``.
+    template_body (string)
+        Structure containing the template body. Can also be
+        loaded from a file by using ``salt://``.
 
-    template_url (string) - Location of file containing the template body. The
-    URL must point to a template located in an S3 bucket in the same region as
-    the stack.
+    template_url (string)
+        Location of file containing the template body. The
+        URL must point to a template located in an S3 bucket in the same region as
+        the stack.
 
-    parameters (list) - A list of ``(key, value)`` tuples or
-    ``{"ParameterKey": ..., "ParameterValue": ...}`` dicts that specify input
-    parameters for the stack. A 3-tuple ``(key, value, use_previous_value)``
-    may be used to specify the ``UsePreviousValue`` option.
+    parameters (list)
+        A list of ``(key, value)`` tuples or
+        ``{"ParameterKey": ..., "ParameterValue": ...}`` dicts that specify input
+        parameters for the stack. A 3-tuple ``(key, value, use_previous_value)``
+        may be used to specify the ``UsePreviousValue`` option.
 
-    notification_arns (list) - The Simple Notification Service (SNS) topic
-    ARNs to publish stack related events.
+    notification_arns (list)
+        The Simple Notification Service (SNS) topic
+        ARNs to publish stack related events.
 
-    disable_rollback (bool) - Indicates whether or not to rollback on failure.
+    disable_rollback (bool)
+        Indicates whether or not to rollback on failure.
 
-    timeout_in_minutes (integer) - The amount of time that can pass before the
-    stack status becomes ``CREATE_FAILED``.
+    timeout_in_minutes (int)
+        The amount of time that can pass before the
+        stack status becomes ``CREATE_FAILED``.
 
-    capabilities (list) - The list of capabilities you want to allow in the
-    stack.
+    capabilities (list)
+        The list of capabilities you want to allow in the
+        stack.
 
-    tags (dict or list) - Tags to associate with this stack. A dict is
-    converted to the boto3 ``[{"Key": ..., "Value": ...}]`` form.
+    tags (dict or list)
+        Tags to associate with this stack. A dict is
+        converted to the boto3 ``[{"Key": ..., "Value": ...}]`` form.
 
-    on_failure (string) - One of ``DO_NOTHING``, ``ROLLBACK``, or ``DELETE``.
+    on_failure (string)
+        One of ``DO_NOTHING``, ``ROLLBACK``, or ``DELETE``.
 
-    stack_policy_body (string) - Structure containing the stack policy body.
-    Can also be loaded from a file by using ``salt://``.
+    stack_policy_body (string)
+        Structure containing the stack policy body.
+        Can also be loaded from a file by using ``salt://``.
 
-    stack_policy_url (string) - Location of a file containing the stack policy.
+    stack_policy_url (string)
+        Location of a file containing the stack policy.
 
-    use_previous_template (boolean) - Set to True to use the previous template
-    instead of uploading a new one via ``template_body`` or ``template_url``.
+    use_previous_template (boolean)
+        Set to True to use the previous template
+        instead of uploading a new one via ``template_body`` or ``template_url``.
 
-    stack_policy_during_update_body (string) - Temporary overriding stack
-    policy body used during an update. Can also be loaded from a file by using
-    ``salt://``.
+    stack_policy_during_update_body (string)
+        Temporary overriding stack
+        policy body used during an update. Can also be loaded from a file by using
+        ``salt://``.
 
-    stack_policy_during_update_url (string) - Location of a file containing
-    the temporary overriding stack policy.
+    stack_policy_during_update_url (string)
+        Location of a file containing
+        the temporary overriding stack policy.
 
-    region (string) - Region to connect to.
+    region (string)
+        Region to connect to.
 
-    key (string) - Secret key to be used.
+    key (string)
+        Secret key to be used.
 
-    keyid (string) - Access key to be used.
+    keyid (string)
+        Access key to be used.
 
-    profile (dict) - A dict with region, key and keyid, or a pillar key
-    (string) that contains a dict with region, key and keyid.
+    profile (dict)
+        A dict with region, key and keyid, or a pillar key
+        (string) that contains a dict with region, key and keyid.
 
     Example:
 
@@ -268,16 +287,21 @@ def absent(name, region=None, key=None, keyid=None, profile=None):
     """
     Ensure cloud formation stack is absent.
 
-    name (string) - The name of the stack to delete.
+    name (string)
+    The name of the stack to delete.
 
-    region (string) - Region to connect to.
+    region (string)
+        Region to connect to.
 
-    key (string) - Secret key to be used.
+    key (string)
+        Secret key to be used.
 
-    keyid (string) - Access key to be used.
+    keyid (string)
+        Access key to be used.
 
-    profile (dict) - A dict with region, key and keyid, or a pillar key
-    (string) that contains a dict with region, key and keyid.
+    profile (dict)
+        A dict with region, key and keyid, or a pillar key
+        (string) that contains a dict with region, key and keyid.
 
     Example:
 

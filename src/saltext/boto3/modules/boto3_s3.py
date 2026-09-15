@@ -46,9 +46,6 @@ as a passed in dict, or as a string to pull from pillars or minion config:
         region: us-east-1
 
 .. versionadded:: 1.0.0
-
-.. versionchanged:: 1.2.0
-    Added ``download_file`` and ``generate_presigned_url`` object operations.
 """
 
 import logging
@@ -108,22 +105,22 @@ def get_object_metadata(
     You can pass AWS SSE-C related args and/or ``RequestPayer`` in ``extra_args``.
 
     name (str):
-        S3 object location in ``bucket/key`` format.
+        The S3 object key, including the bucket name as a prefix (e.g., ``my_bucket/path/to/object``).
 
     extra_args (dict, optional):
-        Optional args passed to ``head_object``.
+        Extra arguments to pass to the S3 client, such as AWS SSE-C related args and/or ``RequestPayer``.
 
     region (str, optional):
-        AWS region.
+        The AWS region to use.
 
     key (str, optional):
-        AWS access key.
+        The AWS access key to use.
 
     keyid (str, optional):
-        AWS access key ID.
+        The AWS secret key to use.
 
-    profile (dict or str, optional):
-        AWS profile to use.
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -147,173 +144,6 @@ def get_object_metadata(
     return {"result": metadata}
 
 
-def get_object(
-    name,
-    extra_args=None,
-    region=None,
-    key=None,
-    keyid=None,
-    profile=None,
-):
-    """
-    Get an S3 object body.
-
-    .. versionadded:: 1.0.2
-
-    name (str):
-        S3 object location in ``bucket/key`` format.
-
-    extra_args (dict, optional):
-        Optional args passed to ``get_object``.
-
-    region (str, optional):
-        AWS region.
-
-    key (str, optional):
-        AWS access key.
-
-    keyid (str, optional):
-        AWS access key ID.
-
-    profile (dict or str, optional):
-        AWS profile to use.
-
-    CLI Example:
-
-    .. code-block:: bash
-
-        salt myminion boto3_s3.get_object my_bucket/path/to/object
-    """
-    bucket, _, s3_key = name.partition("/")
-    if not bucket or not s3_key:
-        return {"error": "name must be in bucket/key format"}
-    if extra_args is None:
-        extra_args = {}
-
-    conn = _get_conn("s3", region=region, key=key, keyid=keyid, profile=profile)
-
-    try:
-        response = conn.get_object(Bucket=bucket, Key=s3_key, **extra_args)
-    except botocore.exceptions.ClientError as e:
-        return {"error": boto3mod.get_error(e)}
-
-    return {"result": response["Body"].read()}
-
-
-def put_object(
-    name,
-    data,
-    extra_args=None,
-    region=None,
-    key=None,
-    keyid=None,
-    profile=None,
-):
-    """
-    Create or update an S3 object.
-
-    .. versionadded:: 1.0.2
-
-    name (str):
-        S3 object location in ``bucket/key`` format.
-
-    data (str):
-        Object body content.
-
-    extra_args (dict, optional):
-        Optional args passed to ``put_object``.
-
-    region (str, optional):
-        AWS region.
-
-    key (str, optional):
-        AWS access key.
-
-    keyid (str, optional):
-        AWS access key ID.
-
-    profile (dict or str, optional):
-        AWS profile to use.
-
-    CLI Example:
-
-    .. code-block:: bash
-
-        salt myminion boto3_s3.put_object my_bucket/path/to/object "payload"
-    """
-    bucket, _, s3_key = name.partition("/")
-    if not bucket or not s3_key:
-        return {"error": "name must be in bucket/key format"}
-
-    args = {"Bucket": bucket, "Key": s3_key, "Body": data}
-    if extra_args:
-        args.update(extra_args)
-
-    conn = _get_conn("s3", region=region, key=key, keyid=keyid, profile=profile)
-
-    try:
-        conn.put_object(**args)
-    except botocore.exceptions.ClientError as e:
-        return {"error": boto3mod.get_error(e)}
-
-    return {"result": True}
-
-
-def delete_object(
-    name,
-    extra_args=None,
-    region=None,
-    key=None,
-    keyid=None,
-    profile=None,
-):
-    """
-    Delete an S3 object.
-
-    .. versionadded:: 1.2.0
-
-    name (str):
-        S3 object location in ``bucket/key`` format.
-
-    extra_args (dict, optional):
-        Optional args passed to ``delete_object``.
-
-    region (str, optional):
-        AWS region.
-
-    key (str, optional):
-        AWS access key.
-
-    keyid (str, optional):
-        AWS access key ID.
-
-    profile (dict or str, optional):
-        AWS profile to use.
-
-    CLI Example:
-
-    .. code-block:: bash
-
-        salt myminion boto3_s3.delete_object my_bucket/path/to/object
-    """
-    bucket, _, s3_key = name.partition("/")
-    if not bucket or not s3_key:
-        return {"error": "name must be in bucket/key format"}
-
-    args = {"Bucket": bucket, "Key": s3_key}
-    if extra_args:
-        args.update(extra_args)
-
-    conn = _get_conn("s3", region=region, key=key, keyid=keyid, profile=profile)
-
-    try:
-        conn.delete_object(**args)
-    except botocore.exceptions.ClientError as e:
-        return {"error": boto3mod.get_error(e)}
-
-    return {"result": True}
-
-
 def upload_file(
     source,
     name,
@@ -327,25 +157,25 @@ def upload_file(
     Upload a local file as an S3 object.
 
     source (str):
-        Local path to the file to upload.
+        The path to the local file to upload.
 
     name (str):
-        S3 object location in ``bucket/key`` format.
+        The S3 object key, including the bucket name as a prefix (e.g., ``my_bucket/path/to/object``).
 
     extra_args (dict, optional):
-        Optional args passed to ``upload_file``.
+        Extra arguments to pass to the S3 client, such as AWS SSE-C related args and/or ``RequestPayer``.
 
     region (str, optional):
-        AWS region.
+        The AWS region to use.
 
     key (str, optional):
-        AWS access key.
+        The AWS access key to use.
 
     keyid (str, optional):
-        AWS access key ID.
+        The AWS secret key to use.
 
-    profile (dict or str, optional):
-        AWS profile to use.
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -364,118 +194,3 @@ def upload_file(
 
     log.info("S3 object uploaded to %s", name)
     return {"result": True}
-
-
-def download_file(
-    name,
-    destination,
-    extra_args=None,
-    region=None,
-    key=None,
-    keyid=None,
-    profile=None,
-):
-    """
-    Download an S3 object to a local file path.
-
-    .. versionadded:: 1.2.0
-
-    name (str):
-        S3 object location in ``bucket/key`` format.
-
-    destination (str):
-        Local destination path where the object should be written.
-
-    extra_args (dict, optional):
-        Optional boto3 Transfer ``ExtraArgs`` for ``download_file``.
-
-    region (str, optional):
-        AWS region.
-
-    key (str, optional):
-        AWS access key.
-
-    keyid (str, optional):
-        AWS access key ID.
-
-    profile (dict or str, optional):
-        AWS profile to use.
-
-    CLI Example:
-
-    .. code-block:: bash
-
-        salt myminion boto3_s3.download_file my_bucket/path/to/object /tmp/object
-    """
-    bucket, _, s3_key = name.partition("/")
-    if not bucket or not s3_key:
-        return {"error": "name must be in bucket/key format"}
-
-    conn = _get_conn("s3", region=region, key=key, keyid=keyid, profile=profile)
-
-    try:
-        conn.download_file(bucket, s3_key, destination, ExtraArgs=extra_args)
-    except botocore.exceptions.ClientError as e:
-        return {"error": boto3mod.get_error(e)}
-
-    log.info("S3 object %s downloaded to %s", name, destination)
-    return {"result": True}
-
-
-def generate_presigned_url(
-    name,
-    expiration=900,
-    extra_args=None,
-    region=None,
-    key=None,
-    keyid=None,
-    profile=None,
-):
-    """
-    Generate a pre-signed GET URL for an S3 object.
-
-    .. versionadded:: 1.2.0
-
-    name (str):
-        S3 object location in ``bucket/key`` format.
-
-    expiration (int, optional):
-        Number of seconds the pre-signed URL remains valid.
-
-    extra_args (dict, optional):
-        Optional dict merged into the request ``Params``.
-
-    region (str, optional):
-        AWS region.
-
-    key (str, optional):
-        AWS access key.
-
-    keyid (str, optional):
-        AWS access key ID.
-
-    profile (dict or str, optional):
-        AWS profile to use.
-
-    CLI Example:
-
-    .. code-block:: bash
-
-        salt myminion boto3_s3.generate_presigned_url my_bucket/path/to/object expiration=300
-    """
-    bucket, _, s3_key = name.partition("/")
-    if not bucket or not s3_key:
-        return {"error": "name must be in bucket/key format"}
-
-    params = {"Bucket": bucket, "Key": s3_key}
-    if extra_args:
-        params.update(extra_args)
-
-    conn = _get_conn("s3", region=region, key=key, keyid=keyid, profile=profile)
-
-    try:
-        url = conn.generate_presigned_url("get_object", Params=params, ExpiresIn=expiration)
-    except botocore.exceptions.ClientError as e:
-        return {"error": boto3mod.get_error(e)}
-
-    return {"result": url}

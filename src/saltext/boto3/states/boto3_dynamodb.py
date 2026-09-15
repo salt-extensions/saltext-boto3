@@ -119,6 +119,58 @@ def present(
     """
     Ensure the DynamoDB table exists and matches the specified configuration.
 
+    name (string)
+        Name of the DynamoDB table.
+
+    table_name (string)
+        Deprecated. Use ``name`` instead.
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (string)
+        A dict with region, key and keyid, or a pillar key (string) that
+        contains a dict with region, key and keyid.
+
+    read_capacity_units (int)
+        Read capacity units for the table.
+
+    write_capacity_units (int)
+        Write capacity units for the table.
+
+    alarms (dict)
+        Dictionary of alarms to configure for the table.
+
+    alarms_from_pillar (string)
+        Pillar key containing alarms configuration.
+
+    hash_key (string)
+        Name of the hash key for the table.
+
+    hash_key_data_type (string)
+        Data type of the hash key.
+
+    range_key (string)
+        Name of the range key for the table.
+
+    range_key_data_type (string)
+        Data type of the range key.
+
+    local_indexes (list)
+        List of local secondary indexes for the table.
+
+    global_indexes (list)
+        List of global secondary indexes for the table.
+
+    backup_configs_from_pillars (string)
+        Pillar key containing backup configurations.
+
     Example:
 
     .. code-block:: yaml
@@ -126,7 +178,6 @@ def present(
         ensure-present:
           boto3_dynamodb.present:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     if table_name:
@@ -652,6 +703,22 @@ def absent(name, region=None, key=None, keyid=None, profile=None):
     """
     Ensure the DynamoDB table does not exist.
 
+    name (string)
+        Name of the DynamoDB table.
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (string)
+        A dict with region, key and keyid, or a pillar key (string) that
+        contains a dict with region, key and keyid.
+
     Example:
 
     .. code-block:: yaml
@@ -659,7 +726,6 @@ def absent(name, region=None, key=None, keyid=None, profile=None):
         ensure-absent:
           boto3_dynamodb.absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     exists = __salt__["boto3_dynamodb.exists"](name, region, key, keyid, profile)

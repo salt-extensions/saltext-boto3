@@ -96,7 +96,20 @@ def exists(Name, region=None, key=None, keyid=None, profile=None):
     """
     Given a trail name, check whether the given trail exists.
 
-    Returns ``{"exists": True}`` or ``{"exists": False}``.
+    Name (str):
+        The name of the CloudTrail trail to check for existence.
+
+    region (str, optional):
+        The AWS region where the CloudTrail trail is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -134,6 +147,48 @@ def create(
     """
     Given a valid config, create a trail.
 
+    Name (str):
+        The name of the CloudTrail trail to create.
+
+    S3BucketName (str):
+        The name of the S3 bucket to which CloudTrail will deliver log files.
+
+    S3KeyPrefix (str, optional):
+        The S3 key prefix for the log files.
+
+    SnsTopicName (str, optional):
+        The name of the SNS topic for notifications.
+
+    IncludeGlobalServiceEvents (bool, optional):
+        Whether to include global service events.
+
+    IsMultiRegionTrail (bool, optional):
+        Whether the trail is a multi-region trail.
+
+    EnableLogFileValidation (bool, optional):
+        Whether to enable log file validation.
+
+    CloudWatchLogsLogGroupArn (str, optional):
+        The ARN of the CloudWatch Logs log group.
+
+    CloudWatchLogsRoleArn (str, optional):
+        The ARN of the IAM role for CloudWatch Logs.
+
+    KmsKeyId (str, optional):
+        The ID of the KMS key for encrypting log files.
+
+    region (str, optional):
+        The AWS region where the CloudTrail trail is to be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -170,6 +225,21 @@ def delete(Name, region=None, key=None, keyid=None, profile=None):
     """
     Given a trail name, delete it.
 
+    Name (str):
+        The name of the CloudTrail trail to delete.
+
+    region (str, optional):
+        The AWS region where the CloudTrail trail is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -187,6 +257,21 @@ def delete(Name, region=None, key=None, keyid=None, profile=None):
 def describe(Name, region=None, key=None, keyid=None, profile=None):
     """
     Given a trail name describe its properties.
+
+    Name (str):
+        The name of the CloudTrail trail to describe.
+
+    region (str, optional):
+        The AWS region where the CloudTrail trail is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -224,6 +309,21 @@ def describe(Name, region=None, key=None, keyid=None, profile=None):
 def status(Name, region=None, key=None, keyid=None, profile=None):
     """
     Given a trail name return its status.
+
+    Name (str):
+        The name of the CloudTrail trail to check the status for.
+
+    region (str, optional):
+        The AWS region where the CloudTrail trail is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -266,6 +366,18 @@ def list_trails(region=None, key=None, keyid=None, profile=None):
     """
     List all trails.
 
+    region (str, optional):
+        The AWS region where the CloudTrail trails are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -300,6 +412,48 @@ def update(
 ):
     """
     Given a valid config, update a trail.
+
+    Name (str):
+        The name of the CloudTrail trail to update.
+
+    S3BucketName (str):
+        The name of the S3 bucket to which CloudTrail will deliver log files.
+
+    S3KeyPrefix (str, optional):
+        The S3 key prefix for the log files.
+
+    SnsTopicName (str, optional):
+        The name of the SNS topic for notifications.
+
+    IncludeGlobalServiceEvents (bool, optional):
+        Whether to include global service events.
+
+    IsMultiRegionTrail (bool, optional):
+        Whether the trail is a multi-region trail.
+
+    EnableLogFileValidation (bool, optional):
+        Whether to enable log file validation.
+
+    CloudWatchLogsLogGroupArn (str, optional):
+        The ARN of the CloudWatch Logs log group.
+
+    CloudWatchLogsRoleArn (str, optional):
+        The ARN of the IAM role for CloudWatch Logs.
+
+    KmsKeyId (str, optional):
+        The ID of the KMS key for encrypting log files.
+
+    region (str, optional):
+        The AWS region where the CloudTrail trail is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -337,6 +491,21 @@ def start_logging(Name, region=None, key=None, keyid=None, profile=None):
     """
     Start logging for a trail.
 
+    Name (str):
+        The name of the CloudTrail trail to start logging.
+
+    region (str, optional):
+        The AWS region where the CloudTrail trail is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -354,6 +523,21 @@ def start_logging(Name, region=None, key=None, keyid=None, profile=None):
 def stop_logging(Name, region=None, key=None, keyid=None, profile=None):
     """
     Stop logging for a trail.
+
+    Name (str):
+        The name of the CloudTrail trail to stop logging.
+
+    region (str, optional):
+        The AWS region where the CloudTrail trail is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -386,6 +570,24 @@ def add_tags(Name, region=None, key=None, keyid=None, profile=None, **kwargs):
     """
     Add tags to a trail.
 
+    Name (str):
+        The name of the CloudTrail trail to add tags to.
+
+    region (str, optional):
+        The AWS region where the CloudTrail trail is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **kwargs:
+        The tags to add to the CloudTrail trail.
+
     CLI Example:
 
     .. code-block:: bash
@@ -412,6 +614,21 @@ def remove_tags(Name, region=None, key=None, keyid=None, profile=None, **kwargs)
     """
     Remove tags from a trail.
 
+    region (str, optional):
+        The AWS region where the CloudTrail trail is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **kwargs:
+        The tags to remove from the CloudTrail trail.
+
     CLI Example:
 
     .. code-block:: bash
@@ -437,6 +654,21 @@ def remove_tags(Name, region=None, key=None, keyid=None, profile=None, **kwargs)
 def list_tags(Name, region=None, key=None, keyid=None, profile=None):
     """
     List tags of a trail.
+
+    Name (str):
+        The name of the CloudTrail trail to list tags for.
+
+    region (str, optional):
+        The AWS region where the CloudTrail trail is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 

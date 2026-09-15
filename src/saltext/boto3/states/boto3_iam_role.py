@@ -130,27 +130,26 @@ def present(
     """
     Ensure the IAM role exists.
 
-    name
+    name (string)
         Name of the IAM role.
 
-    policy_document
+    policy_document (dict)
         The policy that grants an entity permission to assume the role.
         (See https://boto.readthedocs.io/en/latest/ref/iam.html#boto.iam.connection.IAMConnection.create_role)
 
-    policy_document_from_pillars
+    policy_document_from_pillars (string)
         A pillar key that contains a role policy document. The statements
         defined here will be appended with the policy document statements
         defined in the policy_document argument.
 
-
-    path
+    path (string)
         The path to the role/instance profile.
         (See https://boto.readthedocs.io/en/latest/ref/iam.html#boto.iam.connection.IAMConnection.create_role)
 
-    policies
+    policies (dict)
         A dict of IAM role policies.
 
-    policies_from_pillars
+    policies_from_pillars (list)
         A list of pillars that contain role policy dicts. Policies in the
         pillars will be merged in the order defined in the list and key
         conflicts will be handled by later defined keys overriding earlier
@@ -159,27 +158,27 @@ def present(
         in the policies argument will override the keys defined in
         policies_from_pillars.
 
-    managed_policies
+    managed_policies (list)
         A list of (AWS or Customer) managed policies to be attached to the role.
 
-    create_instance_profile
+    create_instance_profile (bool)
         A boolean of whether or not to create an instance profile and associate
         it with this role.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (dict|string)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
-    delete_policies
+    delete_policies (bool)
         Deletes existing policies that are not in the given list of policies. Default
         value is ``True``. If ``False`` is specified, existing policies will not be deleted
         allowing manual modifications on the IAM role to be persistent.
@@ -191,7 +190,6 @@ def present(
         ensure-present:
           boto3_iam_role.present:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     # Build up _policy_document
@@ -516,19 +514,19 @@ def absent(name, region=None, key=None, keyid=None, profile=None):
     """
     Ensure the IAM role is deleted.
 
-    name
+    name (string)
         Name of the IAM role.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (dict|string)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -539,7 +537,6 @@ def absent(name, region=None, key=None, keyid=None, profile=None):
         ensure-absent:
           boto3_iam_role.absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     _ret = _policies_absent(name, region, key, keyid, profile)

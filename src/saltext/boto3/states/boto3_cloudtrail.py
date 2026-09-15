@@ -106,52 +106,52 @@ def present(
     """
     Ensure trail exists.
 
-    name
+    name (string)
         The name of the state definition.
 
-    Name
+    Name (string)
         Name of the trail.
 
-    S3BucketName
+    S3BucketName (string)
         Specifies the name of the Amazon S3 bucket designated for publishing log files.
 
-    S3KeyPrefix
+    S3KeyPrefix (string)
         Specifies the Amazon S3 key prefix that comes after the name of the bucket.
 
-    SnsTopicName
+    SnsTopicName (string)
         Specifies the name of the Amazon SNS topic defined for notification of log file delivery.
 
-    IncludeGlobalServiceEvents
+    IncludeGlobalServiceEvents (bool)
         Specifies whether the trail is publishing events from global services.
 
-    EnableLogFileValidation
+    EnableLogFileValidation (bool)
         Specifies whether log file integrity validation is enabled.
 
-    CloudWatchLogsLogGroupArn
+    CloudWatchLogsLogGroupArn (string)
         Specifies a log group ARN to which CloudTrail logs will be delivered.
 
-    CloudWatchLogsRoleArn
+    CloudWatchLogsRoleArn (string)
         Specifies the role for the CloudWatch Logs endpoint to assume.
 
-    KmsKeyId
+    KmsKeyId (string)
         Specifies the KMS key ID to use to encrypt the logs delivered by CloudTrail.
 
-    LoggingEnabled
+    LoggingEnabled (bool)
         Whether logging should be enabled for the trail.
 
-    Tags
+    Tags (dict)
         A dictionary of tags that should be set on the trail.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (string)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -162,7 +162,6 @@ def present(
         ensure-present:
           boto3_cloudtrail.present:
             - name: example
-
     """
     ret = {"name": Name, "result": True, "comment": "", "changes": {}}
 
@@ -368,22 +367,22 @@ def absent(
     """
     Ensure trail with passed properties is absent.
 
-    name
+    name (string)
         The name of the state definition.
 
-    Name
+    Name (string)
         Name of the trail.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (string)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -394,7 +393,6 @@ def absent(
         ensure-absent:
           boto3_cloudtrail.absent:
             - name: example
-
     """
     ret = {"name": Name, "result": True, "comment": "", "changes": {}}
 

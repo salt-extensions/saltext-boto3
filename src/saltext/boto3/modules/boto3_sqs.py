@@ -115,6 +115,21 @@ def exists(name, region=None, key=None, keyid=None, profile=None):
     """
     Check to see if a queue exists.
 
+    name (str):
+        The name of the SQS queue to check for existence.
+
+    region (str, optional):
+        The AWS region to use when checking for the queue's existence. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when checking for the queue's existence.
+
+    keyid (str, optional):
+        The AWS secret key to use when checking for the queue's existence.
+
+    profile (str, optional):
+        The AWS profile to use when checking for the queue's existence.
+
     CLI Example:
 
     .. code-block:: bash
@@ -144,6 +159,24 @@ def create(
     """
     Create an SQS queue.
 
+    name (str):
+        The name of the SQS queue to create.
+
+    attributes (dict, optional):
+        A dictionary of attributes to set on the queue.
+
+    region (str, optional):
+        The AWS region to use when creating the queue. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when creating the queue.
+
+    keyid (str, optional):
+        The AWS secret key to use when creating the queue.
+
+    profile (str, optional):
+        The AWS profile to use when creating the queue.
+
     CLI Example:
 
     .. code-block:: bash
@@ -167,6 +200,21 @@ def delete(name, region=None, key=None, keyid=None, profile=None):
     """
     Delete an SQS queue.
 
+    name (str):
+        The name of the SQS queue to delete.
+
+    region (str, optional):
+        The AWS region to use when deleting the queue. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when deleting the queue.
+
+    keyid (str, optional):
+        The AWS secret key to use when deleting the queue.
+
+    profile (str, optional):
+        The AWS profile to use when deleting the queue.
+
     CLI Example:
 
     .. code-block:: bash
@@ -186,6 +234,21 @@ def delete(name, region=None, key=None, keyid=None, profile=None):
 def list_(prefix="", region=None, key=None, keyid=None, profile=None):
     """
     Return a list of the names of all visible queues.
+
+    prefix (str, optional):
+        Only return queues with names that start with this prefix.
+
+    region (str, optional):
+        The AWS region to use when listing the queues. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when listing the queues.
+
+    keyid (str, optional):
+        The AWS secret key to use when listing the queues.
+
+    profile (str, optional):
+        The AWS profile to use when listing the queues.
 
     CLI Example:
 
@@ -209,6 +272,21 @@ def list_(prefix="", region=None, key=None, keyid=None, profile=None):
 def get_attributes(name, region=None, key=None, keyid=None, profile=None):
     """
     Return attributes currently set on an SQS queue.
+
+    name (str):
+        The name of the SQS queue to retrieve attributes for.
+
+    region (str, optional):
+        The AWS region to use when retrieving the queue's attributes. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when retrieving the queue's attributes.
+
+    keyid (str, optional):
+        The AWS secret key to use when retrieving the queue's attributes.
+
+    profile (str, optional):
+        The AWS profile to use when retrieving the queue's attributes.
 
     CLI Example:
 
@@ -236,6 +314,24 @@ def set_attributes(
 ):
     """
     Set attributes on an SQS queue.
+
+    name (str):
+        The name of the SQS queue to set attributes for.
+
+    attributes (dict):
+        A dictionary of attributes to set on the queue.
+
+    region (str, optional):
+        The AWS region to use when setting the queue's attributes. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when setting the queue's attributes.
+
+    keyid (str, optional):
+        The AWS secret key to use when setting the queue's attributes.
+
+    profile (str, optional):
+        The AWS profile to use when setting the queue's attributes.
 
     CLI Example:
 
