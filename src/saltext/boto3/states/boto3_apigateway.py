@@ -108,10 +108,10 @@ def present(
     .. code-block:: json
 
         {
-            "api_name": api_name,
-            "swagger_file": basename_of_swagger_file,
-            "swagger_file_md5sum": md5sum_of_swagger_file,
-            "swagger_info_object": info_object_content_in_swagger_file
+            "api_name": "api_name",
+            "swagger_file": "basename_of_swagger_file",
+            "swagger_file_md5sum": "md5sum_of_swagger_file",
+            "swagger_info_object": "info_object_content_in_swagger_file"
         }
 
     Please note that the name of the lambda function to be integrated will be derived

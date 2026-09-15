@@ -695,7 +695,7 @@ def snapshot_created(
     wait_timeout_seconds (int)
         The maximum number of seconds to wait for the AMI to become available.
 
-    **kwargs
+    ``**kwargs``
         Additional keyword arguments to pass to the underlying boto3_ec2 functions.
 
     Example:
