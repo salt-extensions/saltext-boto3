@@ -123,6 +123,28 @@ def key_present(
     """
     Ensure key pair is present.
 
+    name (string)
+        Name of the key pair.
+
+    save_private (string)
+        Path to save the private key if creating a new key pair.
+
+    upload_public (string)
+        Public key to upload if importing an existing key pair.
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (string)
+        A dict with region, key and keyid, or a pillar key (string) that
+        contains a dict with region, key and keyid.
+
     Example:
 
     .. code-block:: yaml
@@ -130,7 +152,6 @@ def key_present(
         ensure-key-present:
           boto3_ec2.key_present:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     exists = __salt__["boto3_ec2.get_key"](name, region, key, keyid, profile)
@@ -184,6 +205,22 @@ def key_absent(name, region=None, key=None, keyid=None, profile=None):
     """
     Deletes a key pair
 
+    name (string)
+        Name of the key pair.
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (string)
+        A dict with region, key and keyid, or a pillar key (string) that
+        contains a dict with region, key and keyid.
+
     Example:
 
     .. code-block:: yaml
@@ -191,7 +228,6 @@ def key_absent(name, region=None, key=None, keyid=None, profile=None):
         ensure-key-absent:
           boto3_ec2.key_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     exists = __salt__["boto3_ec2.get_key"](name, region, key, keyid, profile)
@@ -233,55 +269,52 @@ def eni_present(
     """
     Ensure the EC2 ENI exists.
 
-
-    name
+    name (string)
         Name tag associated with the ENI.
 
-    subnet_id
+    subnet_id (string)
         The VPC subnet ID the ENI will exist within.
 
-    subnet_name
+    subnet_name (string)
         The VPC subnet name the ENI will exist within.
 
-    private_ip_address
+    private_ip_address (string)
         The private ip address to use for this ENI. If this is not specified
         AWS will automatically assign a private IP address to the ENI. Must be
         specified at creation time; will be ignored afterward.
 
-    description
+    description (string)
         Description of the key.
 
-    groups
+    groups (list)
         A list of security groups to apply to the ENI.
 
-    source_dest_check
+    source_dest_check (bool)
         Boolean specifying whether source/destination checking is enabled on
         the ENI.
 
-    allocate_eip
+    allocate_eip (string)
         allocate and associate an EIP to the ENI. Could be 'standard' to
         allocate Elastic IP to EC2 region or 'vpc' to get it for a
         particular VPC
 
-
-    arecords
+    arecords (list)
         A list of arecord dicts with attributes needed for the DNS add_record state.
         By default the boto3_route53.add_record state will be used, which requires: name, zone, ttl, and identifier.
         See the boto3_route53 state for information about these attributes.
         Other DNS modules can be called by specifying the provider keyword.
         By default, the private ENI IP address will be used, set 'public: True' in the arecord dict to use the ENI's public IP address
 
-
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (string)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -292,7 +325,6 @@ def eni_present(
         ensure-eni-present:
           boto3_ec2.eni_present:
             - name: example
-
     """
     if not salt.utils.data.exactly_one((subnet_id, subnet_name)):
         raise SaltInvocationError(
@@ -542,23 +574,22 @@ def eni_absent(name, release_eip=False, region=None, key=None, keyid=None, profi
     """
     Ensure the EC2 ENI is absent.
 
-
-    name
+    name (string)
         Name tag associated with the ENI.
 
-    release_eip
+    release_eip (bool)
         True/False - release any EIP associated with the ENI
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (string)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -569,7 +600,6 @@ def eni_absent(name, release_eip=False, region=None, key=None, keyid=None, profi
         ensure-eni-absent:
           boto3_ec2.eni_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     r = __salt__["boto3_ec2.get_network_interface"](
@@ -649,6 +679,24 @@ def snapshot_created(
 ):
     """
     Create a snapshot from the given instance
+
+    name (string)
+        The name of the snapshot to be created.
+
+    ami_name (string)
+        The name of the AMI to be created from the instance.
+
+    instance_name (string)
+        The name of the instance from which to create the snapshot.
+
+    wait_until_available (bool)
+        Whether to wait until the AMI is available before returning.
+
+    wait_timeout_seconds (int)
+        The maximum number of seconds to wait for the AMI to become available.
+
+    **kwargs
+        Additional keyword arguments to pass to the underlying boto3_ec2 functions.
 
     Example:
 
@@ -743,112 +791,143 @@ def instance_present(
     """
     Ensure an EC2 instance is running with the given attributes and state.
 
-    name
-        (string) - The name of the state definition.  Recommended that this
+    name (string)
+        The name of the state definition.  Recommended that this
         match the instance_name attribute (generally the FQDN of the instance).
-    instance_name
-        (string) - The name of the instance, generally its FQDN.  Exclusive with
+
+    instance_name (string)
+        The name of the instance, generally its FQDN.  Exclusive with
         'instance_id'.
-    instance_id
-        (string) - The ID of the instance (if known).  Exclusive with
+
+    instance_id (string)
+        The ID of the instance (if known).  Exclusive with
         'instance_name'.
-    image_id
-        (string) - The ID of the AMI image to run.
-    image_name
-        (string) - The name of the AMI image to run.
-    tags
-        (dict) - Tags to apply to the instance.
-    key_name
-        (string) - The name of the key pair with which to launch instances.
-    security_groups
-        (list of strings) - The names of the EC2 classic security groups with
+
+    image_id (string)
+        The ID of the AMI image to run.
+
+    image_name (string)
+        The name of the AMI image to run.
+
+    tags (dict)
+        Tags to apply to the instance.
+
+    key_name (string)
+        The name of the key pair with which to launch instances.
+
+    security_groups (list of strings)
+        The names of the EC2 classic security groups with
         which to associate instances
-    user_data
-        (string) - The Base64-encoded MIME user data to be made available to the
+
+    user_data (string)
+        The Base64-encoded MIME user data to be made available to the
         instance(s) in this reservation.
-    instance_type
-        (string) - The EC2 instance size/type.  Note that only certain types are
-        compatible with HVM based AMIs.
-    placement
-        (string) - The Availability Zone to launch the instance into.
-    kernel_id
-        (string) - The ID of the kernel with which to launch the instances.
-    ramdisk_id
-        (string) - The ID of the RAM disk with which to launch the instances.
-    vpc_id
-        (string) - The ID of a VPC to attach the instance to.
-    vpc_name
-        (string) - The name of a VPC to attach the instance to.
-    monitoring_enabled
-        (bool) - Enable detailed CloudWatch monitoring on the instance.
-    subnet_id
-        (string) - The ID of the subnet within which to launch the instances for
+
+    instance_type (string)
+        The EC2 instance size/type.
+
+        .. note::
+            Only certain types are compatible with HVM based AMIs.
+
+    placement (string)
+        The Availability Zone to launch the instance into.
+
+    kernel_id (string)
+        The ID of the kernel with which to launch the instances.
+
+    ramdisk_id (string)
+        The ID of the RAM disk with which to launch the instances.
+
+    vpc_id (string)
+        The ID of a VPC to attach the instance to.
+
+    vpc_name (string)
+        The name of a VPC to attach the instance to.
+
+    monitoring_enabled (bool)
+        Enable detailed CloudWatch monitoring on the instance.
+
+    subnet_id (string)
+        The ID of the subnet within which to launch the instances for
         VPC.
-    subnet_name
-        (string) - The name of the subnet within which to launch the instances
+
+    subnet_name (string)
+        The name of the subnet within which to launch the instances
         for VPC.
-    private_ip_address
-        (string) - If you're using VPC, you can optionally use this parameter to
+
+    private_ip_address (string)
+        If you're using VPC, you can optionally use this parameter to
         assign the instance a specific available IP address from the subnet
         (e.g., 10.0.0.25).
-    block_device_map
-        (boto.ec2.blockdevicemapping.BlockDeviceMapping) - A BlockDeviceMapping
-        data structure describing the EBS volumes associated with the Image.
-    disable_api_termination
-        (bool) - If True, the instances will be locked and will not be able to
+
+    block_device_map (boto.ec2.blockdevicemapping.BlockDeviceMapping)
+        A BlockDeviceMapping data structure describing the EBS volumes associated with the Image.
+
+    disable_api_termination (bool)
+        If True, the instances will be locked and will not be able to
         be terminated via the API.
-    instance_initiated_shutdown_behavior
-        (string) - Specifies whether the instance stops or terminates on
+
+    instance_initiated_shutdown_behavior (string)
+        Specifies whether the instance stops or terminates on
         instance-initiated shutdown. Valid values are:
 
         - 'stop'
         - 'terminate'
 
-    placement_group
-        (string) - If specified, this is the name of the placement group in
+    placement_group (string)
+        If specified, this is the name of the placement group in
         which the instance(s) will be launched.
-    client_token
-        (string) - Unique, case-sensitive identifier you provide to ensure
+
+    client_token (string)
+        Unique, case-sensitive identifier you provide to ensure
         idempotency of the request. Maximum 64 ASCII characters.
-    security_group_ids
-        (list of strings) - The IDs of the VPC security groups with which to
+
+    security_group_ids (list of strings)
+        The IDs of the VPC security groups with which to
         associate instances.
-    security_group_names
-        (list of strings) - The names of the VPC security groups with which to
+
+    security_group_names (list of strings)
+        The names of the VPC security groups with which to
         associate instances.
-    additional_info
-        (string) - Specifies additional information to make available to the
+
+    additional_info (string)
+        Specifies additional information to make available to the
         instance(s).
-    tenancy
-        (string) - The tenancy of the instance you want to launch. An instance
+
+    tenancy (string)
+        The tenancy of the instance you want to launch. An instance
         with a tenancy of 'dedicated' runs on single-tenant hardware and can
         only be launched into a VPC. Valid values are: "default" or "dedicated".
-        NOTE: To use dedicated tenancy you MUST specify a VPC subnet-ID as well.
-    instance_profile_arn
-        (string) - The Amazon resource name (ARN) of the IAM Instance Profile
+
+        .. note::
+            To use dedicated tenancy you MUST specify a VPC subnet-ID as well.
+
+    instance_profile_arn (string)
+        The Amazon resource name (ARN) of the IAM Instance Profile
         (IIP) to associate with the instances.
-    instance_profile_name
-        (string) - The name of the IAM Instance Profile (IIP) to associate with
+
+    instance_profile_name (string)
+        The name of the IAM Instance Profile (IIP) to associate with
         the instances.
-    ebs_optimized
-        (bool) - Whether the instance is optimized for EBS I/O. This
+
+    ebs_optimized (bool)
+        Whether the instance is optimized for EBS I/O. This
         optimization provides dedicated throughput to Amazon EBS and a tuned
         configuration stack to provide optimal EBS I/O performance. This
         optimization isn't available with all instance types.
-    network_interfaces
-        (boto.ec2.networkinterface.NetworkInterfaceCollection) - A
-        NetworkInterfaceCollection data structure containing the ENI
+
+    network_interfaces (boto.ec2.networkinterface.NetworkInterfaceCollection)
+        A NetworkInterfaceCollection data structure containing the ENI
         specifications for the instance.
-    network_interface_name
-         (string) - The name of Elastic Network Interface to attach
 
+    network_interface_name (string)
+        The name of Elastic Network Interface to attach
 
-    network_interface_id
-         (string) - The id of Elastic Network Interface to attach
+    network_interface_id (string)
+        The id of Elastic Network Interface to attach
 
-
-    attributes
-        (dict) - Instance attributes and value to be applied to the instance.
+    attributes (dict)
+        Instance attributes and value to be applied to the instance.
         Available options are:
 
         - instanceType - A valid instance type (m1.small)
@@ -863,34 +942,44 @@ def instance_present(
         - ebsOptimized - Boolean (false)
         - sriovNetSupport - String - ie: 'simple'
 
-    target_state
-        (string) - The desired target state of the instance.  Available options
+    target_state (string)
+        The desired target state of the instance.  Available options
         are:
 
         - running
         - stopped
 
-        Note that this option is currently UNIMPLEMENTED.
-    public_ip:
-        (string) - The IP of a previously allocated EIP address, which will be
+        .. note::
+            This option is currently UNIMPLEMENTED.
+
+    public_ip (string)
+        The IP of a previously allocated EIP address, which will be
         attached to the instance.  EC2 Classic instances ONLY - for VPC pass in
         an allocation_id instead.
-    allocation_id:
-        (string) - The ID of a previously allocated EIP address, which will be
+
+    allocation_id (string)
+        The ID of a previously allocated EIP address, which will be
         attached to the instance.  VPC instances ONLY - for Classic pass in
         a public_ip instead.
-    allocate_eip:
-        (bool) - Allocate and attach an EIP on-the-fly for this instance.  Note
-        you'll want to release this address when terminating the instance,
-        either manually or via the 'release_eip' flag to 'instance_absent'.
-    region
-        (string) - Region to connect to.
-    key
-        (string) - Secret key to be used.
-    keyid
-        (string) - Access key to be used.
-    profile
-        (variable) - A dict with region, key and keyid, or a pillar key (string)
+
+    allocate_eip (bool)
+        Allocate and attach an EIP on-the-fly for this instance.
+
+        .. note::
+            you'll want to release this address when terminating the instance,
+            either manually or via the 'release_eip' flag to 'instance_absent'.
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (variable)
+        A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
     Example:
@@ -900,7 +989,6 @@ def instance_present(
         ensure-instance-present:
           boto3_ec2.instance_present:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     _create = False
@@ -1227,34 +1315,42 @@ def instance_absent(
     """
     Ensure an EC2 instance does not exist (is stopped and removed).
 
+    name (string)
+        The name of the state definition.
 
-    name
-        (string) - The name of the state definition.
-    instance_name
-        (string) - The name of the instance.
-    instance_id
-        (string) - The ID of the instance.
-    release_eip
-        (bool)   - Release any associated EIPs during termination.
-    region
-        (string) - Region to connect to.
-    key
-        (string) - Secret key to be used.
-    keyid
-        (string) - Access key to be used.
-    profile
-        (variable) - A dict with region, key and keyid, or a pillar key (string)
+    instance_name (string)
+        The name of the instance.
+
+    instance_id (string)
+        The ID of the instance.
+
+    release_eip (bool)
+        Release any associated EIPs during termination.
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (variable)
+        A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
-    filters
-        (dict) - A dict of additional filters to use in matching the instance to
+
+    filters (dict)
+        A dict of additional filters to use in matching the instance to
         delete.
 
-    YAML example fragment:
+    Example:
 
     .. code-block:: yaml
 
-        - filters:
-            vpc-id: vpc-abcdef12
+        my_instance:
+          boto3_ec2.instance_absent:
+            instance_name: my_instance
     """
     ### TODO - Implement 'force' option??  Would automagically turn off
     ###        'disableApiTermination', as needed, before trying to delete.
@@ -1389,39 +1485,38 @@ def volume_absent(
     """
     Ensure the EC2 volume is detached and absent.
 
-
-    name
+    name (string)
         State definition name.
 
-    volume_name
+    volume_name (string)
         Name tag associated with the volume.  For safety, if this matches more than
         one volume, the state will refuse to apply.
 
-    volume_id
+    volume_id (string)
         Resource ID of the volume.
 
-    instance_name
+    instance_name (string)
         Only remove volume if it is attached to instance with this Name tag.
         Exclusive with 'instance_id'.  Requires 'device'.
 
-    instance_id
+    instance_id (string)
         Only remove volume if it is attached to this instance.
         Exclusive with 'instance_name'.  Requires 'device'.
 
-    device
+    device (string)
         Match by device rather than ID.  Requires one of 'instance_name' or
         'instance_id'.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (variable)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -1432,7 +1527,6 @@ def volume_absent(
         ensure-volume-absent:
           boto3_ec2.volume_absent:
             - name: example
-
     """
 
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
@@ -1507,11 +1601,10 @@ def volumes_tagged(
     """
     Ensure EC2 volume(s) matching the given filters have the defined tags.
 
-
-    name
+    name (string)
         State definition name.
 
-    tag_maps
+    tag_maps (list)
         List of dicts of filters and tags, where 'filters' is a dict suitable for passing
         to the 'filters' argument of boto3_ec2.get_all_volumes(), and 'tags' is a dict of
         tags to be set on volumes as matched by the given filters.  The filter syntax is
@@ -1543,22 +1636,31 @@ def volumes_tagged(
           tags:
             BillingGroup: infra-team@aws-foo.com
 
-    authoritative
+    authoritative (bool)
         Should un-declared tags currently set on matched volumes be deleted?  Boolean.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (variable)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
+    Example:
+
+    .. code-block:: yaml
+
+        my_volume:
+          boto3_ec2.volume_present:
+            - volume_name: my-volume
+            - size: 10
+            - region: us-east-1
     """
 
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
@@ -1615,68 +1717,66 @@ def volume_present(
     """
     Ensure the EC2 volume is present and attached.
 
-    ..
-
-    name
+    name (string)
         State definition name.
 
-    volume_name
+    volume_name (string)
         The Name tag value for the volume. If no volume with that matching name tag is found,
         a new volume will be created. If multiple volumes are matched, the state will fail.
 
-    volume_id
+    volume_id (string)
         Resource ID of the volume. Exclusive with 'volume_name'.
 
-    instance_name
+    instance_name (string)
         Attach volume to instance with this Name tag.
         Exclusive with 'instance_id'.
 
-    instance_id
+    instance_id (string)
         Attach volume to instance with this ID.
         Exclusive with 'instance_name'.
 
-    device
+    device (string)
         The device on the instance through which the volume is exposed (e.g. /dev/sdh)
 
-    size
+    size (int)
         The size of the new volume, in GiB. If you're creating the volume from a snapshot
         and don't specify a volume size, the default is the snapshot size. Optionally specified
         at volume creation time; will be ignored afterward. Requires 'volume_name'.
 
-    snapshot_id
+    snapshot_id (string)
         The snapshot ID from which the new Volume will be created. Optionally specified
         at volume creation time; will be ignored afterward. Requires 'volume_name'.
 
-    volume_type
+    volume_type (string)
         The type of the volume. Optionally specified at volume creation time; will be ignored afterward.
         Requires 'volume_name'.
         Valid volume types for AWS can be found here:
         http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/EBSVolumeTypes.html
 
-    iops
+    iops (int)
         The provisioned IOPS you want to associate with this volume. Optionally specified
         at volume creation time; will be ignored afterward. Requires 'volume_name'.
 
-    encrypted
+    encrypted (bool)
         Specifies whether the volume should be encrypted. Optionally specified
         at volume creation time; will be ignored afterward. Requires 'volume_name'.
 
-    kms_key_id
+    kms_key_id (string)
         If encrypted is True, this KMS Key ID may be specified to encrypt volume with this key.
         Optionally specified at volume creation time; will be ignored afterward.
         Requires 'volume_name'.
         e.g.: arn:aws:kms:us-east-1:012345678910:key/abcd1234-a123-456a-a12b-a123b4cd56ef
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (variable)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -1687,7 +1787,6 @@ def volume_present(
         ensure-volume-present:
           boto3_ec2.volume_present:
             - name: example
-
     """
 
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
@@ -1858,24 +1957,34 @@ def private_ips_present(
     """
     Ensure an ENI has secondary private ip addresses associated with it
 
-    name
-        (String) - State definition name
-    network_interface_id
-        (String) - The EC2 network interface id, example eni-123456789
-    private_ip_addresses
-        (List or String) - The secondary private ip address(es) that should be present on the ENI.
-    allow_reassignment
-        (Boolean) - If true, will reassign a secondary private ip address associated with another
+    name (string)
+        State definition name
+
+    network_interface_name (string)
+        The name of the network interface.
+
+    network_interface_id (string)
+        The EC2 network interface id, example eni-123456789.
+
+    private_ip_addresses (list or string)
+        The secondary private ip address(es) that should be present on the ENI.
+
+    allow_reassignment (Boolean)
+        If true, will reassign a secondary private ip address associated with another
         ENI. If false, state will fail if the secondary private ip address is associated with
         another ENI.
-    region
-        (string) - Region to connect to.
-    key
-        (string) - Secret key to be used.
-    keyid
-        (string) - Access key to be used.
-    profile
-        (variable) - A dict with region, key and keyid, or a pillar key (string) that contains a
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (variable)
+        A dict with region, key and keyid, or a pillar key (string) that contains a
         dict with region, key and keyid.
 
     Example:
@@ -1885,7 +1994,10 @@ def private_ips_present(
         ensure-private-ips-present:
           boto3_ec2.private_ips_present:
             - name: example
-
+              network_interface_name: eth0
+              private_ip_addresses:
+                - 10.0.0.5
+                - 10.0.0.6
     """
 
     if not salt.utils.data.exactly_one((network_interface_name, network_interface_id)):
@@ -2002,20 +2114,26 @@ def private_ips_absent(
     """
     Ensure an ENI does not have secondary private ip addresses associated with it
 
-    name
-        (String) - State definition name
-    network_interface_id
-        (String) - The EC2 network interface id, example eni-123456789
-    private_ip_addresses
-        (List or String) - The secondary private ip address(es) that should be absent on the ENI.
-    region
-        (string) - Region to connect to.
-    key
-        (string) - Secret key to be used.
-    keyid
-        (string) - Access key to be used.
-    profile
-        (variable) - A dict with region, key and keyid, or a pillar key (string) that contains a
+    name (String)
+        State definition name
+
+    network_interface_id (String)
+        The EC2 network interface id, example eni-123456789
+
+    private_ip_addresses (List or String)
+        The secondary private ip address(es) that should be absent on the ENI.
+
+    region (string)
+        Region to connect to.
+
+    key (string)
+        Secret key to be used.
+
+    keyid (string)
+        Access key to be used.
+
+    profile (variable)
+        A dict with region, key and keyid, or a pillar key (string) that contains a
         dict with region, key and keyid.
 
     Example:
@@ -2025,7 +2143,10 @@ def private_ips_absent(
         ensure-private-ips-absent:
           boto3_ec2.private_ips_absent:
             - name: example
-
+              network_interface_name: eth0
+              private_ip_addresses:
+                - 10.0.0.5
+                - 10.0.0.6
     """
 
     if not salt.utils.data.exactly_one((network_interface_name, network_interface_id)):

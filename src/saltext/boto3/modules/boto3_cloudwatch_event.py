@@ -98,6 +98,21 @@ def exists(Name, region=None, key=None, keyid=None, profile=None):
     """
     Given a rule name, check to see if the given rule exists.
 
+    Name (str):
+        The name of the CloudWatch event rule to check for existence.
+
+    region (str, optional):
+        The AWS region where the CloudWatch event rule is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -132,6 +147,36 @@ def create_or_update(
     """
     Given a valid config, create an event rule.
 
+    Name (str):
+        The name of the CloudWatch event rule to create or update.
+
+    ScheduleExpression (str, optional):
+        The scheduling expression. For example, "rate(5 minutes)" or a cron expression.
+
+    EventPattern (str, optional):
+        The event pattern to match events.
+
+    Description (str, optional):
+        A description of the rule.
+
+    RoleArn (str, optional):
+        The ARN of the IAM role associated with the rule.
+
+    State (str, optional):
+        The state of the rule. Valid values are "ENABLED" and "DISABLED".
+
+    region (str, optional):
+        The AWS region where the CloudWatch event rule is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -164,6 +209,21 @@ def delete(Name, region=None, key=None, keyid=None, profile=None):
     """
     Given a rule name, delete it.
 
+    Name (str):
+        The name of the CloudWatch event rule to delete.
+
+    region (str, optional):
+        The AWS region where the CloudWatch event rule is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -181,6 +241,21 @@ def delete(Name, region=None, key=None, keyid=None, profile=None):
 def describe(Name, region=None, key=None, keyid=None, profile=None):
     """
     Given a rule name describe its properties.
+
+    Name (str):
+        The name of the CloudWatch event rule to describe.
+
+    region (str, optional):
+        The AWS region where the CloudWatch event rule is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -213,6 +288,18 @@ def list_rules(region=None, key=None, keyid=None, profile=None):
     """
     List, with details, all CloudWatch Event rules visible in the current scope.
 
+    region (str, optional):
+        The AWS region where the CloudWatch event rules are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -236,6 +323,21 @@ def list_rules(region=None, key=None, keyid=None, profile=None):
 def list_targets(Rule, region=None, key=None, keyid=None, profile=None):
     """
     Given a rule name list the targets of that rule.
+
+    Rule (str):
+        The name of the CloudWatch event rule whose targets are to be listed.
+
+    region (str, optional):
+        The AWS region where the CloudWatch event rule is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -263,6 +365,24 @@ def put_targets(Rule, Targets, region=None, key=None, keyid=None, profile=None):
     """
     Add the given targets to the given rule.
 
+    Rule (str):
+        The name of the CloudWatch event rule to which the targets are to be added.
+
+    Targets (list):
+        A list of targets to add to the rule. Each target should be a dictionary containing the target's details.
+
+    region (str, optional):
+        The AWS region where the CloudWatch event rule is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -286,6 +406,24 @@ def put_targets(Rule, Targets, region=None, key=None, keyid=None, profile=None):
 def remove_targets(Rule, Ids, region=None, key=None, keyid=None, profile=None):
     """
     Given a rule name remove the named targets from the target list.
+
+    Rule (str):
+        The name of the CloudWatch event rule from which the targets are to be removed.
+
+    Ids (list):
+        A list of target IDs to remove from the rule. Each ID should be a string.
+
+    region (str, optional):
+        The AWS region where the CloudWatch event rule is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 

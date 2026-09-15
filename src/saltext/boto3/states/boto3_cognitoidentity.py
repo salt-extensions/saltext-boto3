@@ -155,45 +155,45 @@ def pool_present(
     """
     Ensure the given Cognito Identity Pool exists.
 
-    name
+    name (string)
         The name of the state definition.
 
-    IdentityPoolName
+    IdentityPoolName (string)
         Name of the Cognito Identity Pool.
 
-    AuthenticatedRole
+    AuthenticatedRole (string)
         An IAM role name or ARN that will be associated with temporary AWS
         credentials for an authenticated cognito identity.
 
-    AllowUnauthenticatedIdentities
+    AllowUnauthenticatedIdentities (boolean)
         Whether to allow anonymous user identities.
 
-    UnauthenticatedRole
+    UnauthenticatedRole (string)
         An IAM role name or ARN that will be associated with anonymous user
         identities.
 
-    SupportedLoginProviders
+    SupportedLoginProviders (dict)
         A dictionary or pillar key that contains key:value pairs mapping
         provider names to provider app IDs.
 
-    DeveloperProviderName
+    DeveloperProviderName (string)
         The domain by which Cognito will refer to your users. Once set, it
         cannot be changed.
 
-    OpenIdConnectProviderARNs
+    OpenIdConnectProviderARNs (list)
         A list or pillar key that contains a list of OpenID Connect provider
         ARNs.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (string)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -204,7 +204,6 @@ def pool_present(
         ensure-pool-present:
           boto3_cognitoidentity.pool_present:
             - name: example
-
     """
     ret = {"name": IdentityPoolName, "result": True, "comment": "", "changes": {}}
     conn_params = {"region": region, "key": key, "keyid": keyid, "profile": profile}
@@ -317,26 +316,26 @@ def pool_absent(
     """
     Ensure a Cognito Identity Pool is absent.
 
-    name
+    name (string)
         The name of the state definition.
 
-    IdentityPoolName
+    IdentityPoolName (string)
         Name of the Cognito Identity Pool.
 
-    RemoveAllMatched
+    RemoveAllMatched (boolean)
         If True, all identity pools matching ``IdentityPoolName`` are removed.
         If False and multiple pools match, no action is taken.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (string)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -347,7 +346,6 @@ def pool_absent(
         ensure-pool-absent:
           boto3_cognitoidentity.pool_absent:
             - name: example
-
     """
     ret = {"name": IdentityPoolName, "result": True, "comment": "", "changes": {}}
     conn_params = {"region": region, "key": key, "keyid": keyid, "profile": profile}

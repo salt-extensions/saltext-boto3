@@ -257,15 +257,15 @@ def present(
     """
     Ensure the autoscale group exists.
 
-    name
+    name (string)
         Name of the autoscale group.
 
-    launch_config_name
+    launch_config_name (string)
         Name of the launch config to use for the group.  Or, if
         ``launch_config`` is specified, this will be the launch config
         name's prefix.  (see below)
 
-    launch_config
+    launch_config (dict)
         A dictionary of launch config attributes.  If specified, a
         launch config will be used or created, matching this set
         of attributes, and the autoscale group will be set to use
@@ -291,46 +291,46 @@ def present(
                   - my_sec_group_01
                   - my_sec_group_02
 
-    availability_zones
+    availability_zones (list)
         List of availability zones for the group.
 
-    min_size
+    min_size (int)
         Minimum size of the group.
 
-    max_size
+    max_size (int)
         Maximum size of the group.
 
-    desired_capacity
+    desired_capacity (int)
         The desired capacity of the group.
 
-    load_balancers
+    load_balancers (list)
         List of load balancers for the group. Once set this can not be
         updated (Amazon restriction).
 
-    default_cooldown
+    default_cooldown (int)
         Number of seconds after a Scaling Activity completes before any further
         scaling activities can start.
 
-    health_check_type
+    health_check_type (string)
         The service you want the health status from, Amazon EC2 or Elastic Load
         Balancer (EC2 or ELB).
 
-    health_check_period
+    health_check_period (int)
         Length of time in seconds after a new EC2 instance comes into service
         that Auto Scaling starts checking its health.
 
-    placement_group
+    placement_group (string)
         Physical location of your cluster placement group created in Amazon
         EC2. Once set this can not be updated (Amazon restriction).
 
-    vpc_zone_identifier
+    vpc_zone_identifier (list)
         A list of the subnet identifiers of the Virtual Private Cloud.
 
-    subnet_names
+    subnet_names (list)
         For VPC, a list of subnet names (NOT subnet IDs) to deploy into.
         Exclusive with vpc_zone_identifier.
 
-    tags
+    tags (list)
         A list of tags. Example:
 
         .. code-block:: yaml
@@ -339,7 +339,7 @@ def present(
               value: 'value'
               propagate_at_launch: true
 
-    termination_policies
+    termination_policies (list)
         A list of termination policies. Valid values are:
 
         * ``OldestInstance``
@@ -350,23 +350,23 @@ def present(
 
         If no value is specified, the ``Default`` value is used.
 
-    termination_policies_from_pillar:
+    termination_policies_from_pillar (string):
         name of pillar dict that contains termination policy settings.   Termination policies
         defined for this specific state will override those from pillar.
 
-    suspended_processes
+    suspended_processes (list)
         List of processes to be suspended. see
         http://docs.aws.amazon.com/AutoScaling/latest/DeveloperGuide/US_SuspendResume.html
 
-    scaling_policies
+    scaling_policies (list)
         List of scaling policies.  Each policy is a dict of key-values described by
         https://boto.readthedocs.io/en/latest/ref/autoscale.html#boto.ec2.autoscale.policy.ScalingPolicy
 
-    scaling_policies_from_pillar:
+    scaling_policies_from_pillar (string):
         name of pillar dict that contains scaling policy settings.   Scaling policies defined for
         this specific state will override those from pillar.
 
-    scheduled_actions:
+    scheduled_actions (dict):
         a dictionary of scheduled actions. Each key is the name of scheduled action and each value
         is dictionary of options. For example:
 
@@ -384,11 +384,11 @@ def present(
                     max_size: 1
                     recurrence: "0 19 * * 1-5"
 
-    scheduled_actions_from_pillar:
+    scheduled_actions_from_pillar (string):
         name of pillar dict that contains scheduled_actions settings. Scheduled actions
         for this specific state will override those from pillar.
 
-    alarms:
+    alarms (dict):
         a dictionary of name->boto3_cloudwatch_alarm sections to be associated with this ASG.
         All attributes should be specified except for dimension which will be
         automatically set to this ASG.
@@ -402,32 +402,32 @@ def present(
         In addition, any alarms that have only scaling_policy as actions will be ignored if
         min_size is equal to max_size for this ASG.
 
-    alarms_from_pillar:
+    alarms_from_pillar (string):
         name of pillar dict that contains alarm settings.   Alarms defined for this specific
         state will override those from pillar.
 
-    region
+    region (string)
         The region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (dict or string)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
-    notification_arn
+    notification_arn (string)
         The AWS arn that notifications will be sent to
 
-    notification_arn_from_pillar
+    notification_arn_from_pillar (string)
         name of the pillar dict that contains ``notifcation_arn`` settings.  A
         ``notification_arn`` defined for this specific state will override the
         one from pillar.
 
-    notification_types
+    notification_types (list)
         A list of event names that will trigger a notification.  The list of valid
         notification types is:
 
@@ -437,7 +437,7 @@ def present(
         * ``autoscaling:EC2_INSTANCE_TERMINATE_ERROR``
         * ``autoscaling:TEST_NOTIFICATION``
 
-    notification_types_from_pillar
+    notification_types_from_pillar (string)
         name of the pillar dict that contains ``notifcation_types`` settings.
         ``notification_types`` defined for this specific state will override those
         from the pillar.
@@ -857,25 +857,25 @@ def absent(name, force=False, region=None, key=None, keyid=None, profile=None, r
     """
     Ensure the named autoscale group is deleted.
 
-    name
+    name (string)
         Name of the autoscale group.
 
-    force
+    force (bool)
         Force deletion of autoscale group.
 
-    remove_lc
+    remove_lc (bool)
         Delete the launch config as well.
 
-    region
+    region (string)
         The region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (dict or string)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 

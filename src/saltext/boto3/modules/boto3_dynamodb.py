@@ -103,6 +103,21 @@ def list_tags_of_resource(resource_arn, region=None, key=None, keyid=None, profi
     """
     Return a dictionary of all tags currently attached to the given resource.
 
+    resource_arn (str):
+        The ARN of the resource for which to list tags.
+
+    region (str, optional):
+        The AWS region where the resource is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -139,6 +154,24 @@ def tag_resource(resource_arn, tags, region=None, key=None, keyid=None, profile=
     Set the given tags (dict or list of ``{'Key':..., 'Value':...}``) on the
     given resource.
 
+    resource_arn (str):
+        The ARN of the resource to tag.
+
+    tags (dict or list of dict):
+        The tags to set on the resource. Can be a dictionary of key-value pairs or a list of dictionaries with "Key" and "Value" keys.
+
+    region (str, optional):
+        The AWS region where the resource is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -172,6 +205,24 @@ def untag_resource(resource_arn, tag_keys, region=None, key=None, keyid=None, pr
 
     CLI Example:
 
+    resource_arn (str):
+        The ARN of the resource from which to remove tags.
+
+    tag_keys (list of str):
+        The keys of the tags to remove from the resource.
+
+    region (str, optional):
+        The AWS region where the resource is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     .. code-block:: bash
 
         salt-call boto3_dynamodb.untag_resource
@@ -199,6 +250,21 @@ def exists(table_name, region=None, key=None, keyid=None, profile=None):
     """
     Check whether the given DynamoDB table exists.
 
+    table_name (str):
+        The name of the DynamoDB table to check for existence.
+
+    region (str, optional):
+        The AWS region where the table is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -219,6 +285,21 @@ def exists(table_name, region=None, key=None, keyid=None, profile=None):
 def describe(table_name, region=None, key=None, keyid=None, profile=None):
     """
     Describe a DynamoDB table.
+
+    table_name (str):
+        The name of the DynamoDB table to describe.
+
+    region (str, optional):
+        The AWS region where the table is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -248,6 +329,45 @@ def create_table(
 ):
     """
     Create a DynamoDB table.
+
+    table_name (str):
+        The name of the DynamoDB table to create.
+
+    region (str, optional):
+        The AWS region where the table will be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    read_capacity_units (int, optional):
+        The provisioned read capacity units for the table.
+
+    write_capacity_units (int, optional):
+        The provisioned write capacity units for the table.
+
+    hash_key (str):
+        The name of the hash key (partition key) for the table.
+
+    hash_key_data_type (str):
+        The data type of the hash key (e.g., "S" for string, "N" for number).
+
+    range_key (str, optional):
+        The name of the range key (sort key) for the table.
+
+    range_key_data_type (str, optional):
+        The data type of the range key (e.g., "S" for string, "N" for number).
+
+    local_indexes (list, optional):
+        A list of local secondary index definitions.
+
+    global_indexes (list, optional):
+        A list of global secondary index definitions.
 
     CLI Example:
 
@@ -321,6 +441,21 @@ def delete(table_name, region=None, key=None, keyid=None, profile=None):
     """
     Delete a DynamoDB table.
 
+    table_name (str):
+        The name of the DynamoDB table to delete.
+
+    region (str, optional):
+        The AWS region where the table is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -354,12 +489,24 @@ def update(
     """
     Update the provisioned throughput or global secondary indexes of a table.
 
-    throughput
-        A dict with keys ``read`` and ``write``.
+    throughput (dict, optional):
+        A dict with keys ``read`` and ``write`` specifying the provisioned throughput.
 
-    global_indexes
+    global_indexes (list, optional):
         A list of ``GlobalSecondaryIndexUpdates`` entries (passed through to
         the boto3 API).
+
+    region (str, optional):
+        The AWS region where the table is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -393,6 +540,25 @@ def create_global_secondary_index(
     Create a single global secondary index. ``global_index`` is an AWS-format
     dict with ``IndexName``, ``KeySchema``, ``Projection``,
     ``ProvisionedThroughput`` (as returned by :func:`extract_index`).
+
+    table_name (str):
+        The name of the DynamoDB table to which the global secondary index will be added.
+
+    global_index (dict):
+        An AWS-format dict defining the global secondary index, including ``IndexName``,
+        ``KeySchema``, ``Projection``, and ``ProvisionedThroughput``.
+
+    region (str, optional):
+        The AWS region where the table is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -439,8 +605,23 @@ def update_global_secondary_index(
     """
     Update the provisioned throughput of the given global secondary indexes.
 
-    global_indexes
-        A dict mapping index names to ``{'read': R, 'write': W}``.
+    table_name (str):
+        The name of the DynamoDB table containing the global secondary indexes to update.
+
+    global_indexes (dict, optional):
+        A dict mapping index names to ``{'read': R, 'write': W}`` specifying the new provisioned throughput for each global secondary index.
+
+    region (str, optional):
+        The AWS region where the table is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -492,6 +673,12 @@ def extract_index(index_data, global_index=False):
     keyed by an outer ``index`` key with a list of single-key dicts) and
     return an AWS API-shape dict suitable for the DynamoDB ``create_table`` or
     ``update_table`` calls.
+
+    index_data (dict):
+        The legacy-style index specification to parse.
+
+    global_index (bool, optional):
+        Whether the index is a global secondary index. Defaults to False.
 
     CLI Example:
 

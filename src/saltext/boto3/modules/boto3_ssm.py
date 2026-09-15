@@ -102,6 +102,27 @@ def get_parameter(
     """
     Retrieves a parameter from SSM Parameter Store.
 
+    name (str):
+        The name of the parameter to retrieve.
+
+    withdecryption (bool, optional):
+        Whether to decrypt the parameter if it is a SecureString. Default is False.
+
+    resp_json (bool, optional):
+        Whether to parse the parameter value as JSON. Default is False.
+
+    region (str, optional):
+        The AWS region to use when retrieving the parameter. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when retrieving the parameter.
+
+    keyid (str, optional):
+        The AWS secret key to use when retrieving the parameter.
+
+    profile (str, optional):
+        The AWS profile to use when retrieving the parameter.
+
     CLI Example:
 
     .. code-block:: bash
@@ -135,6 +156,39 @@ def put_parameter(
 ):
     """
     Set a parameter in the SSM parameter store.
+
+    Name (str):
+        The name of the parameter to set.
+
+    Value (str):
+        The value of the parameter to set.
+
+    Description (str, optional):
+        A description of the parameter.
+
+    Type (str, optional):
+        The type of the parameter. Valid values are "String", "StringList", and "SecureString". Default is "String".
+
+    KeyId (str, optional):
+        The KMS key ID to use when setting a SecureString parameter.
+
+    Overwrite (bool, optional):
+        Whether to overwrite an existing parameter with the same name. Default is False.
+
+    AllowedPattern (str, optional):
+        A regular expression that the parameter value must match.
+
+    region (str, optional):
+        The AWS region to use when setting the parameter. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when setting the parameter.
+
+    keyid (str, optional):
+        The AWS secret key to use when setting the parameter.
+
+    profile (str, optional):
+        The AWS profile to use when setting the parameter.
 
     CLI Example:
 
@@ -172,6 +226,21 @@ def put_parameter(
 def delete_parameter(Name, region=None, key=None, keyid=None, profile=None):
     """
     Remove a parameter from the SSM parameter store.
+
+    Name (str):
+        The name of the parameter to delete.
+
+    region (str, optional):
+        The AWS region to use when deleting the parameter. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when deleting the parameter.
+
+    keyid (str, optional):
+        The AWS secret key to use when deleting the parameter.
+
+    profile (str, optional):
+        The AWS profile to use when deleting the parameter.
 
     CLI Example:
 
@@ -248,26 +317,42 @@ def send_command(
     """
     Invoke an SSM document against the given targets.
 
-    targets
+    targets (list or str):
         Either a list of EC2 instance IDs (strings) or a list of Targets dicts
         (``[{"Key": "tag:Env", "Values": ["prod"]}]``). A single instance ID
         string is also accepted.
-    document_name
+
+    document_name (str):
         Name of the SSM document to run. Defaults to ``AWS-RunShellScript``.
-    parameters
+
+    parameters (dict, optional):
         Dict of parameters to pass to the document. Scalar values are wrapped in
         a single-element list automatically.
-    comment
+
+    comment (str, optional):
         Optional user-supplied comment.
-    timeout_seconds
+
+    timeout_seconds (int, optional):
         How long (in seconds) the command can remain in ``Pending`` state.
-    output_s3_bucket_name, output_s3_key_prefix
+
+    output_s3_bucket_name (str, optional), output_s3_key_prefix (str, optional)
         Optional S3 location for command output.
-    max_concurrency, max_errors
+
+    max_concurrency (str, optional), max_errors (str, optional)
         Optional concurrency/error thresholds (pass a number or a percentage
         string such as ``"50%"``).
 
-    Returns the ``Command`` dict from the API on success, or ``{"error": ...}``.
+    region (str, optional):
+        The AWS region to use when sending the command. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when sending the command.
+
+    keyid (str, optional):
+        The AWS secret key to use when sending the command.
+
+    profile (str, optional):
+        The AWS profile to use when sending the command.
 
     CLI Example:
 
@@ -313,14 +398,44 @@ def run_shell_script(
     Run one or more shell commands on the given targets via the
     ``AWS-RunShellScript`` SSM document.
 
-    command
+    command (str or list):
         A single shell command string or a list of command strings.
-    targets
+
+    targets (list or str):
         Either a list of EC2 instance IDs or a list of Targets dicts.
-    execution_timeout
-        Per-command execution timeout in seconds (document parameter
-        ``executionTimeout``). Distinct from ``timeout_seconds`` which bounds
-        only the ``Pending`` state.
+
+    comment (str, optional):
+        An optional comment to include with the command.
+
+    timeout_seconds (int, optional):
+        The time in seconds to wait for the command to complete before it is considered to have timed out.
+
+    execution_timeout (int, optional):
+        The maximum time in seconds that each individual command is allowed to run. Distinct from ``timeout_seconds`` which bounds only the ``Pending`` state.
+
+    output_s3_bucket_name (str, optional):
+        The name of the S3 bucket to which command output should be written.
+
+    output_s3_key_prefix (str, optional):
+        The S3 key prefix under which command output should be written.
+
+    max_concurrency (str, optional):
+        The maximum number of targets that can run the command concurrently.
+
+    max_errors (str, optional):
+        The maximum number of errors allowed before the command stops executing on remaining targets.
+
+    region (str, optional):
+        The AWS region to use when sending the command. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when sending the command.
+
+    keyid (str, optional):
+        The AWS secret key to use when sending the command.
+
+    profile (str, optional):
+        The AWS profile to use when sending the command.
 
     CLI Example:
 
@@ -356,10 +471,23 @@ def get_command_invocation(
     """
     Fetch the result of a single Run Command invocation.
 
-    command_id
+    command_id (str):
         The Command ID returned by :py:func:`send_command`.
-    instance_id
+
+    instance_id (str):
         The EC2 instance ID the command ran on.
+
+    region (str, optional):
+        The AWS region to use when fetching the command invocation. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when fetching the command invocation.
+
+    keyid (str, optional):
+        The AWS secret key to use when fetching the command invocation.
+
+    profile (str, optional):
+        The AWS profile to use when fetching the command invocation.
 
     CLI Example:
 
@@ -386,6 +514,27 @@ def list_command_invocations(
     """
     List Run Command invocations, optionally filtered by ``command_id`` or
     ``instance_id``. Set ``details=True`` to include command plugin output.
+
+    command_id (str, optional):
+        The Command ID to filter the invocations by.
+
+    instance_id (str, optional):
+        The EC2 instance ID to filter the invocations by.
+
+    details (bool, optional):
+        Whether to include command plugin output in the response.
+
+    region (str, optional):
+        The AWS region to use when listing the command invocations. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when listing the command invocations.
+
+    keyid (str, optional):
+        The AWS secret key to use when listing the command invocations.
+
+    profile (str, optional):
+        The AWS profile to use when listing the command invocations.
 
     CLI Example:
 

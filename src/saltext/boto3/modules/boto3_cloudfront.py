@@ -131,6 +131,21 @@ def get_distribution(name, region=None, key=None, keyid=None, profile=None):
     Get information about a CloudFront distribution (configuration, tags) with
     a given ``Name`` tag.
 
+    name (str):
+        The value of the ``Name`` tag of the CloudFront distribution.
+
+    region (str, optional):
+        The AWS region where the CloudFront distribution is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -155,6 +170,18 @@ def export_distributions(region=None, key=None, keyid=None, profile=None):
     """
     Get details of all CloudFront distributions. Produces results that can be
     used to create an SLS file.
+
+    region (str, optional):
+        The AWS region where the CloudFront distributions are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -197,6 +224,27 @@ def create_distribution(
     Create a CloudFront distribution with the given name, config, and
     (optionally) tags.
 
+    name (str):
+        The value of the ``Name`` tag for the CloudFront distribution.
+
+    config (dict):
+        The configuration for the CloudFront distribution.
+
+    tags (dict, optional):
+        The tags to associate with the CloudFront distribution.
+
+    region (str, optional):
+        The AWS region where the CloudFront distribution is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -235,6 +283,27 @@ def update_distribution(
     """
     Update the config (and optionally tags) for the CloudFront distribution
     with the given ``Name`` tag.
+
+    name (str):
+        The value of the ``Name`` tag for the CloudFront distribution.
+
+    config (dict):
+        The configuration for the CloudFront distribution.
+
+    tags (dict, optional):
+        The tags to associate with the CloudFront distribution.
+
+    region (str, optional):
+        The AWS region where the CloudFront distribution is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 

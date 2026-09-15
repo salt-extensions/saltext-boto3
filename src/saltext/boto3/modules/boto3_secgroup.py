@@ -260,6 +260,30 @@ def exists(
     """
     Check to see if a security group exists.
 
+    name (str):
+        The name of the security group to check for existence.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
+
+    vpc_id (str, optional):
+        The ID of the VPC the security group belongs to.
+
+    vpc_name (str, optional):
+        The name of the VPC the security group belongs to.
+
+    group_id (str, optional):
+        The ID of the security group.
+
     CLI Example:
 
     .. code-block:: bash
@@ -321,6 +345,27 @@ def get_all_security_groups(
     Return a list of all Security Groups matching the given criteria and
     filters.
 
+    groupnames (list, optional):
+        A list of security group names to filter by.
+
+    group_ids (list, optional):
+        A list of security group IDs to filter by.
+
+    filters (dict, optional):
+        A dictionary of filters to apply when retrieving security groups.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
+
     CLI Example:
 
     .. code-block:: bash
@@ -368,6 +413,27 @@ def get_group_id(name, vpc_id=None, vpc_name=None, region=None, key=None, keyid=
     """
     Get a Group ID given a Group Name or Group Name and VPC ID
 
+    name (str):
+        The name of the security group to retrieve the ID for.
+
+    vpc_id (str, optional):
+        The ID of the VPC the security group belongs to.
+
+    vpc_name (str, optional):
+        The name of the VPC the security group belongs to.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
+
     CLI Example:
 
     .. code-block:: bash
@@ -399,6 +465,27 @@ def convert_to_group_ids(
     """
     Given a list of security groups and a vpc_id, convert all entries to
     security group ids.
+
+    groups (list):
+        A list of security group names to convert to security group IDs.
+
+    vpc_id (str, optional):
+        The ID of the VPC the security groups belong to.
+
+    vpc_name (str, optional):
+        The name of the VPC the security groups belong to.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -447,6 +534,30 @@ def get_config(
     """
     Get the configuration for a security group.
 
+    name (str, optional):
+        The name of the security group to retrieve the configuration for.
+
+    group_id (str, optional):
+        The ID of the security group to retrieve the configuration for.
+
+    vpc_id (str, optional):
+        The ID of the VPC the security group belongs to.
+
+    vpc_name (str, optional):
+        The name of the VPC the security group belongs to.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
+
     CLI Example:
 
     .. code-block:: bash
@@ -490,6 +601,30 @@ def create(
 ):
     """
     Create a security group.
+
+    name (str):
+        The name of the security group to create.
+
+    description (str):
+        The description of the security group.
+
+    vpc_id (str, optional):
+        The ID of the VPC the security group belongs to.
+
+    vpc_name (str, optional):
+        The name of the VPC the security group belongs to.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -539,6 +674,30 @@ def delete(
 ):
     """
     Delete a security group.
+
+    name (str, optional):
+        The name of the security group to delete.
+
+    group_id (str, optional):
+        The ID of the security group to delete.
+
+    vpc_id (str, optional):
+        The ID of the VPC the security group belongs to.
+
+    vpc_name (str, optional):
+        The name of the VPC the security group belongs to.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -668,6 +827,54 @@ def authorize(
     """
     Add a new rule to an existing security group.
 
+    name (str, optional):
+        The name of the security group to add the rule to.
+
+    source_group_name (str, optional):
+        The name of the source security group for the rule.
+
+    source_group_owner_id (str, optional):
+        The AWS account ID of the owner of the source security group.
+
+    ip_protocol (str, optional):
+        The IP protocol for the rule (e.g., "tcp", "udp", "icmp").
+
+    from_port (int, optional):
+        The starting port for the rule.
+
+    to_port (int, optional):
+        The ending port for the rule.
+
+    cidr_ip (str, optional):
+        The CIDR IP range for the rule.
+
+    group_id (str, optional):
+        The ID of the security group to add the rule to.
+
+    source_group_group_id (str, optional):
+        The ID of the source security group for the rule.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
+
+    vpc_id (str, optional):
+        The ID of the VPC the security group belongs to.
+
+    vpc_name (str, optional):
+        The name of the VPC the security group belongs to.
+
+    egress (bool, optional):
+        Whether the rule is an egress rule. Defaults to False.
+
     CLI Example:
 
     .. code-block:: bash
@@ -716,6 +923,54 @@ def revoke(
     """
     Remove a rule from an existing security group.
 
+    name (str, optional):
+        The name of the security group to remove the rule from.
+
+    source_group_name (str, optional):
+        The name of the source security group for the rule.
+
+    source_group_owner_id (str, optional):
+        The AWS account ID of the owner of the source security group.
+
+    ip_protocol (str, optional):
+        The IP protocol for the rule (e.g., "tcp", "udp", "icmp").
+
+    from_port (int, optional):
+        The starting port for the rule.
+
+    to_port (int, optional):
+        The ending port for the rule.
+
+    cidr_ip (str, optional):
+        The CIDR IP range for the rule.
+
+    group_id (str, optional):
+        The ID of the security group to remove the rule from.
+
+    source_group_group_id (str, optional):
+        The ID of the source security group for the rule.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
+
+    vpc_id (str, optional):
+        The ID of the VPC the security group belongs to.
+
+    vpc_name (str, optional):
+        The name of the VPC the security group belongs to.
+
+    egress (bool, optional):
+        Whether the rule is an egress rule. Defaults to False.
+
     CLI Example:
 
     .. code-block:: bash
@@ -756,6 +1011,33 @@ def set_tags(
 ):
     """
     Sets tags on a security group.
+
+    tags (dict):
+        A dictionary of tags to set on the security group.
+
+    name (str, optional):
+        The name of the security group to set tags on.
+
+    group_id (str, optional):
+        The ID of the security group to set tags on.
+
+    vpc_name (str, optional):
+        The name of the VPC the security group belongs to.
+
+    vpc_id (str, optional):
+        The ID of the VPC the security group belongs to.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -803,6 +1085,33 @@ def delete_tags(
 ):
     """
     Deletes tags from a security group.
+
+    tags (list):
+        A list of tag names to delete from the security group.
+
+    name (str, optional):
+        The name of the security group to delete tags from.
+
+    group_id (str, optional):
+        The ID of the security group to delete tags from.
+
+    vpc_name (str, optional):
+        The name of the VPC the security group belongs to.
+
+    vpc_id (str, optional):
+        The ID of the VPC the security group belongs to.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 

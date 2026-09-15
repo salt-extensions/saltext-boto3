@@ -103,6 +103,21 @@ def exists(name, region=None, key=None, keyid=None, profile=None):
     """
     Check to see if an ELB exists.
 
+    name (str):
+        The name of the load balancer to check for existence.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -125,6 +140,18 @@ def get_all_elbs(region=None, key=None, keyid=None, profile=None):
     """
     Return all load balancers associated with an account.
 
+    region (str, optional):
+        The AWS region where the load balancers are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -146,6 +173,18 @@ def get_all_elbs(region=None, key=None, keyid=None, profile=None):
 def list_elbs(region=None, key=None, keyid=None, profile=None):
     """
     Return names of all load balancers associated with an account.
+
+    region (str, optional):
+        The AWS region where the load balancers are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -174,6 +213,21 @@ def _tags_for_lb(conn, name):
 def get_elb_config(name, region=None, key=None, keyid=None, profile=None):
     """
     Get an ELB configuration.
+
+    name (str):
+        The name of the load balancer to get the configuration for.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -241,6 +295,19 @@ def listener_dict_to_tuple(listener):
     Convert an ELB listener dict into a listener tuple used by certain parts of
     the AWS ELB API.
 
+    listener (dict):
+        The listener dictionary to convert into a listener tuple.
+
+        Example:
+
+        .. code-block:: json
+
+            {
+              "elb_port": 80,
+              "instance_port": 80,
+              "elb_protocol": "HTTP"
+            }
+
     CLI Example:
 
     .. code-block:: bash
@@ -289,6 +356,36 @@ def create(
     """
     Create an ELB.
 
+    name (str):
+        The name of the load balancer to create.
+
+    availability_zones (list):
+        A list of availability zones for the load balancer.
+
+    listeners (list):
+        A list of listener dictionaries for the load balancer.
+
+    subnets (list, optional):
+        A list of subnets for the load balancer.
+
+    security_groups (list, optional):
+        A list of security groups for the load balancer.
+
+    scheme (str, optional):
+        The scheme for the load balancer. Defaults to "internet-facing".
+
+    region (str, optional):
+        The AWS region where the load balancer will be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -336,6 +433,21 @@ def delete(name, region=None, key=None, keyid=None, profile=None):
     """
     Delete an ELB.
 
+    name (str):
+        The name of the load balancer to delete.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -357,6 +469,24 @@ def delete(name, region=None, key=None, keyid=None, profile=None):
 def create_listeners(name, listeners, region=None, key=None, keyid=None, profile=None):
     """
     Create listeners on an ELB.
+
+    name (str):
+        The name of the load balancer to create listeners on.
+
+    listeners (list):
+        A list of listener dictionaries to create on the load balancer.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -386,6 +516,24 @@ def delete_listeners(name, ports, region=None, key=None, keyid=None, profile=Non
     """
     Delete listeners on an ELB.
 
+    name (str):
+        The name of the load balancer to delete listeners from.
+
+    ports (list):
+        A list of ports corresponding to the listeners to delete.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -411,7 +559,25 @@ def delete_listeners(name, ports, region=None, key=None, keyid=None, profile=Non
 
 def apply_security_groups(name, security_groups, region=None, key=None, keyid=None, profile=None):
     """
-    Apply security groups to ELB.
+    Apply security groups to an ELB.
+
+    name (str):
+        The name of the load balancer to apply security groups to.
+
+    security_groups (list):
+        A list of security groups to apply to the load balancer.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -439,6 +605,24 @@ def enable_availability_zones(
     """
     Enable availability zones for ELB.
 
+    name (str):
+        The name of the load balancer to enable availability zones for.
+
+    availability_zones (list):
+        A list of availability zones to enable for the load balancer.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -463,7 +647,25 @@ def disable_availability_zones(
     name, availability_zones, region=None, key=None, keyid=None, profile=None
 ):
     """
-    Disable availability zones for ELB.
+    Disable availability zones for an ELB.
+
+    name (str):
+        The name of the load balancer to disable availability zones for.
+
+    availability_zones (list):
+        A list of availability zones to disable for the load balancer.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -492,7 +694,25 @@ def disable_availability_zones(
 
 def attach_subnets(name, subnets, region=None, key=None, keyid=None, profile=None):
     """
-    Attach ELB to subnets.
+    Attach an ELB to subnets.
+
+    name (str):
+        The name of the load balancer to attach to subnets.
+
+    subnets (list):
+        A list of subnets to attach the load balancer to.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -519,7 +739,25 @@ def attach_subnets(name, subnets, region=None, key=None, keyid=None, profile=Non
 
 def detach_subnets(name, subnets, region=None, key=None, keyid=None, profile=None):
     """
-    Detach ELB from subnets.
+    Detach an ELB from subnets.
+
+    name (str):
+        The name of the load balancer to detach from subnets.
+
+    subnets (list):
+        A list of subnets to detach the load balancer from.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -547,6 +785,21 @@ def detach_subnets(name, subnets, region=None, key=None, keyid=None, profile=Non
 def get_attributes(name, region=None, key=None, keyid=None, profile=None):
     """
     Check to see if attributes are set on an ELB.
+
+    name (str):
+        The name of the load balancer to check attributes for.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -584,6 +837,24 @@ def get_attributes(name, region=None, key=None, keyid=None, profile=None):
 def set_attributes(name, attributes, region=None, key=None, keyid=None, profile=None):
     """
     Set attributes on an ELB.
+
+    name (str):
+        The name of the load balancer to set attributes for.
+
+    attributes (dict):
+        A dictionary of attributes to set on the load balancer.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -636,6 +907,21 @@ def get_health_check(name, region=None, key=None, keyid=None, profile=None):
     """
     Get the health check configured for this ELB.
 
+    name (str):
+        The name of the load balancer to get the health check for.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -664,6 +950,24 @@ def get_health_check(name, region=None, key=None, keyid=None, profile=None):
 def set_health_check(name, health_check, region=None, key=None, keyid=None, profile=None):
     """
     Set a health check on an ELB.
+
+    name (str):
+        The name of the load balancer to set the health check for.
+
+    health_check (dict):
+        A dictionary representing the health check configuration.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -695,6 +999,24 @@ def set_health_check(name, health_check, region=None, key=None, keyid=None, prof
 def register_instances(name, instances, region=None, key=None, keyid=None, profile=None):
     """
     Register instances with an ELB.
+
+    name (str):
+        The name of the load balancer to register instances with.
+
+    instances (list):
+        A list of instance IDs to register with the load balancer.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -729,6 +1051,24 @@ def register_instances(name, instances, region=None, key=None, keyid=None, profi
 def deregister_instances(name, instances, region=None, key=None, keyid=None, profile=None):
     """
     Deregister instances with an ELB.
+
+    name (str):
+        The name of the load balancer to deregister instances from.
+
+    instances (list):
+        A list of instance IDs to deregister from the load balancer.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -772,6 +1112,27 @@ def set_instances(name, instances, test=False, region=None, key=None, keyid=None
     """
     Set the instances assigned to an ELB to exactly the list given.
 
+    name (str):
+        The name of the load balancer to set instances for.
+
+    instances (list):
+        A list of instance IDs to assign to the load balancer.
+
+    test (bool, optional):
+        If True, only test what changes would be made without actually making them.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -797,6 +1158,24 @@ def set_instances(name, instances, test=False, region=None, key=None, keyid=None
 def get_instance_health(name, region=None, key=None, keyid=None, profile=None, instances=None):
     """
     Get a list of instances and their health state.
+
+    name (str):
+        The name of the load balancer to get the health state for.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    instances (list, optional):
+        A list of instance IDs to get the health state for. If not provided, all instances are returned.
 
     CLI Example:
 
@@ -839,6 +1218,30 @@ def create_policy(
     """
     Create an ELB policy.
 
+    name (str):
+        The name of the load balancer to create the policy for.
+
+    policy_name (str):
+        The name of the policy to create.
+
+    policy_type (str):
+        The type of the policy to create.
+
+    policy (dict):
+        A dictionary representing the policy attributes.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -876,6 +1279,24 @@ def delete_policy(name, policy_name, region=None, key=None, keyid=None, profile=
     """
     Delete an ELB policy.
 
+    name (str):
+        The name of the load balancer to delete the policy from.
+
+    policy_name (str):
+        The name of the policy to delete.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -903,6 +1324,27 @@ def delete_policy(name, policy_name, region=None, key=None, keyid=None, profile=
 def set_listener_policy(name, port, policies=None, region=None, key=None, keyid=None, profile=None):
     """
     Set the policies of an ELB listener.
+
+    name (str):
+        The name of the load balancer to set the listener policies for.
+
+    port (int):
+        The port of the listener to set the policies for.
+
+    policies (list, optional):
+        A list of policy names to set on the listener.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -939,6 +1381,27 @@ def set_backend_policy(name, port, policies=None, region=None, key=None, keyid=N
     """
     Set the policies of an ELB backend server.
 
+    name (str):
+        The name of the load balancer to set the backend server policies for.
+
+    port (int):
+        The port of the backend server to set the policies for.
+
+    policies (list, optional):
+        A list of policy names to set on the backend server.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -974,6 +1437,24 @@ def set_tags(name, tags, region=None, key=None, keyid=None, profile=None):
     """
     Add tags on an ELB.
 
+    name (str):
+        The name of the load balancer to add tags to.
+
+    tags (dict):
+        A dictionary of tags to add to the load balancer.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1000,6 +1481,24 @@ def set_tags(name, tags, region=None, key=None, keyid=None, profile=None):
 def delete_tags(name, tags, region=None, key=None, keyid=None, profile=None):
     """
     Delete tags on an ELB.
+
+    name (str):
+        The name of the load balancer to delete tags from.
+
+    tags (list):
+        A list of tag keys to delete from the load balancer.
+
+    region (str, optional):
+        The AWS region where the load balancer is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 

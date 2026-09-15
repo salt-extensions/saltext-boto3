@@ -301,13 +301,13 @@ def present(
     """
     Ensure the ELB exists.
 
-    name
+    name (String)
         Name of the ELB.
 
-    availability_zones
+    availability_zones (List)
         A list of availability zones for this ELB.
 
-    listeners
+    listeners (List)
         A list of listener lists; example::
 
             [
@@ -315,13 +315,13 @@ def present(
                 ['8443', '80', 'HTTPS', 'HTTP', 'arn:aws:iam::1111111:server-certificate/mycert']
             ]
 
-    subnets
+    subnets (List)
         A list of subnet IDs in your VPC to attach to your LoadBalancer.
 
-    subnet_names
+    subnet_names (List)
         A list of subnet names in your VPC to attach to your LoadBalancer.
 
-    security_groups
+    security_groups (List)
         The security groups assigned to your LoadBalancer within your VPC. Must
         be passed either as a list or a comma-separated string.
 
@@ -339,25 +339,25 @@ def present(
 
             - security_groups: secgroup-one,secgroup-two
 
-    scheme
+    scheme (String)
         The type of a LoadBalancer, ``internet-facing`` or ``internal``. Once
         set, can not be modified.
 
-    health_check
+    health_check (Dict)
         A dict defining the health check for this ELB.
 
-    attributes
+    attributes (Dict)
         A dict defining the attributes to set on this ELB.
         Unknown keys will be silently ignored.
 
         See the :mod:`salt.modules.boto3_elb.set_attributes` function for
         recognized attributes.
 
-    attributes_from_pillar
+    attributes_from_pillar (String)
         name of pillar dict that contains attributes.   Attributes defined for this specific
         state will override those from pillar.
 
-    cnames
+    cnames (List)
         A list of cname dicts with attributes needed for the DNS add_record state.
         By default the boto_route53.add_record state will be used, which requires: name, zone, ttl, and identifier.
         See the boto_route53 state for information about these attributes.
@@ -367,7 +367,7 @@ def present(
         See the :mod:`salt.states.boto_route53` state for information about
         these attributes.
 
-    alarms:
+    alarms (Dict):
         a dictionary of name->boto_cloudwatch_alarm sections to be associated with this ELB.
         All attributes should be specified except for dimension which will be
         automatically set to this ELB.
@@ -375,36 +375,65 @@ def present(
         See the :mod:`salt.states.boto_cloudwatch_alarm` state for information
         about these attributes.
 
-    alarms_from_pillar:
-        name of pillar dict that contains alarm settings.   Alarms defined for this specific
+    alarms_from_pillar (String):
+        name of pillar dict that contains alarm settings. Alarms defined for this specific
         state will override those from pillar.
 
-    region
+    region (String)
         Region to connect to.
 
-    key
+    key (String)
         Secret key to be used.
 
-    keyid
+    keyid (String)
         Access key to be used.
 
-    profile
+    profile (String)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
-    wait_for_sync
+    wait_for_sync (Boolean)
         Wait for an INSYNC change status from Route53.
 
-    tags
+    tags (Dict)
         dict of tags
 
-    instance_ids
+    instance_ids (List)
         list of instance ids.  The state will ensure that these, and ONLY these, instances
         are registered with the ELB.  This is additive with instance_names.
 
-    instance_names
+    instance_names (List)
         list of instance names.  The state will ensure that these, and ONLY these, instances
         are registered with the ELB.  This is additive with instance_ids.
+
+    Example:
+
+    .. code-block:: yaml
+
+        my_elb:
+          boto3_elb.present:
+            - availability_zones:
+              - us-east-1a
+            - listeners:
+              - protocol: HTTP
+                load_balancer_port: 80
+                instance_protocol: HTTP
+                instance_port: 80
+            - subnets:
+              - subnet-123456
+            - security_groups:
+              - sg-123456
+            - scheme: internet-facing
+            - health_check:
+              target: HTTP:80/
+              interval: 30
+              timeout: 5
+              unhealthy_threshold: 2
+              healthy_threshold: 2
+            - attributes:
+              cross_zone_load_balancing: true
+            - tags:
+              Environment: production
     """
 
     # load data from attributes_from_pillar and merge with attributes
@@ -574,15 +603,28 @@ def register_instances(name, instances, region=None, key=None, keyid=None, profi
     Add EC2 instance(s) to an Elastic Load Balancer. Removing an instance from
     the ``instances`` list does not remove it from the ELB.
 
-    name
+    name (string)
         The name of the Elastic Load Balancer to add EC2 instances to.
 
-    instances
+    instances (list)
         A list of EC2 instance IDs that this Elastic Load Balancer should
         distribute traffic to. This state will only ever append new instances
         to the ELB. EC2 instances already associated with this ELB will not be
         removed if they are not in the ``instances`` list.
 
+    region (string)
+        The AWS region where the Elastic Load Balancer is located.
+
+    key (string)
+        The AWS access key to use.
+
+    keyid (string)
+        The AWS secret key to use.
+
+    profile (string)
+        The AWS profile to use.
+
+    Example:
 
     .. code-block:: yaml
 
@@ -1395,8 +1437,20 @@ def absent(name, region=None, key=None, keyid=None, profile=None):
     """
     Ensure an ELB does not exist
 
-    name
-        name of the ELB
+    name (string)
+        name of the ELB.
+
+    region (string)
+        The AWS region where the Elastic Load Balancer is located.
+
+    key (string)
+        The AWS access key to use.
+
+    keyid (string)
+        The AWS secret key to use.
+
+    profile (string)
+        The AWS profile to use.
 
     Example:
 
@@ -1405,7 +1459,6 @@ def absent(name, region=None, key=None, keyid=None, profile=None):
         ensure-absent:
           boto3_elb.absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 

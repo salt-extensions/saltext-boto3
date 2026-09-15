@@ -98,47 +98,66 @@ def create_target_group(
 
     Create target group if not present.
 
-    name
-        (string) - The name of the target group.
-    protocol
-        (string) - The protocol to use for routing traffic to the targets
-    port
-        (int) - The port on which the targets receive traffic. This port is used unless
+    name (string)
+        The name of the target group.
+
+    protocol (string)
+        The protocol to use for routing traffic to the targets
+
+    port (int)
+        The port on which the targets receive traffic. This port is used unless
         you specify a port override when registering the traffic.
-    vpc_id
-        (string) - The identifier of the virtual private cloud (VPC).
-    health_check_protocol
-        (string) - The protocol the load balancer uses when performing health check on
+
+    vpc_id (string)
+        The identifier of the virtual private cloud (VPC).
+
+            region (string)
+        The AWS region where the target group will be created. If not specified, the default region will be used.
+
+    key (string)
+        The AWS access key ID. If not specified, the default key will be used.
+
+    keyid (string)
+        The AWS secret access key. If not specified, the default key will be used.
+
+    profile (string)
+        The AWS profile to use. If not specified, the default profile will be used.
+
+    health_check_protocol (string)
+        The protocol the load balancer uses when performing health check on
         targets. The default is the HTTP protocol.
-    health_check_port
-        (string) - The port the load balancer uses when performing health checks on
+
+    health_check_port (string)
+        The port the load balancer uses when performing health checks on
         targets. The default is 'traffic-port', which indicates the port on which each
         target receives traffic from the load balancer.
-    health_check_path
-        (string) - The ping path that is the destination on the targets for health
+
+    health_check_path (string)
+        The ping path that is the destination on the targets for health
         checks. The default is /.
-    health_check_interval_seconds
-        (integer) - The approximate amount of time, in seconds, between health checks
+
+    health_check_interval_seconds (integer)
+        The approximate amount of time, in seconds, between health checks
         of an individual target. The default is 30 seconds.
-    health_check_timeout_seconds
-        (integer) - The amount of time, in seconds, during which no response from a
+
+    health_check_timeout_seconds (integer)
+        The amount of time, in seconds, during which no response from a
         target means a failed health check. The default is 5 seconds.
-    healthy_threshold_count
-        (integer) - The number of consecutive health checks successes required before
+
+    healthy_threshold_count (integer)
+        The number of consecutive health checks successes required before
         considering an unhealthy target healthy. The default is 5.
-    unhealthy_threshold_count
-        (integer) - The number of consecutive health check failures required before
+
+    unhealthy_threshold_count (integer)
+        The number of consecutive health check failures required before
         considering a target unhealthy. The default is 2.
 
-    returns
-        (bool) - True on success, False on failure.
-
-    CLI Example:
+    Example:
 
     .. code-block:: yaml
 
         create-target:
-          boto3_elb2.create_targets_group:
+          boto3_elbv2.create_target_group:
             - name: myALB
             - protocol: https
             - port: 443
@@ -188,22 +207,20 @@ def delete_target_group(name, region=None, key=None, keyid=None, profile=None):
     """
     Delete target group.
 
-    name
-        (string) - The Amazon Resource Name (ARN) of the resource.
+    name (string)
+        The Amazon Resource Name (ARN) of the resource.
 
-    returns
-        (bool) - True on success, False on failure.
+    region (string)
+        The AWS region where the target group is located. If not specified, the default region will be used.
 
-    CLI Example:
+    key (string)
+        The AWS access key ID. If not specified, the default key will be used.
 
-    .. code-block:: bash
+    keyid (string)
+        The AWS secret access key. If not specified, the default key will be used.
 
-        check-target:
-          boto3_elb2.delete_targets_group:
-            - name: myALB
-            - protocol: https
-            - port: 443
-            - vpc_id: myVPC
+    profile (string)
+        The AWS profile to use. If not specified, the default profile will be used.
 
     Example:
 
@@ -244,12 +261,29 @@ def targets_registered(name, targets, region=None, key=None, keyid=None, profile
 
     Add targets to an Application Load Balancer target group. This state will not remove targets.
 
-    name
+    name (string)
         The ARN of the Application Load Balancer Target Group to add targets to.
 
-    targets
+    targets (list|string)
         A list of target IDs or a string of a single target that this target group should
         distribute traffic to.
+
+    region (string)
+        The AWS region where the target group is located. If not specified, the default region will be used.
+
+    key (string)
+        The AWS access key ID. If not specified, the default key will be used.
+
+    keyid (string)
+        The AWS secret access key. If not specified, the default key will be used.
+
+    profile (string)
+        The AWS profile to use. If not specified, the default profile will be used.
+
+    **kwargs
+        Additional keyword arguments to pass to the underlying boto3 call.
+
+    Example:
 
     .. code-block:: yaml
 
@@ -321,14 +355,30 @@ def targets_registered(name, targets, region=None, key=None, keyid=None, profile
 
 def targets_deregistered(name, targets, region=None, key=None, keyid=None, profile=None, **_kwargs):
     """
-    Remove targets to an Application Load Balancer target group.
+    Remove targets from an Application Load Balancer target group.
 
-    name
+    name (string)
         The ARN of the Application Load Balancer Target Group to remove targets from.
 
-    targets
+    targets (list|string)
         A list of target IDs or a string of a single target registered to the target group to be removed
 
+    region (string)
+        The AWS region where the target group is located. If not specified, the default region will be used.
+
+    key (string)
+        The AWS access key ID. If not specified, the default key will be used.
+
+    keyid (string)
+        The AWS secret access key. If not specified, the default key will be used.
+
+    profile (string)
+        The AWS profile to use. If not specified, the default profile will be used.
+
+    **kwargs
+        Additional keyword arguments to pass to the underlying boto3 call.
+
+    Example:
 
     .. code-block:: yaml
 

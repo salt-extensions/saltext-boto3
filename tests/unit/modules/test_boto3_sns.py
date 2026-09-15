@@ -116,6 +116,24 @@ def test_describe_topic_found(conn):
     }
 
 
+def test_describe_topic_skips_invalid_subscription_arns(conn):
+    arn = "arn:aws:sns:us-east-1:123:alpha"
+    conn.list_topics.return_value = {"Topics": [{"TopicArn": arn}]}
+    conn.list_subscriptions_by_topic.return_value = {
+        "Subscriptions": [
+            {"SubscriptionArn": "PendingAcceptance"},
+            {"SubscriptionArn": "arn:aws:sns:us-east-1:123:alpha:sub"},
+        ]
+    }
+    conn.get_topic_attributes.return_value = {"Attributes": {"DisplayName": "A"}}
+
+    assert boto3_sns.describe_topic("alpha") == {
+        "TopicArn": arn,
+        "Subscriptions": [{"SubscriptionArn": "arn:aws:sns:us-east-1:123:alpha:sub"}],
+        "Attributes": {"DisplayName": "A"},
+    }
+
+
 @pytest.mark.usefixtures("empty_topics")
 def test_describe_topic_missing():
     assert not boto3_sns.describe_topic("nope")

@@ -124,45 +124,47 @@ def object_present(
     """
     Ensure object exists in S3.
 
-    name
+    name (str)
         The name of the state definition.
         This will be used to determine the location of the object in S3,
         by splitting on the first slash and using the first part
         as the bucket name and the remainder as the S3 key.
 
-    source
+    source (str)
         The source file to upload to S3,
         currently this only supports files hosted on the minion's local
         file system (starting with /).
 
-    hash_type
+    hash_type (str)
         Hash algorithm to use to check that the object contents are correct.
         Defaults to the value of the `hash_type` config option.
 
-    extra_args
+    extra_args (dict)
         A dictionary of extra arguments to use when uploading the file.
-        Note that these are only enforced if new objects are uploaded,
-        and not modified on existing objects.
-        The supported args are those in the ALLOWED_UPLOAD_ARGS list at
-        http://boto3.readthedocs.io/en/latest/reference/customizations/s3.html.
-        However, Note that the 'ACL', 'GrantFullControl', 'GrantRead',
-        'GrantReadACP',  and 'GrantWriteACL' keys are currently not supported.
 
-    extra_args_from_pillar
+        .. note::
+            These are only enforced if new objects are uploaded,
+            and not modified on existing objects.
+            The supported args are those in the ALLOWED_UPLOAD_ARGS list at
+            http://boto3.readthedocs.io/en/latest/reference/customizations/s3.html.
+            However, Note that the 'ACL', 'GrantFullControl', 'GrantRead',
+            'GrantReadACP',  and 'GrantWriteACL' keys are currently not supported.
+
+    extra_args_from_pillar (str)
         Name of pillar dict that contains extra arguments.
         Extra arguments defined for this specific state will be
         merged over those from the pillar.
 
-    region
+    region (str)
         Region to connect to.
 
-    key
+    key (str)
         Secret key to be used.
 
-    keyid
+    keyid (str)
         Access key to be used.
 
-    profile
+    profile (dict)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -173,7 +175,9 @@ def object_present(
         ensure-object-present:
           boto3_s3.object_present:
             - name: example
-
+            - source: /path/to/local/file
+            - extra_args:
+                ACL: private
     """
     ret = {
         "name": name,

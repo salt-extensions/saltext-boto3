@@ -127,6 +127,21 @@ def get_alarm(Name, region=None, key=None, keyid=None, profile=None):
     """
     Get alarm details. Also can be used to check to see if an alarm exists.
 
+    Name (str):
+        The name of the CloudWatch alarm to retrieve.
+
+    region (str, optional):
+        The AWS region where the CloudWatch alarm is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -149,6 +164,21 @@ def get_alarm(Name, region=None, key=None, keyid=None, profile=None):
 def get_all_alarms(prefix=None, region=None, key=None, keyid=None, profile=None):
     """
     Get all alarm details.  Produces results that can be used to create an sls file.
+
+    prefix (str, optional):
+        A prefix to prepend to alarm names in the output. Alarms that already have this prefix will be skipped.
+
+    region (str, optional):
+        The AWS region where the CloudWatch alarms are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     If prefix parameter is given, alarm names in the output will be prepended
     with the prefix; alarms that have the prefix will be skipped.
@@ -211,6 +241,60 @@ def create_or_update_alarm(
     Each entry may either be an ARN, or the convenience notation
     ``scaling_policy:<as_name>:<scaling_policy_name>`` referencing an ASG
     scaling policy.
+
+    Name (str):
+        The name of the CloudWatch alarm to create or update.
+
+    MetricName (str, optional):
+        The name of the metric associated with the alarm.
+
+    Namespace (str, optional):
+        The namespace of the metric associated with the alarm.
+
+    Statistic (str, optional):
+        The statistic to apply to the metric associated with the alarm.
+
+    ComparisonOperator (str, optional):
+        The arithmetic operation to use when comparing the specified statistic and threshold.
+
+    Threshold (float, optional):
+        The value against which the specified statistic is compared.
+
+    Period (int, optional):
+        The period, in seconds, over which the specified statistic is applied.
+
+    EvaluationPeriods (int, optional):
+        The number of periods over which data is compared to the specified threshold.
+
+    Unit (str, optional):
+        The unit of the metric associated with the alarm.
+
+    AlarmDescription (str, optional):
+        The description of the alarm.
+
+    Dimensions (list, optional):
+        The dimensions for the metric associated with the alarm.
+
+    AlarmActions (list, optional):
+        The actions to execute when the alarm state is triggered.
+
+    InsufficientDataActions (list, optional):
+        The actions to execute when the alarm state is insufficient data.
+
+    OKActions (list, optional):
+        The actions to execute when the alarm state is OK.
+
+    region (str, optional):
+        The AWS region where the CloudWatch alarm is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -287,6 +371,21 @@ def convert_to_arn(arns, region=None, key=None, keyid=None, profile=None):
     Convert a list of strings into actual arns. Converts convenience names such
     as ``scaling_policy:<as_name>:<scaling_policy_name>``.
 
+    arns (list):
+        A list of strings representing ARNs or convenience names to be converted to ARNs.
+
+    region (str, optional):
+        The AWS region where the ARNs are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -312,6 +411,21 @@ def convert_to_arn(arns, region=None, key=None, keyid=None, profile=None):
 def delete_alarm(Name, region=None, key=None, keyid=None, profile=None):
     """
     Delete a cloudwatch alarm.
+
+    Name (str):
+        The name of the CloudWatch alarm to delete.
+
+    region (str, optional):
+        The AWS region where the CloudWatch alarm is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 

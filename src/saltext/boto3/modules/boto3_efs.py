@@ -102,19 +102,34 @@ def create_file_system(
     """
     Creates a new, empty file system.
 
-    name
+    name (str):
         (string) - The name for the new file system
 
-    performance_mode
+    performance_mode (str):
         (string) - The PerformanceMode of the file system. Can be either
         generalPurpose or maxIO
 
-    creation_token
+    creation_token (str):
         (string) - A unique name to be used as reference when creating an EFS.
         This will ensure idempotency. Set to name if not specified otherwise
 
-    returns
-        (dict) - A dict of the data for the elastic file system
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    region (str, optional):
+        The AWS region where the EFS file system is to be created.
+
+    creation_token (str, optional):
+        The creation token for the EFS file system. If not specified, it will default to the name.
+
+    **kwargs (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 
@@ -163,21 +178,32 @@ def create_mount_target(
     """
     Creates a mount target for a file system.
 
-    filesystemid
-        (string) - ID of the file system for which to create the mount target.
+    filesystemid (str):
+        ID of the file system for which to create the mount target.
 
-    subnetid
-        (string) - ID of the subnet to add the mount target in.
+    subnetid (str):
+        ID of the subnet to add the mount target in.
 
-    ipaddress
-        (string) - Valid IPv4 address within the address range
-                    of the specified subnet.
+    ipaddress (str, optional):
+        Valid IPv4 address within the address range of the specified subnet.
 
-    securitygroups
-        (list[string]) - Up to five VPC security group IDs.
+    securitygroups (list[str], optional):
+        Up to five VPC security group IDs.
 
-    returns
-        (dict) - A dict of the response data
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    region (str, optional):
+        The AWS region where the EFS file system is located.
+
+    **kwargs (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 
@@ -206,11 +232,26 @@ def create_tags(
     """
     Creates or overwrites tags associated with a file system.
 
-    filesystemid
-        (string) - ID of the file system for whose tags will be modified.
+    filesystemid (str):
+        ID of the file system for whose tags will be modified.
 
-    tags
-        (dict) - The tags to add to the file system
+    tags (dict):
+        The tags to add to the file system
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    region (str, optional):
+        The AWS region where the EFS file system is located.
+
+    **kwargs (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 
@@ -236,8 +277,23 @@ def delete_file_system(
     """
     Deletes a file system, permanently severing access to its contents.
 
-    filesystemid
-        (string) - ID of the file system to delete.
+    filesystemid (str):
+        ID of the file system to delete.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    region (str, optional):
+        The AWS region where the EFS file system is located.
+
+    **kwargs (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 
@@ -261,8 +317,23 @@ def delete_mount_target(
     """
     Deletes the specified mount target.
 
-    mounttargetid
-        (string) - ID of the mount target to delete
+    mounttargetid (str):
+        ID of the mount target to delete.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    region (str, optional):
+        The AWS region where the EFS mount target is located.
+
+    **kwargs (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 
@@ -286,11 +357,26 @@ def delete_tags(
     """
     Deletes the specified tags from a file system.
 
-    filesystemid
-        (string) - ID of the file system for whose tags will be removed.
+    filesystemid (str):
+        ID of the file system for whose tags will be removed.
 
-    tags
-        (list[string]) - The tag keys to delete from the file system
+    tags (list[str]):
+        The tag keys to delete from the file system.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    region (str, optional):
+        The AWS region where the EFS file system is located.
+
+    **kwargs (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 
@@ -321,14 +407,26 @@ def get_file_systems(
     Get all EFS properties or a specific instance property
     if filesystemid is specified.
 
-    filesystemid
-        (string) - ID of the file system to retrieve properties
+    filesystemid (str, optional):
+        ID of the file system to retrieve properties.
 
-    creation_token
-        (string) - A unique token that identifies an EFS.
+    creation_token (str, optional):
+        A unique token that identifies an EFS.
 
-    returns
-        (list[dict]) - list of all elastic file system properties
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    region (str, optional):
+        The AWS region where the EFS file system is located.
+
+    **kwargs (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 
@@ -375,14 +473,26 @@ def get_mount_targets(
     Get all the EFS mount point properties for a specific filesystemid or
     the properties for a specific mounttargetid.
 
-    filesystemid
-        (string) - ID of the file system whose mount targets to list.
+    filesystemid (str, optional):
+        ID of the file system whose mount targets to list.
 
-    mounttargetid
-        (string) - ID of the mount target to have its properties returned.
+    mounttargetid (str, optional):
+        ID of the mount target to have its properties returned.
 
-    returns
-        (list[dict]) - list of all mount point properties
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    region (str, optional):
+        The AWS region where the EFS file system is located.
+
+    **kwargs (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 
@@ -418,11 +528,23 @@ def get_tags(
     """
     Return the tags associated with an EFS instance.
 
-    filesystemid
-        (string) - ID of the file system whose tags to list
+    filesystemid (str):
+        ID of the file system whose tags to list.
 
-    returns
-        (list) - list of tags as key/value pairs
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    region (str, optional):
+        The AWS region where the EFS file system is located.
+
+    **kwargs (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 
@@ -459,11 +581,26 @@ def set_security_groups(
     """
     Modifies the set of security groups in effect for a mount target.
 
-    mounttargetid
-        (string) - ID of the mount target whose security groups will be modified
+    mounttargetid (str):
+        ID of the mount target whose security groups will be modified
 
-    securitygroups
-        (list[string]) - list of no more than 5 VPC security group IDs.
+    securitygroup (list[str]):
+        List of no more than 5 VPC security group IDs.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    region (str, optional):
+        The AWS region where the EFS file system is located.
+
+    **kwargs (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 

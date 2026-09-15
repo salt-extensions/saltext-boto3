@@ -126,6 +126,24 @@ def describe_identity_pools(
     case the given name will be ignored), return the matching identity pool
     properties.
 
+    IdentityPoolName (str):
+        The name of the identity pool to describe.
+
+    IdentityPoolId (str, optional):
+        The ID of the identity pool to describe. If provided, ``IdentityPoolName`` will be ignored.
+
+    region (str, optional):
+        The AWS region where the identity pool is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -167,6 +185,33 @@ def create_identity_pool(
 
     CLI Example:
 
+    IdentityPoolName (str):
+        The name of the identity pool to create.
+
+    AllowUnauthenticatedIdentities (bool, optional):
+        Whether to allow unauthenticated identities. Defaults to False.
+
+    SupportedLoginProviders (dict, optional):
+        A dictionary mapping provider names to provider app IDs.
+
+    DeveloperProviderName (str, optional):
+        The developer provider name.
+
+    OpenIdConnectProviderARNs (list, optional):
+        A list of OpenID Connect provider ARNs.
+
+    region (str, optional):
+        The AWS region where the identity pool is to be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     .. code-block:: bash
 
         salt myminion boto3_cognitoidentity.create_identity_pool my_id_pool_name \\
@@ -205,6 +250,24 @@ def delete_identity_pools(
     Given an identity pool name (or optionally an identity pool id, in which
     case the given name will be ignored), delete all matching identity pools.
 
+    IdentityPoolName (str):
+        The name of the identity pool to delete.
+
+    IdentityPoolId (str, optional):
+        The ID of the identity pool to delete. If provided, ``IdentityPoolName`` will be ignored.
+
+    region (str, optional):
+        The AWS region where the identity pool is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -237,6 +300,24 @@ def get_identity_pool_roles(
     """
     Given an identity pool name (or optionally an identity pool id, in which
     case the given name will be ignored), return a list of associated roles.
+
+    IdentityPoolName (str):
+        The name of the identity pool to retrieve roles for.
+
+    IdentityPoolId (str, optional):
+        The ID of the identity pool to retrieve roles for. If provided, ``IdentityPoolName`` will be ignored.
+
+    region (str, optional):
+        The AWS region where the identity pool is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -284,6 +365,27 @@ def set_identity_pool_roles(
     Given an identity pool id, set the given ``AuthenticatedRole`` and
     ``UnauthenticatedRole`` (each can be an iam arn or a role name). If either
     role is not given, the previously associated role is cleared.
+
+    IdentityPoolId (str):
+        The ID of the identity pool to set roles for.
+
+    AuthenticatedRole (str, optional):
+        The ARN or name of the authenticated role to associate with the identity pool.
+
+    UnauthenticatedRole (str, optional):
+        The ARN or name of the unauthenticated role to associate with the identity pool.
+
+    region (str, optional):
+        The AWS region where the identity pool is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -351,6 +453,36 @@ def update_identity_pool(
     To clear ``OpenIdConnectProviderARNs`` pass ``[]``.
 
     ``DeveloperProviderName`` cannot be updated after it has been set.
+
+    IdentityPoolId (str):
+        The ID of the identity pool to update.
+
+    IdentityPoolName (str, optional):
+        The new name for the identity pool.
+
+    AllowUnauthenticatedIdentities (bool, optional):
+        Whether to allow unauthenticated identities.
+
+    SupportedLoginProviders (dict, optional):
+        A dictionary mapping provider names to provider app IDs.
+
+    DeveloperProviderName (str, optional):
+        The developer provider name.
+
+    OpenIdConnectProviderARNs (list, optional):
+        A list of OpenID Connect provider ARNs.
+
+    region (str, optional):
+        The AWS region where the identity pool is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 

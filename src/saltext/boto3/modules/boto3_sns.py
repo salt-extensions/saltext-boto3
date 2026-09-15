@@ -83,6 +83,15 @@ def get_arn(name, region=None, profile=None):
     option, falling back to ``us-east-1``) and the AWS account ID obtained
     from :py:func:`boto3_iam.get_account_id`.
 
+    name (str):
+        The name of the SNS topic. Can be either the short name or the full ARN.
+
+    region (str, optional):
+        The AWS region to use when constructing the ARN if ``name`` is not already an ARN.
+
+    profile (str, optional):
+        The AWS profile to use when constructing the ARN if ``name`` is not already an ARN.
+
     CLI Example:
 
     .. code-block:: bash
@@ -118,6 +127,18 @@ def list_topics(region=None, key=None, keyid=None, profile=None):
     """
     Returns a list of the requester's topics
 
+    region (str, optional):
+        The AWS region to use when listing topics. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when listing topics.
+
+    keyid (str, optional):
+        The AWS secret key to use when listing topics.
+
+    profile (str, optional):
+        The AWS profile to use when listing topics.
+
     CLI Example:
 
     .. code-block:: bash
@@ -145,6 +166,21 @@ def describe_topic(name, region=None, key=None, keyid=None, profile=None):
     """
     Returns details about a specific SNS topic, specified by name or ARN.
 
+    name (str):
+        The name or ARN of the SNS topic to describe.
+
+    region (str, optional):
+        The AWS region to use when describing the topic. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when describing the topic.
+
+    keyid (str, optional):
+        The AWS secret key to use when describing the topic.
+
+    profile (str, optional):
+        The AWS profile to use when describing the topic.
+
     CLI Example:
 
     .. code-block:: bash
@@ -156,28 +192,54 @@ def describe_topic(name, region=None, key=None, keyid=None, profile=None):
         return {}
     ret = {}
     for topic, arn in topics.items():
-        if name in (topic, arn):
-            ret = {"TopicArn": arn}
-            ret["Subscriptions"] = list_subscriptions_by_topic(
+        if name not in (topic, arn):
+            continue
+
+        subscriptions = list_subscriptions_by_topic(
+            arn, region=region, key=key, keyid=keyid, profile=profile
+        )
+        if isinstance(subscriptions, dict):
+            subscriptions = subscriptions.get("Subscriptions", [])
+
+        valid_subscriptions = []
+        for sub in subscriptions or []:
+            sub_arn = sub.get("SubscriptionArn")
+            if not sub_arn or not sub_arn.startswith("arn:aws:sns:"):
+                # Sometimes a subscription is in PendingAccept or other
+                # transitional states and does not yet have a valid ARN.
+                log.debug("Subscription with invalid ARN %s skipped...", sub_arn)
+                continue
+            valid_subscriptions.append(sub)
+
+        ret = {
+            "TopicArn": arn,
+            "Subscriptions": valid_subscriptions,
+            "Attributes": get_topic_attributes(
                 arn, region=region, key=key, keyid=keyid, profile=profile
-            )
-            ret["Attributes"] = get_topic_attributes(
-                arn, region=region, key=key, keyid=keyid, profile=profile
-            )
-            # Grab extended attributes for the above subscriptions
-            for sub in ret["Subscriptions"]:
-                sub_arn = sub["SubscriptionArn"]
-                if not sub_arn.startswith("arn:aws:sns:"):
-                    # Sometimes a sub is in e.g. PendingAccept or other
-                    # wierd states and doesn't have an ARN yet
-                    log.debug("Subscription with invalid ARN %s skipped...", sub_arn)
-                    continue
+            ),
+        }
+        break
     return ret
 
 
 def topic_exists(name, region=None, key=None, keyid=None, profile=None):
     """
     Check to see if an SNS topic exists.
+
+    name (str):
+        The name or ARN of the SNS topic to check for existence.
+
+    region (str, optional):
+        The AWS region to use when checking for the topic's existence. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when checking for the topic's existence.
+
+    keyid (str, optional):
+        The AWS secret key to use when checking for the topic's existence.
+
+    profile (str, optional):
+        The AWS profile to use when checking for the topic's existence.
 
     CLI Example:
 
@@ -194,6 +256,21 @@ def topic_exists(name, region=None, key=None, keyid=None, profile=None):
 def create_topic(Name, region=None, key=None, keyid=None, profile=None):
     """
     Create an SNS topic.
+
+    Name (str):
+        The name of the SNS topic to create.
+
+    region (str, optional):
+        The AWS region to use when creating the topic. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when creating the topic.
+
+    keyid (str, optional):
+        The AWS secret key to use when creating the topic.
+
+    profile (str, optional):
+        The AWS profile to use when creating the topic.
 
     CLI Example:
 
@@ -218,6 +295,21 @@ def delete_topic(TopicArn, region=None, key=None, keyid=None, profile=None):
     """
     Delete an SNS topic.
 
+    TopicArn (str):
+        The ARN of the SNS topic to delete.
+
+    region (str, optional):
+        The AWS region to use when deleting the topic. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when deleting the topic.
+
+    keyid (str, optional):
+        The AWS secret key to use when deleting the topic.
+
+    profile (str, optional):
+        The AWS profile to use when deleting the topic.
+
     CLI Example:
 
     .. code-block:: bash
@@ -238,6 +330,21 @@ def get_topic_attributes(TopicArn, region=None, key=None, keyid=None, profile=No
     """
     Returns all of the properties of a topic.  Topic properties returned might differ based on the
     authorization of the user.
+
+    TopicArn (str):
+        The ARN of the SNS topic whose attributes are to be retrieved.
+
+    region (str, optional):
+        The AWS region to use when retrieving the topic attributes. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when retrieving the topic attributes.
+
+    keyid (str, optional):
+        The AWS secret key to use when retrieving the topic attributes.
+
+    profile (str, optional):
+        The AWS profile to use when retrieving the topic attributes.
 
     CLI Example:
 
@@ -264,6 +371,27 @@ def set_topic_attributes(
 ):
     """
     Set an attribute of a topic to a new value.
+
+    TopicArn (str):
+        The ARN of the SNS topic whose attribute is to be set.
+
+    AttributeName (str):
+        The name of the attribute to set.
+
+    AttributeValue (str):
+        The new value for the attribute.
+
+    region (str, optional):
+        The AWS region to use when setting the topic attribute. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when setting the topic attribute.
+
+    keyid (str, optional):
+        The AWS secret key to use when setting the topic attribute.
+
+    profile (str, optional):
+        The AWS profile to use when setting the topic attribute.
 
     CLI Example:
 
@@ -300,6 +428,21 @@ def list_subscriptions_by_topic(TopicArn, region=None, key=None, keyid=None, pro
     """
     Returns a list of the subscriptions to a specific topic
 
+    TopicArn (str):
+        The ARN of the SNS topic whose subscriptions are to be listed.
+
+    region (str, optional):
+        The AWS region to use when listing the subscriptions. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when listing the subscriptions.
+
+    keyid (str, optional):
+        The AWS secret key to use when listing the subscriptions.
+
+    profile (str, optional):
+        The AWS profile to use when listing the subscriptions.
+
     CLI Example:
 
     .. code-block:: bash
@@ -323,7 +466,19 @@ def list_subscriptions_by_topic(TopicArn, region=None, key=None, keyid=None, pro
 
 def list_subscriptions(region=None, key=None, keyid=None, profile=None):
     """
-    Returns a list of the requester's topics
+    Returns a list of the requester's subscriptions to all topics.
+
+    region (str, optional):
+        The AWS region to use when listing the subscriptions. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when listing the subscriptions.
+
+    keyid (str, optional):
+        The AWS secret key to use when listing the subscriptions.
+
+    profile (str, optional):
+        The AWS profile to use when listing the subscriptions.
 
     CLI Example:
 
@@ -349,6 +504,21 @@ def list_subscriptions(region=None, key=None, keyid=None, profile=None):
 def get_subscription_attributes(SubscriptionArn, region=None, key=None, keyid=None, profile=None):
     """
     Returns all of the properties of a subscription.
+
+    SubscriptionArn (str):
+        The ARN of the SNS subscription whose attributes are to be retrieved.
+
+    region (str, optional):
+        The AWS region to use when retrieving the subscription attributes. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when retrieving the subscription attributes.
+
+    keyid (str, optional):
+        The AWS secret key to use when retrieving the subscription attributes.
+
+    profile (str, optional):
+        The AWS profile to use when retrieving the subscription attributes.
 
     CLI Example:
 
@@ -379,6 +549,27 @@ def set_subscription_attributes(
 ):
     """
     Set an attribute of a subscription to a new value.
+
+    SubscriptionArn (str):
+        The ARN of the SNS subscription whose attribute is to be set.
+
+    AttributeName (str):
+        The name of the attribute to set.
+
+    AttributeValue (str):
+        The new value for the attribute.
+
+    region (str, optional):
+        The AWS region to use when setting the subscription attribute. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when setting the subscription attribute.
+
+    keyid (str, optional):
+        The AWS secret key to use when setting the subscription attribute.
+
+    profile (str, optional):
+        The AWS profile to use when setting the subscription attribute.
 
     CLI Example:
 
@@ -415,6 +606,27 @@ def subscribe(TopicArn, Protocol, Endpoint, region=None, key=None, keyid=None, p
     """
     Subscribe to a Topic.
 
+    TopicArn (str):
+        The ARN of the SNS topic to subscribe to.
+
+    Protocol (str):
+        The protocol to use for the subscription (e.g., "https", "email", "sms").
+
+    Endpoint (str):
+        The endpoint to receive notifications (e.g., an HTTPS URL, an email address, or a phone number).
+
+    region (str, optional):
+        The AWS region to use when creating the subscription. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when creating the subscription.
+
+    keyid (str, optional):
+        The AWS secret key to use when creating the subscription.
+
+    profile (str, optional):
+        The AWS profile to use when creating the subscription.
+
     CLI Example:
 
     .. code-block:: bash
@@ -443,6 +655,21 @@ def subscribe(TopicArn, Protocol, Endpoint, region=None, key=None, keyid=None, p
 def unsubscribe(SubscriptionArn, region=None, key=None, keyid=None, profile=None):
     """
     Unsubscribe a specific SubscriptionArn of a topic.
+
+    SubscriptionArn (str):
+        The ARN of the SNS subscription to unsubscribe from.
+
+    region (str, optional):
+        The AWS region to use when unsubscribing. If not specified, the default region is used.
+
+    key (str, optional):
+        The AWS access key to use when unsubscribing.
+
+    keyid (str, optional):
+        The AWS secret key to use when unsubscribing.
+
+    profile (str, optional):
+        The AWS profile to use when unsubscribing.
 
     CLI Example:
 

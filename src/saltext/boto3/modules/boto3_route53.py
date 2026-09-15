@@ -40,10 +40,11 @@ as a passed in dict, or as a string to pull from pillars or minion config:
         key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
         region: us-east-1
 
-    Note that Route53 essentially ignores all (valid) settings for 'region',
-    since there is only one Endpoint (in us-east-1 if you care) and any (valid)
-    region setting will just send you there.  It is entirely safe to set it to
-    None as well.
+    .. note::
+        Route53 essentially ignores all (valid) settings for 'region',
+        since there is only one Endpoint (in us-east-1 if you care) and any (valid)
+        region setting will just send you there.  It is entirely safe to set it to
+        None as well.
 
 .. versionadded:: 1.0.0
 """
@@ -153,28 +154,30 @@ def find_hosted_zone(
     """
     Find a hosted zone with the given characteristics.
 
-    Id
+    Id (str):
         The unique Zone Identifier for the Hosted Zone.  Exclusive with Name.
 
-    Name
+    Name (str):
         The domain name associated with the Hosted Zone.  Exclusive with Id.
-        Note this has the potential to match more then one hosted zone (e.g. a public and a private
-        if both exist) which will raise an error unless PrivateZone has also been passed in order
-        split the different.
 
-    PrivateZone
+        .. note::
+            This has the potential to match more than one hosted zone (e.g. a public and a private
+            if both exist) which will raise an error unless PrivateZone has also been passed in order
+            to split the different hosted zones.
+
+    PrivateZone (bool):
         Boolean - Set to True if searching for a private hosted zone.
 
-    region
+    region (str, optional):
         Region to connect to.
 
-    key
+    key (str, optional):
         Secret key to be used.
 
-    keyid
+    keyid (str, optional):
         Access key to be used.
 
-    profile
+    profile (str, optional):
         Dict, or pillar key pointing to a dict, containing AWS region/key/keyid.
 
     CLI Example:
@@ -208,19 +211,19 @@ def get_hosted_zone(Id, region=None, key=None, keyid=None, profile=None):
     """
     Return detailed info about the given zone.
 
-    Id
+    Id (str):
         The unique Zone Identifier for the Hosted Zone.
 
-    region
+    region (str, optional):
         Region to connect to.
 
-    key
+    key (str, optional):
         Secret key to be used.
 
-    keyid
+    keyid (str, optional):
         Access key to be used.
 
-    profile
+    profile (str, optional):
         Dict, or pillar key pointing to a dict, containing AWS region/key/keyid.
 
     CLI Example:
@@ -238,22 +241,24 @@ def get_hosted_zone(Id, region=None, key=None, keyid=None, profile=None):
 def get_hosted_zones_by_domain(Name, region=None, key=None, keyid=None, profile=None):
     """
     Find any zones with the given domain name and return detailed info about them.
-    Note that this can return multiple Route53 zones, since a domain name can be used in
+
+    .. note::
+    This can return multiple Route53 zones, since a domain name can be used in
     both public and private zones.
 
-    Name
+    Name (str):
         The domain name associated with the Hosted Zone(s).
 
-    region
+    region (str, optional):
         Region to connect to.
 
-    key
+    key (str, optional):
         Secret key to be used.
 
-    keyid
+    keyid (str, optional):
         Access key to be used.
 
-    profile
+    profile (str, optional):
         Dict, or pillar key pointing to a dict, containing AWS region/key/keyid.
 
     CLI Example:
@@ -279,27 +284,27 @@ def list_hosted_zones(DelegationSetId=None, region=None, key=None, keyid=None, p
     """
     Return detailed info about all zones in the bound account.
 
-    DelegationSetId
+    DelegationSetId (str, optional):
         If you're using reusable delegation sets and you want to list all of the hosted zones that
         are associated with a reusable delegation set, specify the ID of that delegation set.
 
-    region
+    region (str, optional):
         Region to connect to.
 
-    key
+    key (str, optional):
         Secret key to be used.
 
-    keyid
+    keyid (str, optional):
         Access key to be used.
 
-    profile
+    profile (str, optional):
         Dict, or pillar key pointing to a dict, containing AWS region/key/keyid.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_route53.describe_hosted_zones \
+        salt myminion boto3_route53.list_hosted_zones \
                 profile='{"region": "us-east-1", "keyid": "A12345678AB", "key": "xblahblahblah"}'
     """
     conn = _get_conn("route53", region=region, key=key, keyid=keyid, profile=profile)
@@ -325,53 +330,56 @@ def create_hosted_zone(
     Create a new Route53 Hosted Zone. Returns a Python data structure with information about the
     newly created Hosted Zone.
 
-    Name
+    Name (str):
         The name of the domain. This should be a fully-specified domain, and should terminate with
         a period. This is the name you have registered with your DNS registrar. It is also the name
         you will delegate from your registrar to the Amazon Route 53 delegation servers returned in
         response to this request.
 
-    VPCId
+    VPCId (str, optional):
         When creating a private hosted zone, either the VPC ID or VPC Name to associate with is
         required.  Exclusive with VPCName.  Ignored if passed for a non-private zone.
 
-    VPCName
+    VPCName (str, optional):
         When creating a private hosted zone, either the VPC ID or VPC Name to associate with is
         required.  Exclusive with VPCId.  Ignored if passed for a non-private zone.
 
-    VPCRegion
+    VPCRegion (str, optional):
         When creating a private hosted zone, the region of the associated VPC is required.  If not
         provided, an effort will be made to determine it from VPCId or VPCName, if possible.  If
         this fails, you'll need to provide an explicit value for this option.  Ignored if passed for
         a non-private zone.
 
-    CallerReference
+    CallerReference (str, optional):
         A unique string that identifies the request and that allows create_hosted_zone() calls to be
         retried without the risk of executing the operation twice.  This is a required parameter
         when creating new Hosted Zones.  Maximum length of 128.
 
-    Comment
+    Comment (str, optional):
         Any comments you want to include about the hosted zone.
 
-    PrivateZone
+    PrivateZone (bool, optional):
         Boolean - Set to True if creating a private hosted zone.
 
-    DelegationSetId
+    DelegationSetId (str, optional):
         If you want to associate a reusable delegation set with this hosted zone, the ID that Amazon
-        Route 53 assigned to the reusable delegation set when you created it.  Note that XXX TODO
-        create_delegation_set() is not yet implemented, so you'd need to manually create any
-        delegation sets before utilizing this.
+        Route 53 assigned to the reusable delegation set when you created it.
 
-    region
+        .. note::
+            Note that XXX TODO
+            create_delegation_set() is not yet implemented, so you'd need to manually create any
+            delegation sets before utilizing this.
+
+    region (str, optional):
         Region endpoint to connect to.
 
-    key
+    key (str, optional):
         AWS key to bind with.
 
-    keyid
+    keyid (str, optional):
         AWS keyid to bind with.
 
-    profile
+    profile (str, optional):
         Dict, or pillar key pointing to a dict, containing AWS region/key/keyid.
 
     CLI Example:
@@ -473,17 +481,29 @@ def update_hosted_zone_comment(
     """
     Update the comment on an existing Route 53 hosted zone.
 
-    Id
+    Id (str, optional):
         The unique Zone Identifier for the Hosted Zone.
 
-    Name
+    Name (str, optional):
         The domain name associated with the Hosted Zone(s).
 
-    Comment
+    Comment (str, optional):
         Any comments you want to include about the hosted zone.
 
-    PrivateZone
+    PrivateZone (bool, optional):
         Boolean - Set to True if changing a private hosted zone.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -547,34 +567,47 @@ def associate_vpc_with_hosted_zone(
     other means, such as the AWS console).  With that done, the account owning the VPC can then call
     associate_vpc_with_hosted_zone() to create the association.
 
-    Note that if both sides happen to be within the same account, associate_vpc_with_hosted_zone()
-    is enough on its own, and there is no need for the CreateVPCAssociationAuthorization step.
+    .. note::
+        That if both sides happen to be within the same account, associate_vpc_with_hosted_zone()
+        is enough on its own, and there is no need for the CreateVPCAssociationAuthorization step.
 
-    Also note that looking up hosted zones by name (e.g. using the Name parameter) only works
-    within a single account - if you're associating a VPC to a zone in a different account, as
-    outlined above, you unfortunately MUST use the HostedZoneId parameter exclusively.
+        Also note that looking up hosted zones by name (e.g. using the Name parameter) only works
+        within a single account - if you're associating a VPC to a zone in a different account, as
+        outlined above, you unfortunately MUST use the HostedZoneId parameter exclusively.
 
-    HostedZoneId
+    HostedZoneId (str, optional):
         The unique Zone Identifier for the Hosted Zone.
 
-    Name
+    Name (str, optional):
         The domain name associated with the Hosted Zone(s).
 
-    VPCId
+    VPCId (str, optional):
         When working with a private hosted zone, either the VPC ID or VPC Name to associate with is
         required.  Exclusive with VPCName.
 
-    VPCName
+    VPCName (str, optional):
         When working with a private hosted zone, either the VPC ID or VPC Name to associate with is
         required.  Exclusive with VPCId.
 
-    VPCRegion
+    VPCRegion (str, optional):
         When working with a private hosted zone, the region of the associated VPC is required.  If
         not provided, an effort will be made to determine it from VPCId or VPCName, if possible.  If
         this fails, you'll need to provide an explicit value for VPCRegion.
 
-    Comment
+    Comment (str, optional):
         Any comments you want to include about the change being made.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -672,31 +705,44 @@ def disassociate_vpc_from_hosted_zone(
     You can't disassociate the last VPC from a private hosted zone.  You also can't convert a
     private hosted zone into a public hosted zone.
 
-    Note that looking up hosted zones by name (e.g. using the Name parameter) only works XXX FACTCHECK
-    within a single AWS account - if you're disassociating a VPC in one account from a hosted zone
-    in a different account you unfortunately MUST use the HostedZoneId parameter exclusively. XXX FIXME DOCU
+    .. note::
+        Looking up hosted zones by name (e.g. using the Name parameter) only works XXX FACTCHECK
+        within a single AWS account - if you're disassociating a VPC in one account from a hosted zone
+        in a different account you unfortunately MUST use the HostedZoneId parameter exclusively. XXX FIXME DOCU
 
-    HostedZoneId
+    HostedZoneId (str, optional):
         The unique Zone Identifier for the Hosted Zone.
 
-    Name
+    Name (str, optional):
         The domain name associated with the Hosted Zone(s).
 
-    VPCId
+    VPCId (str, optional):
         When working with a private hosted zone, either the VPC ID or VPC Name to associate with is
         required.  Exclusive with VPCName.
 
-    VPCName
+    VPCName (str, optional):
         When working with a private hosted zone, either the VPC ID or VPC Name to associate with is
         required.  Exclusive with VPCId.
 
-    VPCRegion
+    VPCRegion (str, optional):
         When working with a private hosted zone, the region of the associated VPC is required.  If
         not provided, an effort will be made to determine it from VPCId or VPCName, if possible.  If
         this fails, you'll need to provide an explicit value for VPCRegion.
 
-    Comment
+    Comment (str, optional):
         Any comments you want to include about the change being made.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -801,6 +847,21 @@ def delete_hosted_zone(Id, region=None, key=None, keyid=None, profile=None):
     """
     Delete a Route53 hosted zone.
 
+    HostedZoneId (str):
+        The ID of the hosted zone to delete.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
+
     CLI Example:
 
     .. code-block:: bash
@@ -821,6 +882,24 @@ def delete_hosted_zone_by_domain(
 ):
     """
     Delete a Route53 hosted zone by domain name, and PrivateZone status if provided.
+
+    Name (str):
+        The domain name of the hosted zone to delete.
+
+    PrivateZone (bool, optional):
+        The private zone status of the hosted zone to delete.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -971,9 +1050,37 @@ def get_resource_records(
     If you want EXACTLY ONE record to operate on, you'll need to implement any logic required to
     pick the specific RR you care about from those returned.
 
-    Note that if you pass in Name without providing a value for PrivateZone (either True or
-    False), CommandExecutionError can be raised in the case of both public and private zones
-    matching the domain. XXX FIXME DOCU
+    .. note::
+        If you pass in Name without providing a value for PrivateZone (either True or
+        False), CommandExecutionError can be raised in the case of both public and private zones
+        matching the domain. XXX FIXME DOCU
+
+    HostedZoneId (str, optional):
+        The ID of the hosted zone to retrieve records from.
+
+    Name (str, optional):
+        The domain name of the hosted zone to retrieve records from.
+
+    StartRecordName (str, optional):
+        The name of the record to start listing from.
+
+    StartRecordType (str, optional):
+        The type of the record to start listing from.
+
+    PrivateZone (bool, optional):
+        The private zone status of the hosted zone to retrieve records from.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     CLI Example:
 
@@ -1067,6 +1174,30 @@ def change_resource_record_sets(
 
     .. __: https://docs.aws.amazon.com/Route53/latest/APIReference/API_ChangeResourceRecordSets.html
     .. __: https://docs.aws.amazon.com/boto3/latest/reference/services/route53/client/change_resource_record_sets.html
+
+    HostedZoneId (str, optional):
+        The ID of the hosted zone to change records in.
+
+    Name (str, optional):
+        The domain name of the hosted zone to change records in.
+
+    PrivateZone (bool, optional):
+        The private zone status of the hosted zone to change records in.
+
+    ChangeBatch (dict, optional):
+        The batch of changes to apply to the hosted zone.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS access key to use.
+
+    keyid (str, optional):
+        The AWS secret key to use.
+
+    profile (str, optional):
+        The AWS profile to use.
 
     The syntax for a ChangeBatch parameter is as follows, but note that the permutations of allowed
     parameters and combinations thereof are quite varied, so perusal of the above linked docs is
