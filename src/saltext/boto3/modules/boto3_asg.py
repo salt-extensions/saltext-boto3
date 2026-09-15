@@ -131,6 +131,21 @@ def exists(name, region=None, key=None, keyid=None, profile=None):
     """
     Check to see if an autoscale group exists.
 
+    name (str):
+        The name of the autoscaling group to check.
+
+    region (str, optional):
+        The AWS region where the autoscaling group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -216,6 +231,21 @@ def _asg_to_config(asg, policies, actions):
 def get_config(name, region=None, key=None, keyid=None, profile=None):
     """
     Get the configuration for an autoscale group.
+
+    name (str):
+        The name of the autoscaling group to get the configuration for.
+
+    region (str, optional):
+        The AWS region where the autoscaling group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -357,6 +387,75 @@ def create(
     """
     Create an autoscale group.
 
+    name (str):
+        The name of the autoscaling group to create.
+
+    launch_config_name (str):
+        The name of the launch configuration to use for the autoscaling group.
+
+    availability_zones (list):
+        A list of availability zones for the autoscaling group.
+
+    min_size (int):
+        The minimum size of the autoscaling group.
+
+    max_size (int):
+        The maximum size of the autoscaling group.
+
+    desired_capacity (int, optional):
+        The desired capacity of the autoscaling group.
+
+    load_balancers (list, optional):
+        A list of load balancer names to associate with the autoscaling group.
+
+    default_cooldown (int, optional):
+        The default cooldown period for the autoscaling group.
+
+    health_check_type (str, optional):
+        The health check type for the autoscaling group.
+
+    health_check_period (int, optional):
+        The health check period for the autoscaling group.
+
+    placement_group (str, optional):
+        The placement group for the autoscaling group.
+
+    vpc_zone_identifier (list, optional):
+        A list of VPC subnet IDs for the autoscaling group.
+
+    tags (list, optional):
+        A list of tags to associate with the autoscaling group.
+
+    termination_policies (list, optional):
+        A list of termination policies for the autoscaling group.
+
+    suspended_processes (list, optional):
+        A list of suspended processes for the autoscaling group.
+
+    scaling_policies (list, optional):
+        A list of scaling policies for the autoscaling group.
+
+    scheduled_actions (list, optional):
+        A list of scheduled actions for the autoscaling group.
+
+    region (str, optional):
+        The AWS region where the autoscaling group is located.
+
+    notification_arn (str, optional):
+        The ARN of the SNS topic for notifications.
+
+    notification_types (list, optional):
+        A list of notification types for the autoscaling group.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -439,6 +538,75 @@ def update(
 ):
     """
     Update an autoscale group.
+
+    name (str):
+        The name of the autoscaling group to update.
+
+    launch_config_name (str):
+        The name of the launch configuration to use for the autoscaling group.
+
+    availability_zones (list):
+        A list of availability zones for the autoscaling group.
+
+    min_size (int):
+        The minimum size of the autoscaling group.
+
+    max_size (int):
+        The maximum size of the autoscaling group.
+
+    desired_capacity (int, optional):
+        The desired capacity of the autoscaling group.
+
+    load_balancers (list, optional):
+        A list of load balancer names to associate with the autoscaling group.
+
+    default_cooldown (int, optional):
+        The default cooldown period for the autoscaling group.
+
+    health_check_type (str, optional):
+        The health check type for the autoscaling group.
+
+    health_check_period (int, optional):
+        The health check period for the autoscaling group.
+
+    placement_group (str, optional):
+        The placement group for the autoscaling group.
+
+    vpc_zone_identifier (list, optional):
+        A list of VPC subnet IDs for the autoscaling group.
+
+    tags (list, optional):
+        A list of tags to associate with the autoscaling group.
+
+    termination_policies (list, optional):
+        A list of termination policies for the autoscaling group.
+
+    suspended_processes (list, optional):
+        A list of suspended processes for the autoscaling group.
+
+    scaling_policies (list, optional):
+        A list of scaling policies for the autoscaling group.
+
+    scheduled_actions (list, optional):
+        A list of scheduled actions for the autoscaling group.
+
+    notification_arn (str, optional):
+        The ARN of the SNS topic for notifications.
+
+    notification_types (list, optional):
+        A list of notification types for the autoscaling group.
+
+    region (str, optional):
+        The AWS region where the autoscaling group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -673,6 +841,24 @@ def delete(name, force=False, region=None, key=None, keyid=None, profile=None):
     """
     Delete an autoscale group.
 
+    name (str):
+        The name of the autoscaling group to delete.
+
+    force (bool, optional):
+        Whether to force the deletion of the autoscaling group.
+
+    region (str, optional):
+        The AWS region where the autoscaling group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -693,6 +879,9 @@ def get_cloud_init_mime(cloud_init):
     """
     Get a mime multipart encoded string from a cloud-init dict. Currently
     supports boothooks, scripts and cloud-config.
+
+    cloud_init (dict):
+        The cloud-init configuration dictionary containing boothooks, scripts, and cloud-config sections.
 
     CLI Example:
 
@@ -725,6 +914,21 @@ def launch_configuration_exists(name, region=None, key=None, keyid=None, profile
     """
     Check for a launch configuration's existence.
 
+    name (str):
+        The name of the launch configuration to check for existence.
+
+    region (str, optional):
+        The AWS region where the launch configuration is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -744,6 +948,18 @@ def get_all_launch_configurations(region=None, key=None, keyid=None, profile=Non
     """
     Fetch and return all Launch Configurations with details.
 
+    region (str, optional):
+        The AWS region where the launch configurations are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -762,6 +978,18 @@ def list_launch_configurations(region=None, key=None, keyid=None, profile=None):
     """
     List all Launch Configuration names.
 
+    region (str, optional):
+        The AWS region where the launch configurations are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -779,6 +1007,21 @@ def list_launch_configurations(region=None, key=None, keyid=None, profile=None):
 def describe_launch_configuration(name, region=None, key=None, keyid=None, profile=None):
     """
     Dump details of a given launch configuration.
+
+    name (str):
+        The name of the launch configuration to describe.
+
+    region (str, optional):
+        The AWS region where the launch configuration is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -820,6 +1063,66 @@ def create_launch_configuration(
 ):
     """
     Create a launch configuration.
+
+    name (str):
+        The name of the launch configuration to create.
+
+    image_id (str):
+        The ID of the Amazon Machine Image (AMI) to use for the launch configuration.
+
+    key_name (str, optional):
+        The name of the key pair to use for the instances.
+
+    vpc_id (str, optional):
+        The ID of the VPC where the launch configuration will be created.
+
+    vpc_name (str, optional):
+        The name of the VPC where the launch configuration will be created.
+
+    security_groups (list, optional):
+        A list of security group IDs or names to associate with the instances.
+
+    user_data (str, optional):
+        The user data to provide when launching the instances.
+
+    instance_type (str, optional):
+        The instance type for the instances. Default is "m1.small".
+
+    kernel_id (str, optional):
+        The ID of the kernel to use for the instances.
+
+    ramdisk_id (str, optional):
+        The ID of the RAM disk to use for the instances.
+
+    block_device_mappings (list, optional):
+        A list of block device mapping dictionaries.
+
+    instance_monitoring (bool, optional):
+        Whether to enable detailed monitoring for the instances. Default is False.
+
+    spot_price (str, optional):
+        The maximum price to pay for Spot Instances.
+
+    instance_profile_name (str, optional):
+        The name of the IAM instance profile to associate with the instances.
+
+    ebs_optimized (bool, optional):
+        Whether the instances should be EBS-optimized. Default is False.
+
+    associate_public_ip_address (bool, optional):
+        Whether to associate a public IP address with the instances.
+
+    region (str, optional):
+        The AWS region where the launch configuration will be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -910,6 +1213,21 @@ def delete_launch_configuration(name, region=None, key=None, keyid=None, profile
     """
     Delete a launch configuration.
 
+    name (str):
+        The name of the launch configuration to delete.
+
+    region (str, optional):
+        The AWS region where the launch configuration is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -933,6 +1251,24 @@ def get_scaling_policy_arn(
     Return the arn for a scaling policy in a specific autoscale group or ``None``
     if not found. Mainly used as a helper method for boto_cloudwatch_alarm, for
     linking alarms to scaling policies.
+
+    as_group (str):
+        The name of the AutoScaling group containing the scaling policy.
+
+    scaling_policy_name (str):
+        The name of the scaling policy for which to retrieve the ARN.
+
+    region (str, optional):
+        The AWS region where the AutoScaling group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -961,6 +1297,18 @@ def get_all_groups(region=None, key=None, keyid=None, profile=None):
     Return all AutoScale Groups visible in the account as a list of
     boto3 describe-response dicts.
 
+    region (str, optional):
+        The AWS region where the AutoScaling groups are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -978,6 +1326,18 @@ def get_all_groups(region=None, key=None, keyid=None, profile=None):
 def list_groups(region=None, key=None, keyid=None, profile=None):
     """
     Return all AutoScale Group names visible in the account.
+
+    region (str, optional):
+        The AWS region where the AutoScaling groups are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1004,6 +1364,33 @@ def get_instances(
 ):
     """
     Return an attribute of all instances in the named autoscale group.
+
+    name (str):
+        The name of the AutoScaling group.
+
+    lifecycle_state (str, optional):
+        The desired lifecycle state of the instances to retrieve. Default is "InService".
+
+    health_status (str, optional):
+        The desired health status of the instances to retrieve. Default is "Healthy".
+
+    attribute (str, optional):
+        The specific instance attribute to return. Default is "private_ip_address".
+
+    attributes (list, optional):
+        A list of instance attributes to return. If specified, this overrides the "attribute" parameter.
+
+    region (str, optional):
+        The AWS region where the AutoScaling group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1096,6 +1483,27 @@ def enter_standby(
     """
     Switch desired instances to StandBy mode
 
+    name (str):
+        The name of the AutoScaling group.
+
+    instance_ids (list):
+        A list of instance IDs to switch to StandBy mode.
+
+    should_decrement_desired_capacity (bool, optional):
+        Whether to decrement the desired capacity of the AutoScaling group. Default is False.
+
+    region (str, optional):
+        The AWS region where the AutoScaling group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1128,6 +1536,27 @@ def exit_standby(
 ):
     """
     Exit desired instances from StandBy mode
+
+    name (str):
+        The name of the AutoScaling group.
+
+    instance_ids (list):
+        A list of instance IDs to exit from StandBy mode.
+
+    should_decrement_desired_capacity (bool, optional):
+        Whether to decrement the desired capacity of the AutoScaling group. Default is False.
+
+    region (str, optional):
+        The AWS region where the AutoScaling group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 

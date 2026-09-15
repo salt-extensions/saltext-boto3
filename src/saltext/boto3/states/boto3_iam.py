@@ -201,23 +201,20 @@ def user_absent(
     profile=None,
 ):
     """
-
-
     Ensure the IAM user is absent. User cannot be deleted if it has keys.
 
     name (string)
-        The name of the new user.
+        The name of the IAM user to ensure is absent.
 
     delete_keys (bool)
-        Delete all keys from user.
+        Delete all access keys from the IAM user.
 
     delete_mfa_devices (bool)
-        Delete all mfa devices from user.
+        Delete all MFA devices from the IAM user.
 
 
     delete_profile (bool)
-        Delete profile from user.
-
+        Delete the IAM user's profile.
 
     region (string)
         Region to connect to.
@@ -228,7 +225,7 @@ def user_absent(
     keyid (string)
         Access key to be used.
 
-    profile (dict)
+    profile (dict|string)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -239,7 +236,6 @@ def user_absent(
         ensure-user-absent:
           boto3_iam.user_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     if not __salt__["boto3_iam.get_user"](name, region, key, keyid, profile):
@@ -407,11 +403,10 @@ def keys_present(
     save_format="{2}\n{0}\n{3}\n{1}\n",
 ):
     """
-
     Ensure the IAM access keys are present.
 
     name (string)
-        The name of the new user.
+        The name of the IAM user to ensure access keys are present.
 
     number (int)
         Number of keys that user should have.
@@ -429,7 +424,7 @@ def keys_present(
     keyid (string)
         Access key to be used.
 
-    profile (dict)
+    profile (dict|string)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -446,7 +441,6 @@ def keys_present(
         ensure-keys-present:
           boto3_iam.keys_present:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     if not __salt__["boto3_iam.get_user"](name, region, key, keyid, profile):
@@ -519,12 +513,10 @@ def keys_present(
 
 def keys_absent(access_keys, user_name, region=None, key=None, keyid=None, profile=None):
     """
+    Ensure the IAM user's access key IDs are absent.
 
-
-    Ensure the IAM user access_key_id is absent.
-
-    access_key_id (list)
-        A list of access key ids
+    access_keys (list)
+        A list of access key IDs for the IAM user.
 
     user_name (string)
         The username of the user
@@ -538,7 +530,7 @@ def keys_absent(access_keys, user_name, region=None, key=None, keyid=None, profi
     keyid (string)
         Access key to be used.
 
-    profile (dict)
+    profile (dict|string)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -548,8 +540,9 @@ def keys_absent(access_keys, user_name, region=None, key=None, keyid=None, profi
 
         ensure-keys-absent:
           boto3_iam.keys_absent:
-            - name: example
-
+            - access_keys:
+              - AKIAIOSFODNN7EXAMPLE
+            - user_name: example
     """
     ret = {"name": access_keys, "result": True, "comment": "", "changes": {}}
     if not __salt__["boto3_iam.get_user"](user_name, region, key, keyid, profile):
@@ -608,8 +601,6 @@ def user_present(
     profile=None,
 ):
     """
-
-
     Ensure the IAM user is present
 
     name (string)
@@ -637,7 +628,6 @@ def user_present(
     path (string)
         The path of the user. Default is '/'.
 
-
     region (string)
         Region to connect to.
 
@@ -658,7 +648,6 @@ def user_present(
         ensure-user-present:
           boto3_iam.user_present:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     if not policies:
@@ -944,8 +933,6 @@ def _case_password(ret, name, password, region=None, key=None, keyid=None, profi
 
 def group_absent(name, region=None, key=None, keyid=None, profile=None):
     """
-
-
     Ensure the IAM group is absent.
 
     name (string)
@@ -971,7 +958,6 @@ def group_absent(name, region=None, key=None, keyid=None, profile=None):
         ensure-group-absent:
           boto3_iam.group_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     if not __salt__["boto3_iam.get_group"](name, region, key, keyid, profile):
@@ -1048,8 +1034,6 @@ def group_present(
     delete_policies=True,
 ):
     """
-
-
     Ensure the IAM group is present
 
     name (string)
@@ -1102,7 +1086,6 @@ def group_present(
         ensure-group-present:
           boto3_iam.group_present:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     if not policies:
@@ -1468,7 +1451,6 @@ def account_policy(
     """
     Change account policy.
 
-
     name (string)
         The name of the account policy
 
@@ -1525,7 +1507,6 @@ def account_policy(
         ensure-account-policy:
           boto3_iam.account_policy:
             - name: example
-
     """
     config = locals()
     ret = {"name": "Account Policy", "result": True, "comment": "", "changes": {}}
@@ -1581,7 +1562,6 @@ def server_cert_absent(name, region=None, key=None, keyid=None, profile=None):
     """
     Deletes a server certificate.
 
-
     name (string)
         The name for the server certificate. Do not include the path in this value.
 
@@ -1604,7 +1584,6 @@ def server_cert_absent(name, region=None, key=None, keyid=None, profile=None):
         ensure-server-cert-absent:
           boto3_iam.server_cert_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     exists = __salt__["boto3_iam.get_server_certificate"](name, region, key, keyid, profile)
@@ -1638,7 +1617,6 @@ def server_cert_present(
 ):
     """
     Crete server certificate.
-
 
     name (string)
         The name for the server certificate. Do not include the path in this value.
@@ -1675,7 +1653,6 @@ def server_cert_present(
         ensure-server-cert-present:
           boto3_iam.server_cert_present:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     exists = __salt__["boto3_iam.get_server_certificate"](name, region, key, keyid, profile)
@@ -1734,8 +1711,6 @@ def policy_present(
     profile=None,
 ):
     """
-
-
     Ensure the IAM managed policy is present
 
     name (string)
@@ -1770,7 +1745,7 @@ def policy_present(
         ensure-policy-present:
           boto3_iam.policy_present:
             - name: example
-
+            - policy_document: '{"Version": "2012-10-17","Statement": [{"Effect": "Allow","Action": "s3:*","Resource": "*"}]}'
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     policy = __salt__["boto3_iam.get_policy"](name, region, key, keyid, profile)
@@ -1845,8 +1820,6 @@ def policy_present(
 
 def policy_absent(name, region=None, key=None, keyid=None, profile=None):
     """
-
-
     Ensure the IAM managed policy with the specified name is absent
 
     name (string)
@@ -1872,7 +1845,6 @@ def policy_absent(name, region=None, key=None, keyid=None, profile=None):
         ensure-policy-absent:
           boto3_iam.policy_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -1924,7 +1896,6 @@ def saml_provider_present(
     name, saml_metadata_document, region=None, key=None, keyid=None, profile=None
 ):
     """
-
     Ensure the SAML provider with the specified name is present.
 
     name (string)
@@ -1953,7 +1924,7 @@ def saml_provider_present(
         ensure-saml-provider-present:
           boto3_iam.saml_provider_present:
             - name: example
-
+            - saml_metadata_document: 'salt://path/to/saml_metadata_document.xml'
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     if "salt://" in saml_metadata_document:
@@ -1994,7 +1965,6 @@ def saml_provider_present(
 
 def saml_provider_absent(name, region=None, key=None, keyid=None, profile=None):
     """
-
     Ensure the SAML provider with the specified name is absent.
 
     name (string)
@@ -2023,7 +1993,6 @@ def saml_provider_absent(name, region=None, key=None, keyid=None, profile=None):
         ensure-saml-provider-absent:
           boto3_iam.saml_provider_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     provider = __salt__["boto3_iam.list_saml_providers"](

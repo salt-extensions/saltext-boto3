@@ -314,7 +314,11 @@ def present(
         ensure-present:
           boto3_rds.present:
             - name: example
-
+            - allocated_storage: 20
+            - engine: mysql
+            - master_username: admin
+            - master_user_password: password
+            - db_name: exampledb
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -459,6 +463,8 @@ def replica_present(
     db_parameter_group_name (str, optional):
         The name of the DB parameter group to associate with the read replica.
 
+    Example:
+
     .. code-block:: yaml
 
         Ensure myrds replica RDS exists:
@@ -586,7 +592,12 @@ def subnet_group_present(
         ensure-subnet-group-present:
           boto3_rds.subnet_group_present:
             - name: example
-
+            - description: "Example subnet group"
+            - subnet_ids:
+              - subnet-12345678
+              - subnet-87654321
+            - tags:
+                Environment: "dev"
     """
     if not salt.utils.data.exactly_one((subnet_ids, subnet_names)):
         raise SaltInvocationError(
@@ -704,7 +715,6 @@ def absent(
         ensure-absent:
           boto3_rds.absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -844,7 +854,6 @@ def endpoint_secret_present(
             - name: myapp/dev/rds
             - db_instance_name: myrds
             - region: us-east-1
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -971,7 +980,13 @@ def parameter_present(
         ensure-parameter-present:
           boto3_rds.parameter_present:
             - name: example
-
+            - db_parameter_group_family: mysql5.7
+            - description: "Example parameter group"
+            parameters:
+              max_connections: 100
+            - apply_method: pending-reboot
+            - tags:
+              Environment: "dev"
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     res = __salt__["boto3_rds.parameter_group_exists"](

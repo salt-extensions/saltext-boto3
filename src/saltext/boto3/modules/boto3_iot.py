@@ -97,13 +97,26 @@ def thing_type_exists(thingTypeName, region=None, key=None, keyid=None, profile=
     """
     Check to see if the given thing type exists.
 
-    Returns ``{'exists': True}`` / ``{'exists': False}``.
+    thingTypeName (str):
+        The name of the thing type to check for existence.
+
+    region (str, optional):
+        The AWS region where the thing type is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_iot.thing_type_exists
+        salt-call boto3_iot.thing_type_exists thingTypeName
 
     """
     try:
@@ -119,6 +132,21 @@ def thing_type_exists(thingTypeName, region=None, key=None, keyid=None, profile=
 def describe_thing_type(thingTypeName, region=None, key=None, keyid=None, profile=None):
     """
     Describe the given thing type.
+
+    thingTypeName (str):
+        The name of the thing type to describe.
+
+    region (str, optional):
+        The AWS region where the thing type is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -158,11 +186,34 @@ def create_thing_type(
     """
     Create a thing type.
 
+    thingTypeName (str):
+        The name of the thing type to create.
+
+    thingTypeDescription (str):
+        A description of the thing type.
+
+    searchableAttributesList (list):
+        A list of attributes that are searchable for the thing type.
+
+    region (str, optional):
+        The AWS region where the thing type is to be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_iot.create_thing_type
+        salt-call boto3_iot.create_thing_type thingTypeName="MyThingType" \
+            thingTypeDescription="MyThingTypeDescription" \
+            searchableAttributesList='["attribute1","attribute2"]'
 
     """
     try:
@@ -189,6 +240,24 @@ def deprecate_thing_type(
     """
     Deprecate or undeprecate the given thing type.
 
+    thingTypeName (str):
+        The name of the thing type to deprecate or undeprecate.
+
+    undoDeprecate (bool, optional):
+        Set to True to undeprecate the thing type, False to deprecate it.
+
+    region (str, optional):
+        The AWS region where the thing type is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -207,6 +276,21 @@ def deprecate_thing_type(
 def delete_thing_type(thingTypeName, region=None, key=None, keyid=None, profile=None):
     """
     Delete the given thing type.
+
+    thingTypeName (str):
+        The name of the thing type to delete.
+
+    region (str, optional):
+        The AWS region where the thing type is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -230,6 +314,21 @@ def policy_exists(policyName, region=None, key=None, keyid=None, profile=None):
     """
     Check to see if the given policy exists.
 
+    policyName (str):
+        The name of the policy to check for existence.
+
+    region (str, optional):
+        The AWS region where the policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -250,6 +349,24 @@ def policy_exists(policyName, region=None, key=None, keyid=None, profile=None):
 def create_policy(policyName, policyDocument, region=None, key=None, keyid=None, profile=None):
     """
     Create a policy.
+
+    policyName (str):
+        The name of the policy to create.
+
+    policyDocument (str):
+        The JSON document that describes the policy.
+
+    region (str, optional):
+        The AWS region where the policy is to be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -276,6 +393,21 @@ def delete_policy(policyName, region=None, key=None, keyid=None, profile=None):
     """
     Delete the given policy.
 
+    policyName (str):
+        The name of the policy to delete.
+
+    region (str, optional):
+        The AWS region where the policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -294,6 +426,21 @@ def delete_policy(policyName, region=None, key=None, keyid=None, profile=None):
 def describe_policy(policyName, region=None, key=None, keyid=None, profile=None):
     """
     Describe the given policy.
+
+    policyName (str):
+        The name of the policy to describe.
+
+    region (str, optional):
+        The AWS region where the policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -320,6 +467,24 @@ def policy_version_exists(
 ):
     """
     Check to see if the given policy version exists.
+
+    policyName (str):
+        The name of the policy to check.
+
+    policyVersionId (str):
+        The ID of the policy version to check.
+
+    region (str, optional):
+        The AWS region where the policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -349,6 +514,27 @@ def create_policy_version(
 ):
     """
     Create a new version of a policy.
+
+    policyName (str):
+        The name of the policy to create a new version for.
+
+    policyDocument (str):
+        The JSON document that describes the policy.
+
+    setAsDefault (bool, optional):
+        Whether to set the new policy version as the default version. Defaults to False.
+
+    region (str, optional):
+        The AWS region where the policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -381,6 +567,24 @@ def delete_policy_version(
     """
     Delete the given policy version.
 
+    policyName (str):
+        The name of the policy to delete.
+
+    policyVersionId (str):
+        The ID of the policy version to delete.
+
+    region (str, optional):
+        The AWS region where the policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -401,6 +605,24 @@ def describe_policy_version(
 ):
     """
     Describe the given policy version.
+
+    policyName (str):
+        The name of the policy to describe.
+
+    policyVersionId (str):
+        The ID of the policy version to describe.
+
+    region (str, optional):
+        The AWS region where the policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -432,6 +654,18 @@ def list_policies(region=None, key=None, keyid=None, profile=None):
     """
     List all policies.
 
+    region (str, optional):
+        The AWS region where the policies are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -456,6 +690,21 @@ def list_policies(region=None, key=None, keyid=None, profile=None):
 def list_policy_versions(policyName, region=None, key=None, keyid=None, profile=None):
     """
     List the versions available for the given policy.
+
+    policyName (str):
+        The name of the policy to list versions for.
+
+    region (str, optional):
+        The AWS region where the policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -487,6 +736,24 @@ def set_default_policy_version(
     """
     Set the given version as the default for the policy.
 
+    policyName (str):
+        The name of the policy to set the default version for.
+
+    policyVersionId (str):
+        The ID of the policy version to set as default.
+
+    region (str, optional):
+        The AWS region where the policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -505,6 +772,21 @@ def set_default_policy_version(
 def list_principal_policies(principal, region=None, key=None, keyid=None, profile=None):
     """
     List the policies attached to the given principal.
+
+    principal (str):
+        The principal (e.g., an AWS IoT certificate ARN) whose attached policies are to be listed.
+
+    region (str, optional):
+        The AWS region where the principal is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -534,6 +816,24 @@ def attach_principal_policy(policyName, principal, region=None, key=None, keyid=
     """
     Attach the specified policy to the specified principal.
 
+    policyName (str):
+        The name of the policy to attach.
+
+    principal (str):
+        The principal (e.g., an AWS IoT certificate ARN) to attach the policy to.
+
+    region (str, optional):
+        The AWS region where the principal is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -553,6 +853,24 @@ def detach_principal_policy(policyName, principal, region=None, key=None, keyid=
     """
     Detach the specified policy from the specified principal.
 
+    policyName (str):
+        The name of the policy to detach.
+
+    principal (str):
+        The principal (e.g., an AWS IoT certificate ARN) from which to detach the policy.
+
+    region (str, optional):
+        The AWS region where the principal is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -571,6 +889,21 @@ def detach_principal_policy(policyName, principal, region=None, key=None, keyid=
 def topic_rule_exists(ruleName, region=None, key=None, keyid=None, profile=None):
     """
     Check to see if the given rule exists.
+
+    ruleName (str):
+        The name of the topic rule to check for existence.
+
+    region (str, optional):
+        The AWS region where the topic rule is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -607,6 +940,33 @@ def create_topic_rule(
 ):
     """
     Create a topic rule.
+
+    ruleName (str):
+        The name of the topic rule to create.
+
+    sql (str):
+        The SQL statement that defines the rule.
+
+    actions (list):
+        A list of actions associated with the rule.
+
+    description (str):
+        A description of the topic rule.
+
+    ruleDisabled (bool, optional):
+        Whether the rule is disabled. Defaults to False.
+
+    region (str, optional):
+        The AWS region where the topic rule is to be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -645,6 +1005,33 @@ def replace_topic_rule(
     """
     Replace a topic rule with the new values.
 
+    ruleName (str):
+        The name of the topic rule to replace.
+
+    sql (str):
+        The SQL statement that defines the rule.
+
+    actions (list):
+        A list of actions associated with the rule.
+
+    description (str):
+        A description of the topic rule.
+
+    ruleDisabled (bool, optional):
+        Whether the rule is disabled. Defaults to False.
+
+    region (str, optional):
+        The AWS region where the topic rule is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -672,6 +1059,21 @@ def delete_topic_rule(ruleName, region=None, key=None, keyid=None, profile=None)
     """
     Delete the given topic rule.
 
+    ruleName (str):
+        The name of the topic rule to delete.
+
+    region (str, optional):
+        The AWS region where the topic rule is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -690,6 +1092,21 @@ def delete_topic_rule(ruleName, region=None, key=None, keyid=None, profile=None)
 def describe_topic_rule(ruleName, region=None, key=None, keyid=None, profile=None):
     """
     Describe the given topic rule.
+
+    ruleName (str):
+        The name of the topic rule to describe.
+
+    region (str, optional):
+        The AWS region where the topic rule is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -715,6 +1132,24 @@ def list_topic_rules(
 ):
     """
     List all rules (for a given topic, if specified).
+
+    topic (str, optional):
+        The topic to filter the rules by.
+
+    ruleDisabled (bool, optional):
+        Whether to include disabled rules.
+
+    region (str, optional):
+        The AWS region where the topic rules are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 

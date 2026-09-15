@@ -100,10 +100,10 @@ def topic_present(
     """
     Ensure the SNS topic exists.
 
-    name
+    name (str)
         Name of the SNS topic.
 
-    subscriptions
+    subscriptions (list)
         List of SNS subscriptions.
 
         Each subscription is a dictionary with a protocol and endpoint key:
@@ -116,7 +116,7 @@ def topic_present(
             - Protocol: sqs
               Endpoint: arn:aws:sqs:us-west-2:123456789012:MyQueue
 
-    attributes
+    attributes (dict)
         Dictionary of attributes to set on the SNS topic
         Valid attribute keys are:
 
@@ -125,18 +125,38 @@ def topic_present(
                 to email and email-json endpoints
           - DeliveryPolicy:  the JSON serialization of the topic's delivery policy
 
-    region
+    region (str)
         Region to connect to.
 
-    key
+    key (str)
         Secret key to be used.
 
-    keyid
+    keyid (str)
         Access key to be used.
 
-    profile
+    profile (dict)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
+
+    Example:
+
+    .. code-block:: yaml
+
+        mytopic:
+          boto3_sns.topic_present:
+            - region: us-east-1
+            - profile:
+              keyid: GKTADJGHEIQSXMKKRBJ08H
+              key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
+            - subscriptions:
+              - Protocol: https
+                Endpoint: https://www.example.com/sns-endpoint
+              - Protocol: sqs
+                Endpoint: arn:aws:sqs:us-west-2:123456789012:MyQueue
+            - attributes:
+              DisplayName: My SNS Topic
+              Policy: '{"Version":"2012-10-17","Statement":[{"Effect":"Allow","Principal":"*","Action":"SNS:Publish","Resource":"arn:aws:sns:us-east-1:123456789012:mytopic"}]}'
+              DeliveryPolicy: '{"healthyRetryPolicy":{"numRetries":3}}'
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -275,23 +295,23 @@ def topic_absent(name, unsubscribe=False, region=None, key=None, keyid=None, pro
     """
     Ensure the named sns topic is deleted.
 
-    name
+    name (str)
         Name of the SNS topic.
 
-    unsubscribe
+    unsubscribe (bool)
         If True, unsubscribe all subcriptions to the SNS topic before
         deleting the SNS topic
 
-    region
+    region (str)
         Region to connect to.
 
-    key
+    key (str)
         Secret key to be used.
 
-    keyid
+    keyid (str)
         Access key to be used.
 
-    profile
+    profile (str or dict)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -302,7 +322,6 @@ def topic_absent(name, unsubscribe=False, region=None, key=None, keyid=None, pro
         ensure-topic-absent:
           boto3_sns.topic_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 

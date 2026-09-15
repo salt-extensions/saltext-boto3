@@ -98,6 +98,21 @@ def activate_pipeline(pipeline_id, region=None, key=None, keyid=None, profile=No
     """
     Start processing pipeline tasks. This function is idempotent.
 
+    pipeline_id (str):
+        The ID of the pipeline to activate.
+
+    region (str, optional):
+        The AWS region where the pipeline is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -119,6 +134,27 @@ def create_pipeline(
 ):
     """
     Create a new, empty pipeline. This function is idempotent.
+
+    name (str):
+        The name of the pipeline to create.
+
+    unique_id (str):
+        A unique identifier for the pipeline.
+
+    description (str, optional):
+        A description of the pipeline.
+
+    region (str, optional):
+        The AWS region where the pipeline will be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -145,6 +181,21 @@ def delete_pipeline(pipeline_id, region=None, key=None, keyid=None, profile=None
     Delete a pipeline, its pipeline definition, and its run history.
     This function is idempotent.
 
+    pipeline_id (str):
+        The ID of the pipeline to delete.
+
+    region (str, optional):
+        The AWS region where the pipeline is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -164,6 +215,21 @@ def delete_pipeline(pipeline_id, region=None, key=None, keyid=None, profile=None
 def describe_pipelines(pipeline_ids, region=None, key=None, keyid=None, profile=None):
     """
     Retrieve metadata about one or more pipelines.
+
+    pipeline_ids (list):
+        A list of pipeline IDs to retrieve metadata for.
+
+    region (str, optional):
+        The AWS region where the pipelines are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -185,6 +251,24 @@ def get_pipeline_definition(
 ):
     """
     Get the definition of the specified pipeline.
+
+    pipeline_id (str):
+        The ID of the pipeline to retrieve the definition for.
+
+    version (str, optional):
+        The version of the pipeline definition to retrieve. Defaults to "latest".
+
+    region (str, optional):
+        The AWS region where the pipeline is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -208,6 +292,18 @@ def list_pipelines(region=None, key=None, keyid=None, profile=None):
     """
     Get a list of pipeline ids and names for all pipelines.
 
+    region (str, optional):
+        The AWS region where the pipelines are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -230,6 +326,21 @@ def list_pipelines(region=None, key=None, keyid=None, profile=None):
 def pipeline_id_from_name(name, region=None, key=None, keyid=None, profile=None):
     """
     Get the pipeline id, if it exists, for the given name.
+
+    name (str):
+        The name of the pipeline to look up.
+
+    region (str, optional):
+        The AWS region where the pipelines are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -263,6 +374,30 @@ def put_pipeline_definition(
     """
     Add tasks, schedules, and preconditions to the specified pipeline. This
     function is idempotent and will replace an existing definition.
+
+    pipeline_id (str):
+        The ID of the pipeline to update.
+
+    pipeline_objects (list):
+        A list of pipeline objects defining the tasks, schedules, and preconditions.
+
+    parameter_objects (list, optional):
+        A list of parameter objects for the pipeline.
+
+    parameter_values (list, optional):
+        A list of parameter values for the pipeline.
+
+    region (str, optional):
+        The AWS region where the pipeline is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 

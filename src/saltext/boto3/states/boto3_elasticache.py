@@ -11,7 +11,8 @@ possible leverage boto3's parameter naming and semantics.  This allows one to us
 http://boto3.readthedocs.io/en/latest/reference/services/elasticache.html as an
 excellent source for details too involved to reiterate here.
 
-Note:  This module is designed to be transparent ("intentionally ignorant" is the
+.. note::
+This module is designed to be transparent ("intentionally ignorant" is the
 phrase I used to describe it to my boss) to new AWS / boto options - since all
 AWS API params are passed directly through both the state and executions modules,
 any new args to existing functions which become available after this documentation
@@ -102,11 +103,11 @@ as a passed in dict, or as a string to pull from pillars or minion config:
 
 def __virtual__():
     """
-    Only load if boto is available.
+    Only load if boto3_elasticache is available.
     """
     if "boto3_elasticache.cache_cluster_exists" in __salt__:
         return "boto3_elasticache"
-    return (False, "boto3_elasticcache module could not be loaded")
+    return (False, "boto3_elasticache module could not be loaded")
 
 
 def _diff_cache_cluster(current, desired):
@@ -184,17 +185,20 @@ def cache_cluster_present(
     """
     Ensure a given cache cluster exists.
 
-    name
+    name (String)
         Name of the cache cluster (cache cluster id).
 
-    wait
+    wait (Integer)
         Integer describing how long, in seconds, to wait for confirmation from AWS that the
         resource is in the desired state.  Zero meaning to return success or failure immediately
-        of course.  Note that waiting for the cluster to become available is generally the
-        better course, as failure to do so will often lead to subsequent failures when managing
-        dependent resources.
+        of course.
 
-    security_groups
+        .. note::
+            Waiting for the cluster to become available is generally the
+            better course, as failure to do so will often lead to subsequent failures when managing
+            dependent resources.
+
+    security_groups (List)
         One or more VPC security groups (names and/or IDs) associated with the cache cluster.
 
         .. note::
@@ -202,7 +206,7 @@ def cache_cluster_present(
             SecurityGroupIds parameter below.  Use this parameter ONLY when you
             are creating a cluster in a VPC.
 
-    CacheClusterId
+    CacheClusterId (String)
         The node group (shard) identifier. This parameter is stored as a lowercase string.
 
         Constraints:
@@ -215,7 +219,7 @@ def cache_cluster_present(
             In general this parameter is not needed, as 'name' is used if it's
             not provided.
 
-    ReplicationGroupId
+    ReplicationGroupId (String)
         The ID of the replication group to which this cache cluster should belong. If this
         parameter is specified, the cache cluster is added to the specified replication
         group as a read replica; otherwise, the cache cluster is a standalone primary that
@@ -224,13 +228,13 @@ def cache_cluster_present(
         created in Availability Zones that provide the best spread of read replicas across
         Availability Zones.
 
-        .. note:
+        .. note::
             This parameter is ONLY valid if the Engine parameter is redis. Due
             to current limitations on Redis (cluster mode disabled), this
             parameter is not supported on Redis (cluster mode enabled)
             replication groups.
 
-    AZMode
+    AZMode (String)
         Specifies whether the nodes in this Memcached cluster are created in a single
         Availability Zone or created across multiple Availability Zones in the cluster's
         region. If the AZMode and PreferredAvailabilityZones are not specified,
@@ -239,7 +243,7 @@ def cache_cluster_present(
         .. note::
             This parameter is ONLY supported for Memcached cache clusters.
 
-    PreferredAvailabilityZone
+    PreferredAvailabilityZone (String)
         The EC2 Availability Zone in which the cache cluster is created.  All nodes
         belonging to this Memcached cache cluster are placed in the preferred Availability
         Zone. If you want to create your nodes across multiple Availability Zones, use
@@ -247,7 +251,7 @@ def cache_cluster_present(
 
         Default:  System chosen Availability Zone.
 
-    PreferredAvailabilityZones
+    PreferredAvailabilityZones (List)
         A list of the Availability Zones in which cache nodes are created. The order of
         the zones in the list is not important.  The number of Availability Zones listed
         must equal the value of NumCacheNodes.  If you want all the nodes in the same
@@ -263,7 +267,7 @@ def cache_cluster_present(
             (recommended) you can only locate nodes in Availability Zones that
             are associated with the subnets in the selected subnet group.
 
-    NumCacheNodes
+    NumCacheNodes (Integer)
         The initial (integer) number of cache nodes that the cache cluster has.
 
         .. note::
@@ -271,7 +275,7 @@ def cache_cluster_present(
 
             For clusters running Memcached, this value must be between 1 and 20.
 
-    CacheNodeType
+    CacheNodeType (String)
         The compute and memory capacity of the nodes in the node group (shard).
         Valid node types (and pricing for them) are exhaustively described at
         https://aws.amazon.com/elasticache/pricing/
@@ -286,11 +290,11 @@ def cache_cluster_present(
            Redis Append-only files (AOF) functionality is not supported for T1
            or T2 instances.
 
-    Engine
+    Engine (String)
         The name of the cache engine to be used for this cache cluster.  Valid values for
         this parameter are:  memcached | redis
 
-    EngineVersion
+    EngineVersion (String)
         The version number of the cache engine to be used for this cache cluster. To view
         the supported cache engine versions, use the DescribeCacheEngineVersions operation.
 
@@ -300,13 +304,13 @@ def cache_cluster_present(
             version, you must delete the existing cache cluster or replication
             group and create it anew with the earlier engine version.
 
-    CacheParameterGroupName
+    CacheParameterGroupName (String)
         The name of the parameter group to associate with this cache cluster. If this
         argument is omitted, the default parameter group for the specified engine is used.
         You cannot use any parameter group which has cluster-enabled='yes' when creating
         a cluster.
 
-    CacheSubnetGroupName
+    CacheSubnetGroupName (String)
         The name of the Cache Subnet Group to be used for the cache cluster.  Use this
         parameter ONLY when you are creating a cache cluster within a VPC.
 
@@ -314,20 +318,23 @@ def cache_cluster_present(
             If you're going to launch your cluster in an Amazon VPC, you need
             to create a subnet group before you start creating a cluster.
 
-    CacheSecurityGroupNames
+    CacheSecurityGroupNames (List)
         A list of Cache Security Group names to associate with this cache cluster.  Use
         this parameter ONLY when you are creating a cache cluster outside of a VPC.
 
-    SecurityGroupIds
+    SecurityGroupIds (List)
         One or more VPC security groups associated with the cache cluster.  Use this
         parameter ONLY when you are creating a cache cluster within a VPC.
 
-    Tags
-        A list of tags to be added to this resource.  Note that due to shortcomings in the
-        AWS API for Elasticache, these can only be set during resource creation - later
-        modification is not (currently) supported.
+    Tags (List)
+        A list of tags to be added to this resource.
 
-    SnapshotArns
+        .. note::
+            Due to shortcomings in the
+            AWS API for Elasticache, these can only be set during resource creation - later
+            modification is not (currently) supported.
+
+    SnapshotArns (List)
         A single-element string list containing an Amazon Resource Name (ARN) that
         uniquely identifies a Redis RDB snapshot file stored in Amazon S3. The snapshot
         file is used to populate the node group (shard). The Amazon S3 object name in
@@ -336,7 +343,7 @@ def cache_cluster_present(
         .. note::
             This parameter is ONLY valid if the Engine parameter is redis.
 
-    SnapshotName
+    SnapshotName (String)
         The name of a Redis snapshot from which to restore data into the new node group
         (shard). The snapshot status changes to restoring while the new node group (shard)
         is being created.
@@ -344,7 +351,7 @@ def cache_cluster_present(
         .. note::
             This parameter is ONLY valid if the Engine parameter is redis.
 
-    PreferredMaintenanceWindow
+    PreferredMaintenanceWindow (String)
         Specifies the weekly time range during which maintenance on the cache cluster is
         permitted.  It is specified as a range in the format ddd:hh24:mi-ddd:hh24:mi
         (24H Clock UTC).  The minimum maintenance window is a 60 minute period.
@@ -352,12 +359,12 @@ def cache_cluster_present(
 
         Example:  sun:23:00-mon:01:30
 
-    Port
+    Port (Integer)
         The port number on which each of the cache nodes accepts connections.
 
         Default:  6379
 
-    NotificationTopicArn
+    NotificationTopicArn (String)
         The Amazon Resource Name (ARN) of the Amazon Simple Notification Service (SNS)
         topic to which notifications are sent.
 
@@ -365,10 +372,10 @@ def cache_cluster_present(
             The Amazon SNS topic owner must be the same as the cache cluster
             owner.
 
-    AutoMinorVersionUpgrade
+    AutoMinorVersionUpgrade (Boolean)
         This (boolean) parameter is currently disabled.
 
-    SnapshotRetentionLimit
+    SnapshotRetentionLimit (Integer)
         The number of days for which ElastiCache retains automatic snapshots before
         deleting them.
 
@@ -377,7 +384,7 @@ def cache_cluster_present(
         .. note::
             This parameter is ONLY valid if the Engine parameter is redis.
 
-    SnapshotWindow
+    SnapshotWindow (String)
         The daily time range (in UTC) during which ElastiCache begins taking a daily
         snapshot of your node group (shard).  If you do not specify this parameter,
         ElastiCache automatically chooses an appropriate time range.
@@ -387,7 +394,7 @@ def cache_cluster_present(
         .. note::
             This parameter is ONLY valid if the Engine parameter is redis.
 
-    AuthToken
+    AuthToken (String)
         The password used to access a password protected server.
 
         Password constraints:
@@ -396,36 +403,38 @@ def cache_cluster_present(
         - Must be at least 16 characters and no more than 128 characters in length.
         - Cannot contain any of the following characters: '/', '"', or "@".
 
-    CacheNodeIdsToRemove
+    CacheNodeIdsToRemove (List)
         A list of cache node IDs to be removed. A node ID is a numeric identifier (0001, 0002,
         etc.).  This parameter is only valid when NumCacheNodes is less than the existing number of
         cache nodes.  The number of cache node IDs supplied in this parameter must match the
         difference between the existing number of cache nodes in the cluster or pending cache nodes,
         whichever is greater, and the value of NumCacheNodes in the request.
 
-    NewAvailabilityZones
+    NewAvailabilityZones (List)
         The list of Availability Zones where the new Memcached cache nodes are created.
         This parameter is only valid when NumCacheNodes in the request is greater than the sum of
         the number of active cache nodes and the number of cache nodes pending creation (which may
         be zero).  The number of Availability Zones supplied in this list must match the cache nodes
         being added in this request.
-        Note:  This option is only supported on Memcached clusters.
 
-    NotificationTopicStatus
+        .. note::
+            This option is only supported on Memcached clusters.
+
+    NotificationTopicStatus (String)
         The status of the SNS notification topic.  Notifications are sent only if the status is active.
 
         Valid values:  active | inactive
 
-    region
+    region (String)
         Region to connect to.
 
-    key
+    key (String)
         Secret key to be used.
 
-    keyid
+    keyid (String)
         Access key to be used.
 
-    profile
+    profile (String)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -436,7 +445,6 @@ def cache_cluster_present(
         ensure-cache-cluster-present:
           boto3_elasticache.cache_cluster_present:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     args = {k: v for k, v in args.items() if not k.startswith("_")}
@@ -526,35 +534,40 @@ def cache_cluster_absent(name, wait=600, region=None, key=None, keyid=None, prof
     """
     Ensure a given cache cluster is deleted.
 
-    name
+    name (String)
         Name of the cache cluster.
 
-    wait
+    wait (Integer)
         Integer describing how long, in seconds, to wait for confirmation from AWS that the
         resource is in the desired state.  Zero meaning to return success or failure immediately
-        of course.  Note that waiting for the cluster to become available is generally the
-        better course, as failure to do so will often lead to subsequent failures when managing
-        dependent resources.
+        of course.
 
-    CacheClusterId
+        .. note::
+            Waiting for the cluster to become available is generally the
+            better course, as failure to do so will often lead to subsequent failures when managing
+            dependent resources.
+
+    CacheClusterId (String)
         The node group (shard) identifier.
-        Note:  In general this parameter is not needed, as 'name' is used if it's not provided.
 
-    FinalSnapshotIdentifier
+        .. note::
+            In general this parameter is not needed, as 'name' is used if it's not provided.
+
+    FinalSnapshotIdentifier (String)
         The user-supplied name of a final cache cluster snapshot.  This is the unique name
         that identifies the snapshot.  ElastiCache creates the snapshot, and then deletes the
         cache cluster immediately afterward.
 
-    region
+    region (String)
         Region to connect to.
 
-    key
+    key (String)
         Secret key to be used.
 
-    keyid
+    keyid (String)
         Access key to be used.
 
-    profile
+    profile (String)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -565,7 +578,6 @@ def cache_cluster_absent(name, wait=600, region=None, key=None, keyid=None, prof
         ensure-cache-cluster-absent:
           boto3_elasticache.cache_cluster_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     args = {k: v for k, v in args.items() if not k.startswith("_")}
@@ -665,17 +677,20 @@ def replication_group_present(
     """
     Ensure a replication group exists and is in the given state.
 
-    name
+    name (String)
         Name of replication group
 
-    wait
+    wait (Integer)
         Integer describing how long, in seconds, to wait for confirmation from AWS that the
         resource is in the desired state.  Zero meaning to return success or failure immediately
-        of course.  Note that waiting for the cluster to become available is generally the
-        better course, as failure to do so will often lead to subsequent failures when managing
-        dependent resources.
+        of course.
 
-    security_groups
+        .. note::
+            Waiting for the cluster to become available is generally the
+            better course, as failure to do so will often lead to subsequent failures when managing
+            dependent resources.
+
+    security_groups (List)
         One or more VPC security groups (names and/or IDs) associated with the cache cluster.
 
         .. note::
@@ -683,7 +698,7 @@ def replication_group_present(
             SecurityGroupIds parameter below.  Use this parameter ONLY when you
             are creating a cluster in a VPC.
 
-    ReplicationGroupId
+    ReplicationGroupId (String)
         The replication group identifier. This parameter is stored as a lowercase string.
 
         Constraints:
@@ -696,15 +711,15 @@ def replication_group_present(
             In general this parameter is not needed, as 'name' is used if it's
             not provided.
 
-    ReplicationGroupDescription
+    ReplicationGroupDescription (String)
         A user-created description for the replication group.
 
-    PrimaryClusterId
+    PrimaryClusterId (String)
         The identifier of the cache cluster that serves as the primary for this replication group.
         This cache cluster must already exist and have a status of available.  This parameter is
         not required if NumCacheClusters, NumNodeGroups, or ReplicasPerNodeGroup is specified.
 
-    AutomaticFailoverEnabled
+    AutomaticFailoverEnabled (Boolean)
         Specifies whether a read-only replica is automatically promoted to read/write primary if
         the existing primary fails.  If true, Multi-AZ is enabled for this replication group. If
         false, Multi-AZ is disabled for this replication group.
@@ -721,13 +736,13 @@ def replication_group_present(
             - Redis (cluster mode disabled): T1 and T2 node types.
             - Redis (cluster mode enabled): T2 node types.
 
-    NumCacheClusters
+    NumCacheClusters (Integer)
         The number of clusters this replication group initially has.  This parameter is not used
         if there is more than one node group (shard). You should use ReplicasPerNodeGroup instead.
         If Multi-AZ is enabled , the value of this parameter must be at least 2.  The maximum
         permitted value for NumCacheClusters is 6 (primary plus 5 replicas).
 
-    PreferredCacheClusterAZs
+    PreferredCacheClusterAZs (List)
         A list of EC2 Availability Zones in which the replication group's cache clusters are
         created. The order of the Availability Zones in the list is the order in which clusters
         are allocated. The primary cluster is created in the first AZ in the list.  This parameter
@@ -742,18 +757,18 @@ def replication_group_present(
             (recommended), you can only locate cache clusters in Availability
             Zones associated with the subnets in the selected subnet group.
 
-    NumNodeGroups
+    NumNodeGroups (Integer)
         An optional parameter that specifies the number of node groups (shards)
         for this Redis (cluster mode enabled) replication group. For Redis
         (cluster mode disabled) either omit this parameter or set it to 1.
 
         Default:  1
 
-    ReplicasPerNodeGroup
+    ReplicasPerNodeGroup (Integer)
         An optional parameter that specifies the number of replica nodes in
         each node group (shard). Valid values are:  0 to 5
 
-    NodeGroupConfiguration
+    NodeGroupConfiguration (List)
         A list of node group (shard) configuration options. Each node group (shard) configuration
         has the following:  Slots, PrimaryAvailabilityZone, ReplicaAvailabilityZones, ReplicaCount.
         If you're creating a Redis (cluster mode disabled) or a Redis (cluster mode enabled)
@@ -761,7 +776,7 @@ def replication_group_present(
         can omit this parameter.  For fiddly details of the expected data layout of this param, see
         http://boto3.readthedocs.io/en/latest/reference/services/elasticache.html?#ElastiCache.Client.create_replication_group
 
-    CacheNodeType
+    CacheNodeType (String)
         The compute and memory capacity of the nodes in the node group (shard).
         See https://aws.amazon.com/elasticache/pricing/ for current sizing, prices, and constraints.
 
@@ -772,10 +787,10 @@ def replication_group_present(
             Redis (cluster mode enabled) T2 instances. Redis Append-only files
             (AOF) functionality is not supported for T1 or T2 instances.
 
-    Engine
+    Engine (String)
         The name of the cache engine to be used for the cache clusters in this replication group.
 
-    EngineVersion
+    EngineVersion (String)
         The version number of the cache engine to be used for the cache clusters in this replication
         group. To view the supported cache engine versions, use the DescribeCacheEngineVersions
         operation.
@@ -786,7 +801,7 @@ def replication_group_present(
             version, you must delete the existing cache cluster or replication
             group and create it anew with the earlier engine version.
 
-    CacheParameterGroupName
+    CacheParameterGroupName (String)
         The name of the parameter group to associate with this replication group. If this argument
         is omitted, the default cache parameter group for the specified engine is used.
 
@@ -801,7 +816,7 @@ def replication_group_present(
             To create a Redis (cluster mode enabled) replication group, use
             CacheParameterGroupName=default.redis3.2.cluster.on
 
-    CacheSubnetGroupName
+    CacheSubnetGroupName (String)
         The name of the cache subnet group to be used for the replication group.
 
         .. note::
@@ -809,19 +824,21 @@ def replication_group_present(
             to create a s group before you start creating a cluster. For more
             information, see Subnets and Subnet Groups.
 
-    CacheSecurityGroupNames
+    CacheSecurityGroupNames (List)
         A list of cache security group names to associate with this replication group.
 
-    SecurityGroupIds
+    SecurityGroupIds (List)
         One or more Amazon VPC security groups associated with this replication group.  Use this
         parameter only when you are creating a replication group in an VPC.
 
-    Tags
-        A list of tags to be added to this resource.  Note that due to shortcomings in the
-        AWS API for Elasticache, these can only be set during resource creation - later
-        modification is not (currently) supported.
+    Tags (List)
+        A list of tags to be added to this resource.
 
-    SnapshotArns
+        .. note::
+            Due to shortcomings in the AWS API for Elasticache, these can only be set during
+            resource creation - later modification is not (currently) supported.
+
+    SnapshotArns (List)
         A list of ARNs that uniquely identify the Redis RDB snapshot files stored in Amazon S3.
         These snapshot files are used to populate the replication group.  The Amazon S3 object name
         in the ARN cannot contain any commas. The list must match the number of node groups (shards)
@@ -830,12 +847,14 @@ def replication_group_present(
         .. note::
             This parameter is only valid if the Engine parameter is redis.
 
-    SnapshotName
+    SnapshotName (String)
         The name of a snapshot from which to restore data into the new replication group.  The
         snapshot status changes to restoring while the new replication group is being created.
-        Note:  This parameter is only valid if the Engine parameter is redis.
 
-    PreferredMaintenanceWindow
+        .. note::
+            This parameter is only valid if the Engine parameter is redis.
+
+    PreferredMaintenanceWindow (String)
         Specifies the weekly time range during which maintenance on the cluster is performed. It is
         specified as a range in the format ddd:hh24:mi-ddd:hh24:mi (24H Clock UTC). The minimum
         maintenance window is a 60 minute period.
@@ -843,19 +862,19 @@ def replication_group_present(
 
         Example:  sun:23:00-mon:01:30
 
-    Port
+    Port (Integer)
         The port number on which each member of the replication group accepts connections.
 
-    NotificationTopicArn
+    NotificationTopicArn (String)
         The ARN of an SNS topic to which notifications are sent.
 
         .. note::
             The SNS topic owner must be the same as the cache cluster owner.
 
-    AutoMinorVersionUpgrade
+    AutoMinorVersionUpgrade (Boolean)
         This parameter is currently disabled.
 
-    SnapshotRetentionLimit
+    SnapshotRetentionLimit (Integer)
         The number of days for which ElastiCache will retain automatic snapshots before deleting
         them.
 
@@ -864,7 +883,7 @@ def replication_group_present(
         .. note::
             This parameter is only valid if the Engine parameter is redis.
 
-    SnapshotWindow
+    SnapshotWindow (String)
         The daily time range (in UTC) during which ElastiCache begins taking a daily snapshot of
         your node group (shard).  If you do not specify this parameter, ElastiCache automatically
         chooses an appropriate time range.
@@ -874,7 +893,7 @@ def replication_group_present(
         .. note::
             This parameter is only valid if the Engine parameter is redis.
 
-    AuthToken
+    AuthToken (String)
         The password used to access a password protected server.
         Password constraints:
 
@@ -882,23 +901,23 @@ def replication_group_present(
         - Must be at least 16 characters and no more than 128 characters in length.
         - Cannot contain any of the following characters: '/', '"', or "@".
 
-    SnapshottingClusterId
+    SnapshottingClusterId (String)
         The cache cluster ID that is used as the daily snapshot source for the replication group.
 
-    NotificationTopicStatus
+    NotificationTopicStatus (String)
         The status of the SNS notification topic.  Notifications are sent only if the status is active.
         Valid values:  active | inactive
 
-    region
+    region (String)
         Region to connect to.
 
-    key
+    key (String)
         Secret key to be used.
 
-    keyid
+    keyid (String)
         Access key to be used.
 
-    profile
+    profile (String or Dict)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -909,7 +928,6 @@ def replication_group_present(
         ensure-replication-group-present:
           boto3_elasticache.replication_group_present:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     args = {k: v for k, v in args.items() if not k.startswith("_")}
@@ -997,39 +1015,44 @@ def replication_group_absent(
     """
     Ensure a given replication group is deleted.
 
-    name
+    name (String)
         Name of the replication group.
 
-    wait
+    wait (Integer)
         Integer describing how long, in seconds, to wait for confirmation from AWS that the
         resource is in the desired state.  Zero meaning to return success or failure immediately
-        of course.  Note that waiting for the cluster to become available is generally the
-        better course, as failure to do so will often lead to subsequent failures when managing
-        dependent resources.
+        of course.
 
-    ReplicationGroupId
+        .. note::
+            Waiting for the cluster to become available is generally the
+            better course, as failure to do so will often lead to subsequent failures when managing
+            dependent resources.
+
+    ReplicationGroupId (String)
         The replication group identifier.
-        Note:  In general this parameter is not needed, as 'name' is used if it's not provided.
 
-    RetainPrimaryCluster
+        .. note::
+            In general this parameter is not needed, as 'name' is used if it's not provided.
+
+    RetainPrimaryCluster (Boolean)
         If set to true, all of the read replicas are deleted, but the primary node is retained.
 
-    FinalSnapshotIdentifier
+    FinalSnapshotIdentifier (String)
         The name of a final node group (shard) snapshot.  ElastiCache creates the snapshot from
         the primary node in the cluster, rather than one of the replicas; this is to ensure that
         it captures the freshest data.  After the final snapshot is taken, the replication group is
         immediately deleted.
 
-    region
+    region (String)
         Region to connect to.
 
-    key
+    key (String)
         Secret key to be used.
 
-    keyid
+    keyid (String)
         Access key to be used.
 
-    profile
+    profile (String or Dict)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -1040,7 +1063,6 @@ def replication_group_absent(
         ensure-replication-group-absent:
           boto3_elasticache.replication_group_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     args = {k: v for k, v in args.items() if not k.startswith("_")}
@@ -1111,34 +1133,36 @@ def cache_subnet_group_present(
     """
     Ensure cache subnet group exists.
 
-    name
+    name (String)
         A name for the cache subnet group. This value is stored as a lowercase string.
         Constraints:  Must contain no more than 255 alphanumeric characters or hyphens.
 
-    subnets
+    subnets (List)
         A list of VPC subnets (IDs, Names, or a mix) for the cache subnet group.
 
-    CacheSubnetGroupName
+    CacheSubnetGroupName (String)
         A name for the cache subnet group. This value is stored as a lowercase string.
         Constraints:  Must contain no more than 255 alphanumeric characters or hyphens.
-        Note:  In general this parameter is not needed, as 'name' is used if it's not provided.
 
-    CacheSubnetGroupDescription
+        .. note::
+            In general this parameter is not needed, as 'name' is used if it's not provided.
+
+    CacheSubnetGroupDescription (String)
         A description for the cache subnet group.
 
-    SubnetIds
+    SubnetIds (List)
         A list of VPC subnet IDs for the cache subnet group.  This is ADDITIVE with 'subnets' above.
 
-    region
+    region (String)
         Region to connect to.
 
-    key
+    key (String)
         Secret key to be used.
 
-    keyid
+    keyid (String)
         Access key to be used.
 
-    profile
+    profile (String or Dict)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -1149,7 +1173,6 @@ def cache_subnet_group_present(
         ensure-cache-subnet-group-present:
           boto3_elasticache.cache_subnet_group_present:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     args = {k: v for k, v in args.items() if not k.startswith("_")}
@@ -1219,23 +1242,25 @@ def cache_subnet_group_absent(name, region=None, key=None, keyid=None, profile=N
     """
     Ensure a given cache subnet group is deleted.
 
-    name
+    name (String)
         Name of the cache subnet group.
 
-    CacheSubnetGroupName
+    CacheSubnetGroupName (String)
         A name for the cache subnet group.
-        Note:  In general this parameter is not needed, as 'name' is used if it's not provided.
 
-    region
+        .. note::
+            In general this parameter is not needed, as 'name' is used if it's not provided.
+
+    region (String)
         Region to connect to.
 
-    key
+    key (String)
         Secret key to be used.
 
-    keyid
+    keyid (String)
         Access key to be used.
 
-    profile
+    profile (String or Dict)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -1246,7 +1271,6 @@ def cache_subnet_group_absent(name, region=None, key=None, keyid=None, profile=N
         ensure-cache-subnet-group-absent:
           boto3_elasticache.cache_subnet_group_absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     args = {k: v for k, v in args.items() if not k.startswith("_")}

@@ -86,26 +86,26 @@ def present(name, attributes, region=None, key=None, keyid=None, profile=None):
     """
     Ensure the cloudwatch alarm exists.
 
-    name
+    name (string)
         Name of the alarm.
 
-    attributes
+    attributes (dict)
         A dict of boto3 CloudWatch alarm attributes (``MetricName``,
         ``Namespace``, ``Statistic``, ``ComparisonOperator``, ``Threshold``,
         ``Period``, ``EvaluationPeriods``, ``Unit``, ``AlarmDescription``,
         ``Dimensions``, ``AlarmActions``, ``InsufficientDataActions``,
         ``OKActions``).
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (string)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -116,7 +116,6 @@ def present(name, attributes, region=None, key=None, keyid=None, profile=None):
         ensure-present:
           boto3_cloudwatch_alarm.present:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     alarm_details = __salt__["boto3_cloudwatch.get_alarm"](
@@ -193,19 +192,19 @@ def absent(name, region=None, key=None, keyid=None, profile=None):
     """
     Ensure the named cloudwatch alarm is deleted.
 
-    name
+    name (string)
         Name of the alarm.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (string)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -216,7 +215,6 @@ def absent(name, region=None, key=None, keyid=None, profile=None):
         ensure-absent:
           boto3_cloudwatch_alarm.absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 

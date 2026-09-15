@@ -177,12 +177,29 @@ def get_all_eip_addresses(
     """
     Get public addresses of some, or all EIPs associated with the current account.
 
+    addresses (list, optional):
+        A list of public IP addresses to filter by.
+
+    allocation_ids (list, optional):
+        A list of allocation IDs to filter by.
+
+    region (str, optional):
+        The AWS region where the EIPs are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.get_all_eip_addresses
-
+        salt-call boto3_ec2.get_all_eip_addresses region='us-west-2'
     """
     return [
         addr.get("PublicIp")
@@ -196,12 +213,26 @@ def get_unassociated_eip_address(
     """
     Return the first unassociated EIP (public IP string), or None.
 
+    domain (str, optional):
+        The domain of the Elastic IP address to filter by. The only permitted value is 'vpc'.
+
+    region (str, optional):
+        The AWS region where the EIPs are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.get_unassociated_eip_address
-
+        salt-call boto3_ec2.get_unassociated_eip_address domain='vpc' region='us-west-2'
     """
     for address in get_all_eip_addresses(region=region, key=key, keyid=keyid, profile=profile):
         info = get_eip_address_info(
@@ -221,12 +252,29 @@ def get_eip_address_info(
     """
     Get 'interesting' info about some, or all EIPs associated with the account.
 
+    addresses (list, optional):
+        A list of public IP addresses to filter by.
+
+    allocation_ids (list, optional):
+        A list of allocation IDs to filter by.
+
+    region (str, optional):
+        The AWS region where the EIPs are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.get_eip_address_info
-
+        salt-call boto3_ec2.get_eip_address_info region='us-west-2'
     """
     if isinstance(addresses, str):
         addresses = [addresses]
@@ -249,12 +297,26 @@ def allocate_eip_address(domain=None, region=None, key=None, keyid=None, profile
     """
     Allocate a new Elastic IP address and return dict of details, or False.
 
+    domain (str, optional):
+        The domain in which to allocate the Elastic IP address. The only permitted value is 'vpc'.
+
+    region (str, optional):
+        The AWS region where the EIP is to be allocated.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.allocate_eip_address
-
+        salt-call boto3_ec2.allocate_eip_address region='us-west-2'
     """
     if domain and domain != "vpc":
         raise SaltInvocationError("The only permitted value for the 'domain' param is 'vpc'.")
@@ -275,12 +337,29 @@ def release_eip_address(
 ):
     """Free an Elastic IP address. Returns True on success.
 
+    public_ip (str, optional):
+        The public IP address of the Elastic IP to release.
+
+    allocation_id (str, optional):
+        The allocation ID of the Elastic IP to release.
+
+    region (str, optional):
+        The AWS region where the EIP is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.release_eip_address
-
+        salt-call boto3_ec2.release_eip_address public_ip='1.2.3.4' region='us-west-2'
     """
     if not salt.utils.data.exactly_one((public_ip, allocation_id)):
         raise SaltInvocationError("Exactly one of 'public_ip' OR 'allocation_id' must be provided")
@@ -316,12 +395,47 @@ def associate_eip_address(
     Associate an Elastic IP address with a running instance or network interface.
     Returns True on success.
 
+    instance_id (str, optional):
+        The ID of the instance to associate the Elastic IP with.
+
+    instance_name (str, optional):
+        The name of the instance to associate the Elastic IP with.
+
+    public_ip (str, optional):
+        The public IP address of the Elastic IP to associate.
+
+    allocation_id (str, optional):
+        The allocation ID of the Elastic IP to associate.
+
+    network_interface_id (str, optional):
+        The ID of the network interface to associate the Elastic IP with.
+
+    network_interface_name (str, optional):
+        The name of the network interface to associate the Elastic IP with.
+
+    private_ip_address (str, optional):
+        The private IP address to associate the Elastic IP with.
+
+    allow_reassociation (bool, optional):
+        Whether to allow reassociation of the Elastic IP. Defaults to False.
+
+    region (str, optional):
+        The AWS region where the instance or network interface is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.associate_eip_address
-
+        salt-call boto3_ec2.associate_eip_address instance_id='i-1234567890abcdef0' public_ip='1.2.3.4' region='us-west-2'
     """
     if not salt.utils.data.exactly_one(
         (instance_id, instance_name, network_interface_id, network_interface_name)
@@ -377,12 +491,29 @@ def disassociate_eip_address(
 ):
     """Disassociate an Elastic IP address. Returns True on success.
 
+    public_ip (str, optional):
+        The public IP address of the Elastic IP to disassociate.
+
+    association_id (str, optional):
+        The association ID of the Elastic IP to disassociate.
+
+    region (str, optional):
+        The AWS region where the EIP is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.disassociate_eip_address
-
+        salt-call boto3_ec2.disassociate_eip_address public_ip='1.2.3.4' region='us-west-2'
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     kwargs = {}
@@ -411,12 +542,38 @@ def assign_private_ip_addresses(
 ):
     """Assign secondary private IP addresses to an ENI. Returns True on success.
 
+    network_interface_name (str, optional):
+        The name of the network interface to assign private IP addresses to.
+
+    network_interface_id (str, optional):
+        The ID of the network interface to assign private IP addresses to.
+
+    private_ip_addresses (list, optional):
+        A list of private IP addresses to assign to the network interface.
+
+    secondary_private_ip_address_count (int, optional):
+        The number of secondary private IP addresses to assign to the network interface.
+
+    allow_reassignment (bool, optional):
+        Whether to allow reassignment of the private IP addresses. Defaults to False.
+
+    region (str, optional):
+        The AWS region where the network interface is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.assign_private_ip_addresses
-
+        salt-call boto3_ec2.assign_private_ip_addresses network_interface_id='eni-12345678' private_ip_addresses='["10.0.0.1"]' region='us-west-2'
     """
     if not salt.utils.data.exactly_one((network_interface_name, network_interface_id)):
         raise SaltInvocationError(
@@ -457,12 +614,32 @@ def unassign_private_ip_addresses(
 ):
     """Unassign secondary private IP addresses from an ENI. Returns True on success.
 
+    network_interface_name (str, optional):
+        The name of the network interface to unassign private IP addresses from.
+
+    network_interface_id (str, optional):
+        The ID of the network interface to unassign private IP addresses from.
+
+    private_ip_addresses (list, optional):
+        A list of private IP addresses to unassign from the network interface.
+
+    region (str, optional):
+        The AWS region where the network interface is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.unassign_private_ip_addresses
-
+        salt-call boto3_ec2.unassign_private_ip_addresses region='us-west-2'
     """
     if not salt.utils.data.exactly_one((network_interface_name, network_interface_id)):
         raise SaltInvocationError(
@@ -490,12 +667,23 @@ def unassign_private_ip_addresses(
 def get_zones(region=None, key=None, keyid=None, profile=None):
     """Get the list of AZ names for the configured region.
 
+    region (str, optional):
+        The AWS region where the availability zones are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.get_zones
-
+        salt-call boto3_ec2.get_zones region='us-west-2'
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     resp = conn.describe_availability_zones()
@@ -530,12 +718,41 @@ def find_instances(
     Given instance properties, find and return matching instance ids (default) or
     the raw boto3 instance dicts (when ``return_objs`` is True).
 
+    instance_id (str, optional):
+        The ID of the instance to find.
+
+    name (str, optional):
+        The name tag of the instance to find.
+
+    tags (dict, optional):
+        A dictionary of tags to filter instances by.
+
+    region (str, optional):
+        The AWS region where the instances are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    return_objs (bool, optional):
+        Whether to return the raw boto3 instance dicts instead of instance IDs.
+
+    in_states (list, optional):
+        A list of instance states to filter by.
+
+    filters (dict, optional):
+        Additional filters to apply when searching for instances.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.find_instances
-
+        salt-call boto3_ec2.find_instances region='us-west-2'
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     try:
@@ -578,14 +795,50 @@ def create_image(
     dry_run=False,
     filters=None,
 ):
-    """Create an AMI from a single matched instance. Returns AMI id or False.
+    """
+    Create an AMI from a single matched instance. Returns AMI id or False.
+
+    ami_name (str):
+        The name of the AMI to create.
+
+    instance_id (str, optional):
+        The ID of the instance to create the AMI from.
+
+    instance_name (str, optional):
+        The name tag of the instance to create the AMI from.
+
+    tags (dict, optional):
+        A dictionary of tags to apply to the AMI.
+
+    region (str, optional):
+        The AWS region where the instance is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    description (str, optional):
+        A description for the AMI.
+
+    no_reboot (bool, optional):
+        Whether to avoid rebooting the instance when creating the AMI. Defaults to False.
+
+    dry_run (bool, optional):
+        Whether to perform a dry run of the AMI creation. Defaults to False.
+
+    filters (dict, optional):
+        Additional filters to apply when searching for the source instance.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.create_image
-
+        salt-call boto3_ec2.create_image ami_name='my-ami' instance_id='i-1234567890abcdef0' region='us-west-2'
     """
     instances = find_instances(
         instance_id=instance_id,
@@ -637,12 +890,41 @@ def find_images(
     Return matching AMI ids, or objects when ``return_objs`` is True.
     Returns False when no images are found.
 
+    ami_name (str, optional):
+        The name of the AMI to find.
+
+    executable_by (list, optional):
+        A list of AWS account IDs or 'self' to filter AMIs by who can execute them.
+
+    owners (list, optional):
+        A list of AWS account IDs or 'self' to filter AMIs by their owners.
+
+    image_ids (list, optional):
+        A list of AMI IDs to filter by.
+
+    tags (dict, optional):
+        A dictionary of tags to filter AMIs by.
+
+    region (str, optional):
+        The AWS region where the AMIs are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    return_objs (bool, optional):
+        Whether to return the raw boto3 AMI dicts instead of AMI IDs.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.find_images
-
+        salt-call boto3_ec2.find_images region='us-west-2'
     """
     retries = 30
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
@@ -698,12 +980,32 @@ def terminate(
 ):
     """Terminate the instance described by instance_id or Name tag.
 
+    instance_id (str, optional):
+        The ID of the instance to terminate.
+
+    name (str, optional):
+        The name tag of the instance to terminate.
+
+    region (str, optional):
+        The AWS region where the instance is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    filters (dict, optional):
+        Additional filters to apply when searching for the instance to terminate.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.terminate
-
+        salt-call boto3_ec2.terminate region='us-west-2'
     """
     instances = find_instances(
         instance_id=instance_id,
@@ -741,12 +1043,35 @@ def get_id(
 ):
     """Return a single instance id matching the given properties, or None.
 
+    name (str, optional):
+        The name tag of the instance to find.
+
+    tags (dict, optional):
+        A dictionary of tags to filter instances by.
+
+    region (str, optional):
+        The AWS region where the instance is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    in_states (list, optional):
+        A list of instance states to filter by.
+
+    filters (dict, optional):
+        Additional filters to apply when searching for the instance.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.get_id
-
+        salt-call boto3_ec2.get_id region='us-west-2'
     """
     instance_ids = find_instances(
         name=name,
@@ -769,12 +1094,26 @@ def get_id(
 def get_tags(instance_id=None, keyid=None, key=None, profile=None, region=None):
     """Return a list of {name: value} tag dicts for an instance.
 
+    instance_id (str, optional):
+        The ID of the instance to retrieve tags for.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    region (str, optional):
+        The AWS region where the instance is located.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.get_tags
-
+        salt-call boto3_ec2.get_tags region='us-west-2'
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     tags = []
@@ -803,12 +1142,38 @@ def exists(
 ):
     """Return True if any instance matching the given properties exists.
 
+    instance_id (str, optional):
+        The ID of the instance to check for existence.
+
+    name (str, optional):
+        The name tag of the instance to check for existence.
+
+    tags (dict, optional):
+        A dictionary of tags to filter instances by.
+
+    region (str, optional):
+        The AWS region where the instance is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    in_states (list, optional):
+        A list of instance states to filter by.
+
+    filters (dict, optional):
+        Additional filters to apply when searching for the instance.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.exists
-
+        salt-call boto3_ec2.exists region='us-west-2'
     """
     instances = find_instances(
         instance_id=instance_id,
@@ -907,12 +1272,116 @@ def run(
     Create and start an EC2 instance. Returns ``{"instance_id": ...}`` on
     success, False otherwise.
 
+    instance_id (str, optional):
+        The ID of the instance to create or start.
+
+    name (str, optional):
+        The name tag of the instance to create or start.
+
+    tags (dict, optional):
+        A dictionary of tags to assign to the instance.
+
+    key_name (str, optional):
+        The name of the key pair to use for the instance.
+
+    security_groups (list, optional):
+        A list of security group names to associate with the instance.
+
+    user_data (str, optional):
+        The user data to provide when launching the instance.
+
+    instance_type (str, optional):
+        The type of instance to create (e.g., "t2.micro").
+
+    placement (str, optional):
+        The placement constraint for the instance (e.g., availability zone).
+
+    kernel_id (str, optional):
+        The ID of the kernel to use for the instance.
+
+    ramdisk_id (str, optional):
+        The ID of the RAM disk to use for the instance.
+
+    monitoring_enabled (bool, optional):
+        Whether detailed monitoring is enabled for the instance.
+
+    vpc_id (str, optional):
+        The ID of the VPC in which to launch the instance.
+
+    vpc_name (str, optional):
+        The name of the VPC in which to launch the instance.
+
+    subnet_id (str, optional):
+        The ID of the subnet in which to launch the instance.
+
+    subnet_name (str, optional):
+        The name of the subnet in which to launch the instance.
+
+    private_ip_address (str, optional):
+        The private IP address to assign to the instance.
+
+    block_device_map (list, optional):
+        A list of block device mappings for the instance.
+
+    disable_api_termination (bool, optional):
+        Whether to disable API termination for the instance.
+
+    instance_initiated_shutdown_behavior (str, optional):
+        The shutdown behavior for the instance (e.g., "stop" or "terminate").
+
+    placement_group (str, optional):
+        The name of the placement group in which to launch the instance.
+
+    client_token (str, optional):
+        A unique, case-sensitive token to ensure idempotency of the request.
+
+    security_group_ids (list, optional):
+        A list of security group IDs to associate with the instance.
+
+    security_group_names (list, optional):
+        A list of security group names to associate with the instance.
+
+    additional_info (str, optional):
+        Additional information to provide when launching the instance.
+
+    tenancy (str, optional):
+        The tenancy of the instance (e.g., "default" or "dedicated").
+
+    instance_profile_arn (str, optional):
+        The ARN of the instance profile to associate with the instance.
+
+    instance_profile_name (str, optional):
+        The name of the instance profile to associate with the instance.
+
+    ebs_optimized (bool, optional):
+        Whether the instance is optimized for EBS I/O.
+
+    network_interface_id (str, optional):
+        The ID of the network interface to associate with the instance.
+
+    network_interface_name (str, optional):
+        The name of the network interface to associate with the instance.
+
+    region (str, optional):
+        The AWS region where the instance should be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    network_interfaces (list, optional):
+        A list of network interfaces to associate with the instance.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.run
-
+        salt-call boto3_ec2.run region='us-west-2'
     """
     if all((subnet_id, subnet_name)):
         raise SaltInvocationError("Only one of subnet_name or subnet_id may be provided.")
@@ -1066,12 +1535,25 @@ def run(
 def get_key(key_name, region=None, key=None, keyid=None, profile=None):
     """Return ``(name, fingerprint)`` if the key exists, else False.
 
+    key_name (str):
+        The name of the key pair to retrieve.
+
+    region (str, optional):
+        The AWS region where the key pair is located.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.get_key
-
+        salt-call boto3_ec2.get_key my-key-name region='us-west-2'
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     try:
@@ -1089,12 +1571,28 @@ def get_key(key_name, region=None, key=None, keyid=None, profile=None):
 def create_key(key_name, save_path, region=None, key=None, keyid=None, profile=None):
     """Create a new key pair, save the private material to ``save_path`` and return it.
 
+    key_name (str):
+        The name of the key pair to create.
+
+    save_path (str):
+        The directory path where the private key material will be saved.
+
+    region (str, optional):
+        The AWS region where the key pair will be created.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.create_key
-
+        salt-call boto3_ec2.create_key my-key-name /path/to/save region='us-west-2'
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     try:
@@ -1119,12 +1617,28 @@ def create_key(key_name, save_path, region=None, key=None, keyid=None, profile=N
 def import_key(key_name, public_key_material, region=None, key=None, keyid=None, profile=None):
     """Import a key pair by public material. Returns the fingerprint or False.
 
+    key_name (str):
+        The name of the key pair to import.
+
+    public_key_material (str):
+        The public key material to import.
+
+    region (str, optional):
+        The AWS region where the key pair will be imported.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.import_key
-
+        salt-call boto3_ec2.import_key my-key-name /path/to/public/key.pub region='us-west-2'
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     try:
@@ -1140,12 +1654,25 @@ def import_key(key_name, public_key_material, region=None, key=None, keyid=None,
 def delete_key(key_name, region=None, key=None, keyid=None, profile=None):
     """Delete a key pair. Returns True on success.
 
+    key_name (str):
+        The name of the key pair to delete.
+
+    region (str, optional):
+        The AWS region where the key pair is located.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.delete_key
-
+        salt-call boto3_ec2.delete_key my-key-name region='us-west-2'
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     try:
@@ -1159,12 +1686,28 @@ def delete_key(key_name, region=None, key=None, keyid=None, profile=None):
 def get_keys(keynames=None, filters=None, region=None, key=None, keyid=None, profile=None):
     """Return a list of key pair names matching ``keynames`` and ``filters``.
 
+    keynames (list, optional):
+        A list of key pair names to filter the results.
+
+    filters (dict, optional):
+        A dictionary of filters to apply when retrieving key pairs.
+
+    region (str, optional):
+        The AWS region where the key pairs are located.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt-call boto3_ec2.get_keys
-
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     try:
@@ -1240,12 +1783,34 @@ def get_attribute(
 ):
     """Return ``{attribute: value}`` for an EC2 instance, or False.
 
+    attribute (str):
+        The attribute of the EC2 instance to retrieve.
+
+    instance_name (str, optional):
+        The name of the EC2 instance.
+
+    instance_id (str, optional):
+        The ID of the EC2 instance.
+
+    region (str, optional):
+        The AWS region where the EC2 instance is located.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    filters (dict, optional):
+        A dictionary of filters to apply when retrieving the EC2 instance attribute.
+
     CLI Example:
 
     .. code-block:: bash
 
         salt-call boto3_ec2.get_attribute
-
     """
     if attribute not in _ATTRIBUTE_LIST:
         raise SaltInvocationError(f"Attribute must be one of: {_ATTRIBUTE_LIST}.")
@@ -1302,12 +1867,37 @@ def set_attribute(
 ):
     """Set an EC2 instance attribute. Returns True on success, False on failure.
 
+    attribute (str):
+        The attribute of the EC2 instance to set.
+
+    attribute_value (any):
+        The value to set for the specified attribute.
+
+    instance_name (str, optional):
+        The name of the EC2 instance.
+
+    instance_id (str, optional):
+        The ID of the EC2 instance.
+
+    region (str, optional):
+        The AWS region where the EC2 instance is located.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    filters (dict, optional):
+        A dictionary of filters to apply when setting the EC2 instance attribute.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.set_attribute
-
+        salt-call boto3_ec2.set_attribute attribute=instanceType attribute_value=t2.micro instance_name=my-instance
     """
     if attribute not in _ATTRIBUTE_LIST:
         raise SaltInvocationError(f"Attribute must be one of: {_ATTRIBUTE_LIST}.")
@@ -1425,12 +2015,25 @@ def _describe_network_interface(eni):
 def get_network_interface_id(name, region=None, key=None, keyid=None, profile=None):
     """Return ``{"result": eni_id}`` or ``{"error": {...}}``.
 
+    name (str):
+        The name tag of the network interface to retrieve.
+
+    region (str, optional):
+        The AWS region where the network interface is located.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.get_network_interface_id
-
+        salt-call boto3_ec2.get_network_interface_id name=my-eni
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     r = {}
@@ -1458,12 +2061,28 @@ def get_network_interface(
 ):
     """Return ``{"result": {...}}`` or ``{"error": {...}}``.
 
+    name (str, optional):
+        The name tag of the network interface to retrieve.
+
+    network_interface_id (str, optional):
+        The ID of the network interface to retrieve.
+
+    region (str, optional):
+        The AWS region where the network interface is located.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.get_network_interface
-
+        salt-call boto3_ec2.get_network_interface name=my-eni
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     r = {}
@@ -1491,12 +2110,40 @@ def create_network_interface(
 ):
     """Create an ENI tagged with ``Name=<name>``.
 
+    name (str):
+        The name tag of the network interface to create.
+
+    subnet_id (str, optional):
+        The ID of the subnet in which to create the network interface.
+
+    subnet_name (str, optional):
+        The name tag of the subnet in which to create the network interface.
+
+    private_ip_address (str, optional):
+        The private IP address to assign to the network interface.
+
+    description (str, optional):
+        A description for the network interface.
+
+    groups (list, optional):
+        A list of security group names or IDs to associate with the network interface.
+
+    region (str, optional):
+        The AWS region where the network interface should be created.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.create_network_interface
-
+        salt-call boto3_ec2.create_network_interface name=my-eni subnet_id=subnet-12345678
     """
     if not salt.utils.data.exactly_one((subnet_id, subnet_name)):
         raise SaltInvocationError(
@@ -1563,12 +2210,28 @@ def delete_network_interface(
 ):
     """Delete an ENI.
 
+    name (str, optional):
+        The name tag of the network interface to delete.
+
+    network_interface_id (str, optional):
+        The ID of the network interface to delete.
+
+    region (str, optional):
+        The AWS region where the network interface is located.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.delete_network_interface
-
+        salt-call boto3_ec2.delete_network_interface name=my-eni
     """
     if not (name or network_interface_id):
         raise SaltInvocationError("Either name or network_interface_id must be provided.")
@@ -1602,12 +2265,37 @@ def attach_network_interface(
 ):
     """Attach an ENI to an instance.
 
+    device_index (int):
+        The device index for the network interface attachment.
+
+    name (str, optional):
+        The name tag of the network interface to attach.
+
+    network_interface_id (str, optional):
+        The ID of the network interface to attach.
+
+    instance_name (str, optional):
+        The name tag of the instance to attach the network interface to.
+
+    instance_id (str, optional):
+        The ID of the instance to attach the network interface to.
+
+    region (str, optional):
+        The AWS region where the network interface and instance are located.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.attach_network_interface
-
+        salt-call boto3_ec2.attach_network_interface device_index=1 name=my-eni instance_name=my-instance
     """
     if not salt.utils.data.exactly_one((name, network_interface_id)):
         raise SaltInvocationError(
@@ -1658,12 +2346,34 @@ def detach_network_interface(
 ):
     """Detach an ENI.
 
+    name (str, optional):
+        The name tag of the network interface to detach.
+
+    network_interface_id (str, optional):
+        The ID of the network interface to detach.
+
+    attachment_id (str, optional):
+        The ID of the network interface attachment to detach.
+
+    force (bool, optional):
+        Whether to force the detachment.
+
+    region (str, optional):
+        The AWS region where the network interface is located.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.detach_network_interface
-
+        salt-call boto3_ec2.detach_network_interface name=my-eni
     """
     if not (name or network_interface_id or attachment_id):
         raise SaltInvocationError(
@@ -1699,12 +2409,34 @@ def modify_network_interface_attribute(
 ):
     """Modify an ENI attribute: description, source_dest_check, groups, delete_on_termination.
 
+    name (str, optional):
+        The name tag of the network interface to modify.
+
+    network_interface_id (str, optional):
+        The ID of the network interface to modify.
+
+    attr (str, optional):
+        The attribute of the network interface to modify. Valid values are: description, source_dest_check, groups, delete_on_termination.
+
+    value (varies, optional):
+        The new value for the specified attribute.
+
+    region (str, optional):
+        The AWS region where the network interface is located.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.modify_network_interface_attribute
-
+        salt-call boto3_ec2.modify_network_interface_attribute name=my-eni attr=description value="New description"
     """
     if not (name or network_interface_id):
         raise SaltInvocationError("Either name or network_interface_id must be provided.")
@@ -1770,12 +2502,34 @@ def get_all_volumes(
 ):
     """Return a list of volume IDs or describe-volume dicts.
 
+    name (str, optional):
+        The name tag of the volume to retrieve.
+
+    volume_ids (list, optional):
+        A list of volume IDs to retrieve.
+
+    filters (dict, optional):
+        A dictionary of filters to apply when retrieving volumes.
+
+    return_objs (bool, optional):
+        Whether to return the full volume objects or just the volume IDs.
+
+    region (str, optional):
+        The AWS region where the volumes are located.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.get_all_volumes
-
+        salt-call boto3_ec2.get_all_volumes name=my-volume
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     try:
@@ -1807,12 +2561,41 @@ def set_volumes_tags(
     """
     Apply tags to EBS volumes. See legacy ``boto_ec2.set_volumes_tags`` for the schema.
 
+    tag_maps (list):
+        A list of dictionaries containing the filters and tags to apply to the volumes.
+        Each dictionary should have the following structure:
+
+        .. code-block:: python
+
+            {
+                "filters": {"volume_ids": ["vol-12345678"], "instance_name": "my-instance"},
+                "tags": {"Key1": "Value1", "Key2": "Value2"},
+                "in_states": ["running", "stopped"],  # Optional
+            }
+            # Repeat for each volume you want to tag
+
+    authoritative (bool, optional):
+        Whether to replace existing tags with the new tags (True) or merge them (False).
+
+    dry_run (bool, optional):
+        If True, checks whether you have the required permissions for the action, without actually making the request.
+
+    region (str, optional):
+        The AWS region where the volumes are located.
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.set_volumes_tags
-
+        salt-call boto3_ec2.set_volumes_tags tag_maps='[{"filters": {"volume_ids": ["vol-12345678"]}, "tags": {"Key1": "Value1", "Key2": "Value2"}}]'
     """
     ret = {"success": True, "comment": "", "changes": {}}
     running_states = ("pending", "rebooting", "running", "stopping", "stopped")
@@ -1891,12 +2674,31 @@ def set_volumes_tags(
 def get_all_tags(filters=None, region=None, key=None, keyid=None, profile=None):
     """Describe all tags matching the filter criteria.
 
+    filters (dict, optional):
+        A dictionary of filters to apply when retrieving tags. The keys should be the filter names and the values should be the filter values.
+        For example:
+
+        .. code-block:: python
+
+            {"resource_id": ["vol-12345678"], "key": "Key1"}
+
+    region (str, optional):
+        The AWS region where the resources are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.get_all_tags
-
+        salt-call boto3_ec2.get_all_tags filters='{"resource_id": ["vol-12345678"], "key": "Key1"}'
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     try:
@@ -1915,12 +2717,29 @@ def get_all_tags(filters=None, region=None, key=None, keyid=None, profile=None):
 def create_tags(resource_ids, tags, region=None, key=None, keyid=None, profile=None):
     """Create metadata tags on the given resources.
 
+    resource_ids (list):
+        A list of resource IDs to tag.
+
+    tags (dict):
+        A dictionary of tags to apply to the resources. The keys are the tag names and the values are the tag values.
+
+    region (str, optional):
+        The AWS region where the resources are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.create_tags
-
+        salt-call boto3_ec2.create_tags resource_ids='["vol-12345678"]' tags='{"Key1": "Value1", "Key2": "Value2"}'
     """
     if not isinstance(resource_ids, list):
         resource_ids = [resource_ids]
@@ -1939,12 +2758,30 @@ def create_tags(resource_ids, tags, region=None, key=None, keyid=None, profile=N
 def delete_tags(resource_ids, tags, region=None, key=None, keyid=None, profile=None):
     """Delete metadata tags from the given resources.
 
+    resource_ids (list):
+        A list of resource IDs from which to delete tags.
+
+    tags (dict or list):
+        A dictionary of tags to delete from the resources. The keys are the tag names and the values are the tag values.
+        If a list is provided, it should be a list of tag names to delete.
+
+    region (str, optional):
+        The AWS region where the resources are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.delete_tags
-
+        salt-call boto3_ec2.delete_tags resource_ids='["vol-12345678"]' tags='{"Key1": "Value1", "Key2": "Value2"}' region='us-west-2'
     """
     if not isinstance(resource_ids, list):
         resource_ids = [resource_ids]
@@ -1979,12 +2816,38 @@ def detach_volume(
 ):
     """Detach an EBS volume. Returns True on success.
 
+    volume_id (str):
+        The ID of the EBS volume to detach.
+
+    instance_id (str, optional):
+        The ID of the instance from which to detach the volume.
+
+    device (str, optional):
+        The device name to detach.
+
+    force (bool, optional):
+        Whether to force the detachment.
+
+    wait_for_detachement (bool, optional):
+        Whether to wait for the volume to be fully detached before returning.
+
+    region (str, optional):
+        The AWS region where the volume is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.detach_volume
-
+        salt-call boto3_ec2.detach_volume volume_id='vol-12345678' instance_id='i-12345678' device='/dev/sdh' force=True wait_for_detachement=True
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     kwargs = {"VolumeId": volume_id, "Force": bool(force)}
@@ -2015,12 +2878,35 @@ def delete_volume(
 ):  # pylint: disable=unused-argument
     """Delete an EBS volume. Set ``force=True`` to force-detach first.
 
+    volume_id (str):
+        The ID of the EBS volume to delete.
+
+    instance_id (str, optional):
+        The ID of the instance from which to detach the volume before deletion.
+
+    device (str, optional):
+        The device name to detach before deletion.
+
+    force (bool, optional):
+        Whether to force the detachment before deletion.
+
+    region (str, optional):
+        The AWS region where the volume is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.delete_volume
-
+        salt-call boto3_ec2.delete_volume volume_id='vol-12345678' instance_id='i-12345678' device='/dev/sdh' force=True
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     try:
@@ -2056,12 +2942,32 @@ def _wait_for_volume_available(conn, volume_id, retries=5, interval=5):
 def attach_volume(volume_id, instance_id, device, region=None, key=None, keyid=None, profile=None):
     """Attach an EBS volume. Returns True on success.
 
+    volume_id (str):
+        The ID of the EBS volume to attach.
+
+    instance_id (str):
+        The ID of the instance to which to attach the volume.
+
+    device (str):
+        The device name to attach the volume as.
+
+    region (str, optional):
+        The AWS region where the volume and instance are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.attach_volume
-
+        salt-call boto3_ec2.attach_volume volume_id='vol-12345678' instance_id='i-12345678' device='/dev/sdh'
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     try:
@@ -2088,12 +2994,47 @@ def create_volume(
 ):
     """Create an EBS volume. Returns ``{"result": vol_id}`` or ``{"error": ...}``.
 
+    zone_name (str):
+        The availability zone in which to create the volume.
+
+    size (int, optional):
+        The size of the volume in GiB.
+
+    snapshot_id (str, optional):
+        The ID of the snapshot from which to create the volume.
+
+    volume_type (str, optional):
+        The type of the volume (e.g., 'gp2', 'io1').
+
+    iops (int, optional):
+        The number of IOPS for the volume (required for 'io1' type).
+
+    encrypted (bool, optional):
+        Whether the volume should be encrypted.
+
+    kms_key_id (str, optional):
+        The ID of the KMS key to use for encryption.
+
+    wait_for_creation (bool, optional):
+        Whether to wait for the volume to become available before returning.
+
+    region (str, optional):
+        The AWS region where the volume should be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_ec2.create_volume
-
+        salt-call boto3_ec2.create_volume zone_name='us-west-2a' size=10 volume_type='gp2' encrypted=True
     """
     if size is None and snapshot_id is None:
         raise SaltInvocationError("Size must be provided if not created from snapshot.")
@@ -2131,11 +3072,23 @@ def describe_instance_metadata_options(
     instance_id
         The ID of the EC2 instance.
 
+    region (str, optional):
+        The AWS region where the instance is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt '*' boto3_ec2.describe_instance_metadata_options i-0123456789abcdef0
+        salt '*' boto3_ec2.describe_instance_metadata_options i-0123456789abcdef0 region='us-west-2'
     """
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     ret = {}
@@ -2167,20 +3120,35 @@ def modify_instance_metadata_options(
     """
     Modify the Instance Metadata Service (IMDS) options for an instance.
 
-    instance_id
+    instance_id (str):
         The ID of the EC2 instance.
-    http_tokens
+
+    http_tokens (str, optional):
         ``optional`` or ``required``. ``required`` enforces IMDSv2.
-    http_put_response_hop_limit
+
+    http_put_response_hop_limit (int, optional):
         Integer 1-64. Desired HTTP PUT response hop limit for metadata requests.
-    http_endpoint
-        ``enabled`` or ``disabled``.
-    http_protocol_ipv6
-        ``enabled`` or ``disabled``.
-    instance_metadata_tags
+
+    http_endpoint (str, optional):
         ``enabled`` or ``disabled``.
 
-    Returns ``{"result": <MetadataOptions>}`` on success, or ``{"error": ...}``.
+    http_protocol_ipv6 (str, optional):
+        ``enabled`` or ``disabled``.
+
+    instance_metadata_tags (str, optional):
+        ``enabled`` or ``disabled``.
+
+    region (str, optional):
+        The AWS region where the instance is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -2214,7 +3182,20 @@ def require_imdsv2(instance_id, region=None, key=None, keyid=None, profile=None)
     Convenience wrapper to enforce IMDSv2 on an instance by setting
     ``HttpTokens=required`` and ``HttpEndpoint=enabled``.
 
-    instance_id
+    instance_id (str):
+        The ID of the EC2 instance.
+
+    region (str, optional):
+        The AWS region where the instance is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
         The ID of the EC2 instance.
 
     CLI Example:

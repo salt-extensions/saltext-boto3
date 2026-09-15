@@ -116,6 +116,21 @@ def instance_profile_exists(name, region=None, key=None, keyid=None, profile=Non
     """
     Check to see if an instance profile exists.
 
+    name (str):
+        The name of the instance profile to check.
+
+    region (str, optional):
+        The AWS region where the instance profile is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -133,6 +148,21 @@ def instance_profile_exists(name, region=None, key=None, keyid=None, profile=Non
 def create_instance_profile(name, region=None, key=None, keyid=None, profile=None):
     """
     Create an instance profile.
+
+    name (str):
+        The name of the instance profile to create.
+
+    region (str, optional):
+        The AWS region where the instance profile will be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -157,6 +187,21 @@ def delete_instance_profile(name, region=None, key=None, keyid=None, profile=Non
     """
     Delete an instance profile.
 
+    name (str):
+        The name of the instance profile to delete.
+
+    region (str, optional):
+        The AWS region where the instance profile is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -179,6 +224,21 @@ def delete_instance_profile(name, region=None, key=None, keyid=None, profile=Non
 def get_all_instance_profiles(path_prefix="/", region=None, key=None, keyid=None, profile=None):
     """
     Get and return all IAM instance profiles, starting at the optional path.
+
+    path_prefix (str, optional):
+        The path prefix for filtering the instance profiles. Defaults to "/".
+
+    region (str, optional):
+        The AWS region where the instance profiles are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -206,6 +266,21 @@ def list_instance_profiles(path_prefix="/", region=None, key=None, keyid=None, p
     """
     List all IAM instance profiles, starting at the optional path.
 
+    path_prefix (str, optional):
+        The path prefix for filtering the instance profiles. Defaults to "/".
+
+    region (str, optional):
+        The AWS region where the instance profiles are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -221,6 +296,21 @@ def list_instance_profiles(path_prefix="/", region=None, key=None, keyid=None, p
 def role_exists(name, region=None, key=None, keyid=None, profile=None):
     """
     Check to see if an IAM role exists.
+
+    name (str):
+        The name of the role to check.
+
+    region (str, optional):
+        The AWS region where the role is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -239,6 +329,21 @@ def role_exists(name, region=None, key=None, keyid=None, profile=None):
 def describe_role(name, region=None, key=None, keyid=None, profile=None):
     """
     Get information for a role.
+
+    name (str):
+        The name of the role to describe.
+
+    region (str, optional):
+        The AWS region where the role is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -281,7 +386,28 @@ def create_role(
     profile=None,
 ):
     """
-    Create an instance role.
+    Create an IAM role.
+
+    name (str):
+        The name of the role to create.
+
+    policy_document (str or dict, optional):
+        The policy document that defines the trust relationship for the role.
+
+    path (str, optional):
+        The path for the role.
+
+    region (str, optional):
+        The AWS region where the role will be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -313,6 +439,21 @@ def delete_role(name, region=None, key=None, keyid=None, profile=None):
     """
     Delete an IAM role.
 
+    name (str):
+        The name of the role to delete.
+
+    region (str, optional):
+        The AWS region where the role will be deleted.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -335,6 +476,24 @@ def delete_role(name, region=None, key=None, keyid=None, profile=None):
 def profile_associated(role_name, profile_name, region, key, keyid, profile):
     """
     Check to see if an instance profile is associated with an IAM role.
+
+    role_name (str):
+        The name of the IAM role to check.
+
+    profile_name (str):
+        The name of the instance profile to check.
+
+    region (str, optional):
+        The AWS region where the role and instance profile are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -359,6 +518,24 @@ def associate_profile_to_role(
 ):
     """
     Associate an instance profile with an IAM role.
+
+    role_name (str):
+        The name of the IAM role to associate the instance profile with.
+
+    profile_name (str):
+        The name of the instance profile to associate with the IAM role.
+
+    region (str, optional):
+        The AWS region where the role and instance profile are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -395,11 +572,29 @@ def disassociate_profile_from_role(
     """
     Disassociate an instance profile from an IAM role.
 
+    role_name (str):
+        The name of the IAM role to disassociate the instance profile from.
+
+    profile_name (str):
+        The name of the instance profile to disassociate from the IAM role.
+
+    region (str, optional):
+        The AWS region where the role and instance profile are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_iam.disassociate_profile_from_role myirole myiprofile
+        salt myminion boto3_iam.disassociate_profile_from_role myiprofile myirole
     """
     if not role_exists(role_name, region, key, keyid, profile):
         log.error("IAM role %s does not exist.", role_name)
@@ -427,6 +622,21 @@ def disassociate_profile_from_role(
 def list_role_policies(role_name, region=None, key=None, keyid=None, profile=None):
     """
     Get a list of inline policy names from a role.
+
+    role_name (str):
+        The name of the IAM role to list inline policies for.
+
+    region (str, optional):
+        The AWS region where the role is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -458,6 +668,24 @@ def get_role_policy(role_name, policy_name, region=None, key=None, keyid=None, p
     """
     Get a role policy.
 
+    role_name (str):
+        The name of the IAM role the policy is attached to.
+
+    policy_name (str):
+        The name of the inline policy to retrieve.
+
+    region (str, optional):
+        The AWS region where the role is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -477,6 +705,27 @@ def create_role_policy(
 ):
     """
     Create or modify a role policy.
+
+    role_name (str):
+        The name of the IAM role the policy is attached to.
+
+    policy_name (str):
+        The name of the inline policy to create or modify.
+
+    policy (dict or str):
+        The policy document to attach to the role. Can be a dictionary or a JSON string.
+
+    region (str, optional):
+        The AWS region where the role is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -514,6 +763,24 @@ def delete_role_policy(role_name, policy_name, region=None, key=None, keyid=None
     """
     Delete a role policy.
 
+    role_name (str):
+        The name of the IAM role the policy is attached to.
+
+    policy_name (str):
+        The name of the inline policy to delete.
+
+    region (str, optional):
+        The AWS region where the role is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -539,6 +806,24 @@ def update_assume_role_policy(
 ):
     """
     Update an assume role policy for a role.
+
+    role_name (str):
+        The name of the IAM role to update the assume role policy for.
+
+    policy_document (dict or str):
+        The policy document to set as the assume role policy. Can be a dictionary or a JSON string.
+
+    region (str, optional):
+        The AWS region where the role is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -570,6 +855,18 @@ def build_policy(
     """
     Build a default assume role policy for EC2.
 
+    region (str, optional):
+        The AWS region where the role is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -591,6 +888,21 @@ def build_policy(
 def get_all_roles(path_prefix=None, region=None, key=None, keyid=None, profile=None):
     """
     Get and return all IAM role details, starting at the optional path.
+
+    path_prefix (str, optional):
+        The path prefix for filtering the IAM roles.
+
+    region (str, optional):
+        The AWS region where the roles are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -620,6 +932,21 @@ def get_user(user_name=None, region=None, key=None, keyid=None, profile=None):
     """
     Get user information.
 
+    user_name (str, optional):
+        The name of the IAM user to retrieve information for. If not provided, information for the current user is returned.
+
+    region (str, optional):
+        The AWS region where the user is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -642,6 +969,24 @@ def get_user(user_name=None, region=None, key=None, keyid=None, profile=None):
 def create_user(user_name, path=None, region=None, key=None, keyid=None, profile=None):
     """
     Create a user.
+
+    user_name (str):
+        The name of the IAM user to create.
+
+    path (str, optional):
+        The path for the IAM user. Defaults to "/".
+
+    region (str, optional):
+        The AWS region where the user will be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -667,6 +1012,21 @@ def create_user(user_name, path=None, region=None, key=None, keyid=None, profile
 def delete_user(user_name, region=None, key=None, keyid=None, profile=None):
     """
     Delete a user.
+
+    user_name (str):
+        The name of the IAM user to delete.
+
+    region (str, optional):
+        The AWS region where the user is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -699,7 +1059,25 @@ def get_all_access_keys(
     """
     Get all access keys for a user.
 
-    Returns a dict with an ``AccessKeyMetadata`` list.
+    user_name (str):
+        The name of the IAM user to retrieve access keys for.
+    marker (str, optional):
+        Use this only when paginating results to indicate the marker for the next set of results.
+
+    max_items (int, optional):
+        Use this only when paginating results to indicate the maximum number of items to return.
+
+    region (str, optional):
+        The AWS region where the user is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -725,6 +1103,21 @@ def create_access_key(user_name, region=None, key=None, keyid=None, profile=None
     """
     Create access key id for a user.
 
+    user_name (str):
+        The name of the IAM user to create the access key for.
+
+    region (str, optional):
+        The AWS region where the user is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -746,11 +1139,26 @@ def delete_access_key(
     """
     Delete access key id from a user.
 
+    user_name (str, optional):
+        The name of the IAM user to delete the access key from. If not provided, the current user's access key will be deleted.
+
+    region (str, optional):
+        The AWS region where the user is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_iam.delete_access_key myuser
+        salt myminion boto3_iam.delete_access_key myaccesskeyid myuser
     """
     conn = _get_conn("iam", region=region, key=key, keyid=keyid, profile=profile)
     try:
@@ -767,6 +1175,21 @@ def delete_access_key(
 def get_all_users(path_prefix="/", region=None, key=None, keyid=None, profile=None):
     """
     Get and return all IAM user details, starting at the optional path.
+
+    path_prefix (str, optional):
+        The path prefix for filtering the IAM users. Defaults to "/".
+
+    region (str, optional):
+        The AWS region where the users are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -802,6 +1225,27 @@ def get_all_user_policies(
     """
     Get all inline user policy names.
 
+    user_name (str):
+        The name of the IAM user whose inline policies are to be retrieved.
+
+    marker (str, optional):
+        Use this only when paginating results to indicate the marker for the next set of results.
+
+    max_items (int, optional):
+        Use this only when paginating results to indicate the maximum number of items to return.
+
+    region (str, optional):
+        The AWS region where the user is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -827,6 +1271,24 @@ def get_user_policy(user_name, policy_name, region=None, key=None, keyid=None, p
     """
     Retrieves the specified inline policy document for the specified user.
 
+    user_name (str):
+        The name of the IAM user whose inline policy is to be retrieved.
+
+    policy_name (str):
+        The name of the inline policy to retrieve.
+
+    region (str, optional):
+        The AWS region where the user is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -848,6 +1310,27 @@ def put_user_policy(
 ):
     """
     Adds or updates the specified inline policy document for the specified user.
+
+    user_name (str):
+        The name of the IAM user for whom the inline policy is to be added or updated.
+
+    policy_name (str):
+        The name of the inline policy to add or update.
+
+    policy_json (str or dict):
+        The JSON policy document as a string or dictionary.
+
+    region (str, optional):
+        The AWS region where the user is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -879,6 +1362,24 @@ def delete_user_policy(user_name, policy_name, region=None, key=None, keyid=None
     """
     Delete an inline user policy.
 
+    user_name (str):
+        The name of the IAM user whose inline policy is to be deleted.
+
+    policy_name (str):
+        The name of the inline policy to delete.
+
+    region (str, optional):
+        The AWS region where the user is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -903,6 +1404,21 @@ def get_group(group_name, region=None, key=None, keyid=None, profile=None):
     """
     Get group information.
 
+    group_name (str):
+        The name of the IAM group whose information is to be retrieved.
+
+    region (str, optional):
+        The AWS region where the group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -922,6 +1438,21 @@ def get_group(group_name, region=None, key=None, keyid=None, profile=None):
 def create_group(group_name, path=None, region=None, key=None, keyid=None, profile=None):
     """
     Create a group.
+
+    path (str, optional):
+        The path for the IAM group. Defaults to "/".
+
+    region (str, optional):
+        The AWS region where the group is to be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -947,6 +1478,21 @@ def create_group(group_name, path=None, region=None, key=None, keyid=None, profi
 def get_group_members(group_name, region=None, key=None, keyid=None, profile=None):
     """
     Get the users that are members of a group.
+
+    group_name (str):
+        The name of the IAM group whose members are to be retrieved.
+
+    region (str, optional):
+        The AWS region where the group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -979,6 +1525,24 @@ def user_exists_in_group(user_name, group_name, region=None, key=None, keyid=Non
     """
     Check if user exists in group.
 
+    user_name (str):
+        The name of the IAM user to check for membership in the group.
+
+    group_name (str):
+        The name of the IAM group to check for the user's membership.
+
+    region (str, optional):
+        The AWS region where the group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -998,6 +1562,24 @@ def user_exists_in_group(user_name, group_name, region=None, key=None, keyid=Non
 def add_user_to_group(user_name, group_name, region=None, key=None, keyid=None, profile=None):
     """
     Add user to group.
+
+    user_name (str):
+        The name of the IAM user to add to the group.
+
+    group_name (str):
+        The name of the IAM group to which the user is to be added.
+
+    region (str, optional):
+        The AWS region where the group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1022,15 +1604,33 @@ def add_user_to_group(user_name, group_name, region=None, key=None, keyid=None, 
         return False
 
 
-def remove_user_from_group(group_name, user_name, region=None, key=None, keyid=None, profile=None):
+def remove_user_from_group(user_name, group_name, region=None, key=None, keyid=None, profile=None):
     """
     Remove user from group.
+
+    user_name (str):
+        The name of the IAM user to remove from the group.
+
+    group_name (str):
+        The name of the IAM group from which the user is to be removed.
+
+    region (str, optional):
+        The AWS region where the group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_iam.remove_user_from_group mygroup myuser
+        salt myminion boto3_iam.remove_user_from_group myuser mygroup
     """
     if not get_user(user_name, region, key, keyid, profile):
         log.error("IAM user %s does not exist.", user_name)
@@ -1061,6 +1661,27 @@ def put_group_policy(
     """
     Adds or updates the specified inline policy document for the specified group.
 
+    group_name (str):
+        The name of the IAM group to which the policy is to be attached.
+
+    policy_name (str):
+        The name of the policy to add or update.
+
+    policy_json (str or dict):
+        The JSON policy document to attach to the group.
+
+    region (str, optional):
+        The AWS region where the group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1089,6 +1710,24 @@ def delete_group_policy(group_name, policy_name, region=None, key=None, keyid=No
     """
     Delete a group policy.
 
+    group_name (str):
+        The name of the IAM group from which the policy is to be deleted.
+
+    policy_name (str):
+        The name of the policy to delete.
+
+    region (str, optional):
+        The AWS region where the group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1113,6 +1752,24 @@ def get_group_policy(group_name, policy_name, region=None, key=None, keyid=None,
     """
     Retrieves the specified inline policy document for the specified group.
 
+    group_name (str):
+        The name of the IAM group containing the policy.
+
+    policy_name (str):
+        The name of the policy to retrieve.
+
+    region (str, optional):
+        The AWS region where the group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1132,6 +1789,21 @@ def get_group_policy(group_name, policy_name, region=None, key=None, keyid=None,
 def get_all_groups(path_prefix="/", region=None, key=None, keyid=None, profile=None):
     """
     Get and return all IAM group details, starting at the optional path.
+
+    path_prefix (str, optional):
+        The path prefix for filtering the IAM groups. Defaults to "/".
+
+    region (str, optional):
+        The AWS region where the groups are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1159,6 +1831,21 @@ def get_all_group_policies(group_name, region=None, key=None, keyid=None, profil
     """
     Get a list of inline policy names from a group.
 
+    group_name (str):
+        The name of the IAM group whose inline policies are to be listed.
+
+    region (str, optional):
+        The AWS region where the group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1177,6 +1864,21 @@ def get_all_group_policies(group_name, region=None, key=None, keyid=None, profil
 def delete_group(group_name, region=None, key=None, keyid=None, profile=None):
     """
     Delete a group.
+
+    group_name (str):
+        The name of the IAM group to delete.
+
+    region (str, optional):
+        The AWS region where the group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1200,6 +1902,24 @@ def delete_group(group_name, region=None, key=None, keyid=None, profile=None):
 def create_login_profile(user_name, password, region=None, key=None, keyid=None, profile=None):
     """
     Creates a login profile for the specified user.
+
+    user_name (str):
+        The name of the IAM user for whom to create the login profile.
+
+    password (str):
+        The password for the IAM user's login profile.
+
+    region (str, optional):
+        The AWS region where the user is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1228,6 +1948,21 @@ def delete_login_profile(user_name, region=None, key=None, keyid=None, profile=N
     """
     Deletes a login profile for the specified user.
 
+    user_name (str):
+        The name of the IAM user whose login profile is to be deleted.
+
+    region (str, optional):
+        The AWS region where the user is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1255,7 +1990,20 @@ def get_all_mfa_devices(user_name, region=None, key=None, keyid=None, profile=No
     """
     Get all MFA devices associated with an IAM user.
 
-    Returns a list of dicts with PascalCase keys (e.g. ``SerialNumber``).
+    user_name (str):
+        The name of the IAM user whose MFA devices are to be retrieved.
+
+    region (str, optional):
+        The AWS region where the user is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1284,6 +2032,24 @@ def deactivate_mfa_device(user_name, serial, region=None, key=None, keyid=None, 
     Deactivates the specified MFA device and removes it from association with
     the user.
 
+    user_name (str):
+        The name of the IAM user whose MFA device is to be deactivated.
+
+    serial (str):
+        The serial number of the MFA device to deactivate.
+
+    region (str, optional):
+        The AWS region where the user is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1310,6 +2076,21 @@ def deactivate_mfa_device(user_name, serial, region=None, key=None, keyid=None, 
 def delete_virtual_mfa_device(serial, region=None, key=None, keyid=None, profile=None):
     """
     Deletes the specified virtual MFA device.
+
+    serial (str):
+        The serial number of the virtual MFA device to delete.
+
+    region (str, optional):
+        The AWS region where the virtual MFA device is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1348,6 +2129,45 @@ def update_account_password_policy(
 ):
     """
     Update the password policy for the AWS account.
+
+    allow_users_to_change_password (bool, optional):
+        Whether to allow users to change their own passwords.
+
+    hard_expiry (bool, optional):
+        Whether to enable hard expiry for passwords.
+
+    max_password_age (int, optional):
+        The maximum age of passwords in days.
+
+    minimum_password_length (int, optional):
+        The minimum length of passwords.
+
+    password_reuse_prevention (int, optional):
+        The number of previous passwords to remember and prevent reuse.
+
+    require_lowercase_characters (bool, optional):
+        Whether to require lowercase characters in passwords.
+
+    require_numbers (bool, optional):
+        Whether to require numbers in passwords.
+
+    require_symbols (bool, optional):
+        Whether to require symbols in passwords.
+
+    require_uppercase_characters (bool, optional):
+        Whether to require uppercase characters in passwords.
+
+    region (str, optional):
+        The AWS region where the account is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1389,6 +2209,18 @@ def get_account_policy(region=None, key=None, keyid=None, profile=None):
     """
     Get account password policy for the AWS account.
 
+    region (str, optional):
+        The AWS region where the account is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1408,6 +2240,18 @@ def get_account_policy(region=None, key=None, keyid=None, profile=None):
 def get_account_id(region=None, key=None, keyid=None, profile=None):
     """
     Get the AWS account id associated with the used credentials.
+
+    region (str, optional):
+        The AWS region where the account is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1439,7 +2283,34 @@ def upload_server_cert(
     profile=None,
 ):
     """
-    Upload a server certificate.
+    Upload a server certificate to AWS IAM.
+
+    cert_name (str):
+        The name of the server certificate.
+
+    cert_body (str):
+        The body of the server certificate.
+
+    private_key (str):
+        The private key associated with the server certificate.
+
+    cert_chain (str, optional):
+        The certificate chain for the server certificate.
+
+    path (str, optional):
+        The path within IAM to upload the server certificate.
+
+    region (str, optional):
+        The AWS region where the server certificate will be uploaded.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1473,6 +2344,21 @@ def get_server_certificate(cert_name, region=None, key=None, keyid=None, profile
     """
     Returns certificate information for a server cert.
 
+    cert_name (str):
+        The name of the server certificate.
+
+    region (str, optional):
+        The AWS region where the server certificate is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1493,6 +2379,21 @@ def delete_server_cert(cert_name, region=None, key=None, keyid=None, profile=Non
     """
     Deletes a server certificate.
 
+    cert_name (str):
+        The name of the server certificate to delete.
+
+    region (str, optional):
+        The AWS region where the server certificate is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1511,6 +2412,21 @@ def delete_server_cert(cert_name, region=None, key=None, keyid=None, profile=Non
 def export_users(path_prefix="/", region=None, key=None, keyid=None, profile=None):
     """
     Get all IAM user details as a yaml sls structure.
+
+    path_prefix (str, optional):
+        The path prefix for filtering IAM users.
+
+    region (str, optional):
+        The AWS region where the IAM users are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1540,6 +2456,21 @@ def export_users(path_prefix="/", region=None, key=None, keyid=None, profile=Non
 def export_roles(path_prefix="/", region=None, key=None, keyid=None, profile=None):
     """
     Get all IAM role details as a yaml sls structure.
+
+    path_prefix (str, optional):
+        The path prefix for filtering IAM roles.
+
+    region (str, optional):
+        The AWS region where the IAM roles are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1578,6 +2509,21 @@ def policy_exists(policy_name, region=None, key=None, keyid=None, profile=None):
     """
     Check to see if a managed policy exists.
 
+    name (str):
+        The name of the managed policy to check for existence.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1599,6 +2545,21 @@ def policy_exists(policy_name, region=None, key=None, keyid=None, profile=None):
 def get_policy(policy_name, region=None, key=None, keyid=None, profile=None):
     """
     Get the managed policy info.
+
+    name (str):
+        The name of the managed policy to retrieve.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1630,6 +2591,30 @@ def create_policy(
 ):
     """
     Create a managed policy.
+
+    name (str):
+        The name of the managed policy to create.
+
+    policy_document (str):
+        The JSON policy document for the managed policy.
+
+    path (str, optional):
+        The path for the managed policy.
+
+    description (str, optional):
+        The description of the managed policy.
+
+    region (str, optional):
+        The AWS region where the managed policy is to be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1664,6 +2649,21 @@ def delete_policy(policy_name, region=None, key=None, keyid=None, profile=None):
     """
     Delete a managed policy.
 
+    name (str):
+        The name of the managed policy to delete.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1688,7 +2688,17 @@ def list_policies(region=None, key=None, keyid=None, profile=None):
     """
     List managed policies.
 
-    Returns a list whose entries are the ``Policies`` list from each page.
+    region (str, optional):
+        The AWS region where the managed policies are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1711,7 +2721,25 @@ def list_policies(region=None, key=None, keyid=None, profile=None):
 
 def policy_version_exists(policy_name, version_id, region=None, key=None, keyid=None, profile=None):
     """
-    Check to see if a managed policy version exists.
+    Check to see if a specific version of a managed policy exists.
+
+    name (str):
+        The name of the managed policy to check.
+
+    version_id (str):
+        The ID of the policy version to check.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1733,6 +2761,24 @@ def policy_version_exists(policy_name, version_id, region=None, key=None, keyid=
 def get_policy_version(policy_name, version_id, region=None, key=None, keyid=None, profile=None):
     """
     Get a specific version of a managed policy.
+
+    name (str):
+        The name of the managed policy to retrieve.
+
+    version_id (str):
+        The ID of the policy version to retrieve.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1769,11 +2815,32 @@ def create_policy_version(
     """
     Create a version of a managed policy.
 
+    name (str):
+        The name of the managed policy to create a version for.
+
+    policy_document (str):
+        The JSON policy document for the new policy version.
+
+    set_as_default (bool, optional):
+        Whether to set the new policy version as the default version.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_iam.create_policy_version mypolicy '{...}'
+        salt myminion boto3_iam.create_policy_version mypolicy '{...}' True
     """
     conn = _get_conn("iam", region=region, key=key, keyid=keyid, profile=profile)
     if not isinstance(policy_document, str):
@@ -1803,6 +2870,24 @@ def delete_policy_version(policy_name, version_id, region=None, key=None, keyid=
     """
     Delete a version of a managed policy.
 
+    policy_name (str):
+        The name of the managed policy to delete a version for.
+
+    version_id (str):
+        The ID of the policy version to delete.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1827,6 +2912,21 @@ def list_policy_versions(policy_name, region=None, key=None, keyid=None, profile
     """
     List versions of a managed policy.
 
+    policy_name (str):
+        The name of the managed policy to list versions for.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1850,6 +2950,24 @@ def set_default_policy_version(
     """
     Set the default version of a managed policy.
 
+    policy_name (str):
+        The name of the managed policy to set the default version for.
+
+    version_id (str):
+        The ID of the policy version to set as the default.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1871,6 +2989,24 @@ def set_default_policy_version(
 def attach_user_policy(policy_name, user_name, region=None, key=None, keyid=None, profile=None):
     """
     Attach a managed policy to a user.
+
+    policy_name (str):
+        The name of the managed policy to attach to the user.
+
+    user_name (str):
+        The name of the IAM user to attach the policy to.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1894,6 +3030,24 @@ def detach_user_policy(policy_name, user_name, region=None, key=None, keyid=None
     """
     Detach a managed policy from a user.
 
+    policy_name (str):
+        The name of the managed policy to detach from the user.
+
+    user_name (str):
+        The name of the IAM user to detach the policy from.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1915,6 +3069,24 @@ def detach_user_policy(policy_name, user_name, region=None, key=None, keyid=None
 def attach_group_policy(policy_name, group_name, region=None, key=None, keyid=None, profile=None):
     """
     Attach a managed policy to a group.
+
+    policy_name (str):
+        The name of the managed policy to attach to the group.
+
+    group_name (str):
+        The name of the IAM group to attach the policy to.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1938,6 +3110,24 @@ def detach_group_policy(policy_name, group_name, region=None, key=None, keyid=No
     """
     Detach a managed policy from a group.
 
+    policy_name (str):
+        The name of the managed policy to detach from the group.
+
+    group_name (str):
+        The name of the IAM group to detach the policy from.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1960,6 +3150,24 @@ def attach_role_policy(policy_name, role_name, region=None, key=None, keyid=None
     """
     Attach a managed policy to a role.
 
+    policy_name (str):
+        The name of the managed policy to attach to the role.
+
+    role_name (str):
+        The name of the IAM role to attach the policy to.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -1981,6 +3189,24 @@ def attach_role_policy(policy_name, role_name, region=None, key=None, keyid=None
 def detach_role_policy(policy_name, role_name, region=None, key=None, keyid=None, profile=None):
     """
     Detach a managed policy from a role.
+
+    policy_name (str):
+        The name of the managed policy to detach from the role.
+
+    role_name (str):
+        The name of the IAM role to detach the policy from.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -2011,6 +3237,27 @@ def list_entities_for_policy(
 ):
     """
     List entities (users, groups, roles) that a policy is attached to.
+
+    policy_name (str):
+        The name of the managed policy to list entities for.
+
+    path_prefix (str, optional):
+        The path prefix for filtering the results.
+
+    entity_filter (str, optional):
+        The entity type to filter the results by. Valid values are 'User', 'Group', or 'Role'.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -2062,6 +3309,27 @@ def list_attached_user_policies(
     """
     List managed policies attached to the given user.
 
+    user_name (str):
+        The name of the IAM user whose attached policies are to be listed.
+
+    path_prefix (str, optional):
+        The path prefix for filtering the results.
+
+    entity_filter (str, optional):
+        The entity type to filter the results by. Valid values are 'User', 'Group', or 'Role'.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -2095,6 +3363,27 @@ def list_attached_group_policies(
 ):  # pylint: disable=unused-argument
     """
     List managed policies attached to the given group.
+
+    group_name (str):
+        The name of the IAM group whose attached policies are to be listed.
+
+    path_prefix (str, optional):
+        The path prefix for filtering the results.
+
+    entity_filter (str, optional):
+        The entity type to filter the results by. Valid values are 'User', 'Group', or 'Role'.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -2130,6 +3419,27 @@ def list_attached_role_policies(
     """
     List managed policies attached to the given role.
 
+    role_name (str):
+        The name of the IAM role whose attached policies are to be listed.
+
+    path_prefix (str, optional):
+        The path prefix for filtering the results.
+
+    entity_filter (str, optional):
+        The entity type to filter the results by. Valid values are 'User', 'Group', or 'Role'.
+
+    region (str, optional):
+        The AWS region where the managed policy is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -2158,6 +3468,24 @@ def create_saml_provider(
     """
     Create SAML provider.
 
+    name (str):
+        The name of the SAML provider to create.
+
+    saml_metadata_document (str):
+        The SAML metadata document for the provider.
+
+    region (str, optional):
+        The AWS region where the SAML provider is to be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -2178,6 +3506,21 @@ def create_saml_provider(
 def get_saml_provider_arn(name, region=None, key=None, keyid=None, profile=None):
     """
     Get SAML provider ARN.
+
+    name (str):
+        The name of the SAML provider whose ARN is to be retrieved.
+
+    region (str, optional):
+        The AWS region where the SAML provider is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -2201,6 +3544,21 @@ def get_saml_provider_arn(name, region=None, key=None, keyid=None, profile=None)
 def delete_saml_provider(name, region=None, key=None, keyid=None, profile=None):
     """
     Delete SAML provider.
+
+    name (str):
+        The name of the SAML provider to delete.
+
+    region (str, optional):
+        The AWS region where the SAML provider is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -2227,6 +3585,18 @@ def list_saml_providers(region=None, key=None, keyid=None, profile=None):
     """
     List SAML provider names.
 
+    region (str, optional):
+        The AWS region where the SAML providers are located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -2252,7 +3622,21 @@ def get_saml_provider(name, region=None, key=None, keyid=None, profile=None):
     """
     Get SAML provider metadata document.
 
-    ``name`` may be a provider ARN.
+    name (str):
+        The name of the SAML provider whose metadata document is to be retrieved.
+        ``name`` may be a provider ARN.
+
+    region (str, optional):
+        The AWS region where the SAML provider is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -2275,6 +3659,24 @@ def update_saml_provider(
 ):
     """
     Update SAML provider.
+
+    name (str):
+        The name of the SAML provider to update.
+
+    saml_metadata_document (str):
+        The new SAML metadata document for the provider.
+
+    region (str, optional):
+        The AWS region where the SAML provider is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 

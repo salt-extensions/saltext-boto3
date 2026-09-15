@@ -362,18 +362,32 @@ def describe_cache_clusters(
     """
     Return details about all (or just one) Elasticache cache clusters.
 
-    Example:
+    name (str, optional):
+        The name of the cache cluster to describe. If not provided, all cache clusters will be described.
 
-    .. code-block:: bash
+    conn (boto3.client, optional):
+        The boto3 connection object. If not provided, a new connection will be created using the provided AWS credentials.
 
-        salt myminion boto3_elasticache.describe_cache_clusters
-        salt myminion boto3_elasticache.describe_cache_clusters myelasticache
+    region (str, optional):
+        The AWS region where the cache cluster is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.describe_cache_clusters
+        salt-call boto3_elasticache.describe_cache_clusters myelasticache
 
     """
     return _describe_resource(
@@ -394,17 +408,32 @@ def cache_cluster_exists(name, conn=None, region=None, key=None, keyid=None, pro
     """
     Check to see if a cache cluster exists.
 
-    Example:
+    name (str):
+        The name of the cache cluster to check for existence.
 
-    .. code-block:: bash
+    conn (boto3.client, optional):
+        The boto3 connection object. If not provided, a new connection will be created using the provided AWS credentials.
 
-        salt myminion boto3_elasticache.cache_cluster_exists myelasticache
+    region (str, optional):
+        The AWS region where the cache cluster is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.cache_cluster_exists
+        salt-call boto3_elasticache.cache_cluster_exists myelasticache
 
     """
     return bool(
@@ -427,22 +456,35 @@ def create_cache_cluster(
     """
     Create a cache cluster.
 
-    Example:
+    name (str):
+        The name of the cache cluster to create.
 
-    .. code-block:: bash
+    wait (int, optional):
+        The number of seconds to wait for the cache cluster to become available.
 
-        salt myminion boto3_elasticache.create_cache_cluster name=myCacheCluster \
-                                                             Engine=redis \
-                                                             CacheNodeType=cache.t2.micro \
-                                                             NumCacheNodes=1 \
-                                                             SecurityGroupIds='[sg-11223344]' \
-                                                             CacheSubnetGroupName=myCacheSubnetGroup
+    security_groups (list[str], optional):
+        A list of security group IDs to associate with the cache cluster.
+
+    region (str, optional):
+        The AWS region where the cache cluster will be created.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.create_cache_cluster
+        salt-call boto3_elasticache.create_cache_cluster myelasticache
 
     """
     if security_groups:
@@ -483,27 +525,45 @@ def modify_cache_cluster(
     """
     Update a cache cluster in place.
 
-    Notes:  {ApplyImmediately: False} is pretty danged silly in the context of salt.
-            You can pass it, but for fairly obvious reasons the results over multiple
-            runs will be undefined and probably contrary to your desired state.
-            Reducing the number of nodes requires an EXPLICIT CacheNodeIdsToRemove be
-            passed, which until a reasonable heuristic for programmatically deciding
-            which nodes to remove has been established, MUST be decided and populated
-            intentionally before a state call, and removed again before the next.  In
-            practice this is not particularly useful and should probably be avoided.
+    .. note::
+        {ApplyImmediately: False} is pretty danged silly in the context of salt.
+        You can pass it, but for fairly obvious reasons the results over multiple
+        runs will be undefined and probably contrary to your desired state.
+        Reducing the number of nodes requires an EXPLICIT CacheNodeIdsToRemove be
+        passed, which until a reasonable heuristic for programmatically deciding
+        which nodes to remove has been established, MUST be decided and populated
+        intentionally before a state call, and removed again before the next.  In
+        practice this is not particularly useful and should probably be avoided.
 
-    Example:
+    name (str):
+        The name of the cache cluster to modify.
 
-    .. code-block:: bash
+    wait (int, optional):
+        The number of seconds to wait for the cache cluster to become available.
 
-        salt myminion boto3_elasticache.create_cache_cluster name=myCacheCluster \
-                                                             NotificationTopicStatus=inactive
+    security_groups (list[str], optional):
+        A list of security group IDs to associate with the cache cluster.
+
+    region (str, optional):
+        The AWS region where the cache cluster is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.modify_cache_cluster
+        salt-call boto3_elasticache.modify_cache_cluster myelasticache --security-groups sg-11223344
 
     """
     if security_groups:
@@ -535,17 +595,32 @@ def delete_cache_cluster(name, wait=600, region=None, key=None, keyid=None, prof
     """
     Delete a cache cluster.
 
-    Example:
+    name (str):
+        The name of the cache cluster to delete.
 
-    .. code-block:: bash
+    wait (int, optional):
+        The number of seconds to wait for the cache cluster to be deleted.
 
-        salt myminion boto3_elasticache.delete myelasticache
+    region (str, optional):
+        The AWS region where the cache cluster is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional parameters that are passed to the boto3 client method.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.delete_cache_cluster
+        salt-call boto3_elasticache.delete_cache_cluster myelasticache
 
     """
     return _delete_resource(
@@ -569,18 +644,26 @@ def describe_replication_groups(
     """
     Return details about all (or just one) Elasticache replication groups.
 
-    Example:
+    name (str, optional):
+        The name of the replication group to describe. If not provided, all replication groups will be returned.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the replication group is located.
 
-        salt myminion boto3_elasticache.describe_replication_groups
-        salt myminion boto3_elasticache.describe_replication_groups myelasticache
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.describe_replication_groups
+        salt-call boto3_elasticache.describe_replication_groups myelasticache
 
     """
     return _describe_resource(
@@ -600,17 +683,26 @@ def replication_group_exists(name, region=None, key=None, keyid=None, profile=No
     """
     Check to see if a replication group exists.
 
-    Example:
+    name (str):
+        The name of the replication group to check for existence.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the replication group is located.
 
-        salt myminion boto3_elasticache.replication_group_exists myelasticache
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.replication_group_exists
+        salt-call boto3_elasticache.replication_group_exists myelasticache
 
     """
     return bool(
@@ -634,19 +726,35 @@ def create_replication_group(
     http://boto3.readthedocs.io/en/latest/reference/services/elasticache.html?#ElastiCache.Client.create_replication_group
     for in-depth usage documentation.
 
-    Example:
+    name (str):
+        The name of the replication group to create.
 
-    .. code-block:: bash
+    wait (int, optional):
+        The number of seconds to wait for the replication group to be created.
 
-        salt myminion boto3_elasticache.create_replication_group \
-                                                  name=myelasticache \
-                                                  ReplicationGroupDescription=description
+    security_groups (list, optional):
+        A list of security groups to associate with the replication group.
+
+    region (str, optional):
+        The AWS region where the replication group will be created.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (dict, optional):
+        Additional arguments to pass to the create_replication_group call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.create_replication_group
+        salt-call boto3_elasticache.create_replication_group myelasticache
 
     """
     if security_groups:
@@ -687,19 +795,35 @@ def modify_replication_group(
     """
     Modify a replication group.
 
-    Example:
+    name (str):
+        The name of the replication group to modify.
 
-    .. code-block:: bash
+    wait (int, optional):
+        The number of seconds to wait for the replication group to be modified.
 
-        salt myminion boto3_elasticache.modify_replication_group \
-                                                  name=myelasticache \
-                                                  ReplicationGroupDescription=newDescription
+    security_groups (list, optional):
+        A list of security groups to associate with the replication group.
+
+    region (str, optional):
+        The AWS region where the replication group is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (dict, optional):
+        Additional arguments to pass to the modify_replication_group call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.modify_replication_group
+        salt-call boto3_elasticache.modify_replication_group myelasticache
 
     """
     if security_groups:
@@ -733,17 +857,32 @@ def delete_replication_group(
     """
     Delete an ElastiCache replication group, optionally taking a snapshot first.
 
-    Example:
+    name (str):
+        The name of the replication group to delete.
 
-    .. code-block:: bash
+    wait (int, optional):
+        The number of seconds to wait for the replication group to be deleted.
 
-        salt myminion boto3_elasticache.delete_replication_group my-replication-group
+    region (str, optional):
+        The AWS region where the replication group is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (dict, optional):
+        Additional arguments to pass to the delete_replication_group call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.delete_replication_group
+        salt-call boto3_elasticache.delete_replication_group my-replication-group
 
     """
     return _delete_resource(
@@ -767,17 +906,26 @@ def describe_cache_subnet_groups(
     """
     Return details about all (or just one) Elasticache replication groups.
 
-    Example:
+    name (str, optional):
+        The name of the cache subnet group to describe. If not provided, all cache subnet groups will be returned.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the cache subnet group is located.
 
-        salt myminion boto3_elasticache.describe_cache_subnet_groups region=us-east-1
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.describe_cache_subnet_groups
+        salt-call boto3_elasticache.describe_cache_subnet_groups my-subnet-group
 
     """
     return _describe_resource(
@@ -797,17 +945,26 @@ def cache_subnet_group_exists(name, region=None, key=None, keyid=None, profile=N
     """
     Check to see if an ElastiCache subnet group exists.
 
-    Example:
+    name (str):
+        The name of the cache subnet group to check for existence.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the cache subnet group is located.
 
-        salt myminion boto3_elasticache.cache_subnet_group_exists my-subnet-group
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.cache_subnet_group_exists
+        salt-call boto3_elasticache.cache_subnet_group_exists my-subnet-group
 
     """
     return bool(
@@ -821,11 +978,17 @@ def list_cache_subnet_groups(region=None, key=None, keyid=None, profile=None):
     """
     Return a list of all cache subnet group names
 
-    Example:
+    region (str, optional):
+        The AWS region where the cache subnet groups are located.
 
-    .. code-block:: bash
+    keyid (str, optional):
+        The AWS access key ID.
 
-        salt myminion boto3_elasticache.list_cache_subnet_groups region=us-east-1
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -846,19 +1009,34 @@ def create_cache_subnet_group(
     """
     Create an ElastiCache subnet group
 
-    Example:
+    name (str):
+        The name of the cache subnet group to create.
 
-    .. code-block:: bash
+    subnets (list, optional):
+        A list of subnet IDs or names to include in the cache subnet group.
 
-        salt myminion boto3_elasticache.create_cache_subnet_group name=my-subnet-group \
-                                              CacheSubnetGroupDescription="description" \
-                                              subnets='[myVPCSubnet1,myVPCSubnet2]'
+    region (str, optional):
+        The AWS region where the cache subnet group will be created.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional arguments to pass to the underlying boto3 create_cache_subnet_group call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.create_cache_subnet_group
+        salt-call boto3_elasticache.create_cache_subnet_group name=my-subnet-group \
+                                              CacheSubnetGroupDescription="description" \
+                                              subnets='[myVPCSubnet1,myVPCSubnet2]'
 
     """
     if subnets:
@@ -904,19 +1082,34 @@ def modify_cache_subnet_group(
     """
     Modify an ElastiCache subnet group
 
-    Example:
+    name (str):
+        The name of the cache subnet group to modify.
 
-    .. code-block:: bash
+    subnets (list, optional):
+        A list of subnet IDs or names to include in the cache subnet group.
 
-        salt myminion boto3_elasticache.modify_cache_subnet_group \
-                                              name=my-subnet-group \
-                                              subnets='[myVPCSubnet3]'
+    region (str, optional):
+        The AWS region where the cache subnet group is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional arguments to pass to the underlying boto3 modify_cache_subnet_group call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.modify_cache_subnet_group
+        salt-call boto3_elasticache.modify_cache_subnet_group \
+                                              name=my-subnet-group \
+                                              subnets='[myVPCSubnet3]'
 
     """
     if subnets:
@@ -959,17 +1152,29 @@ def delete_cache_subnet_group(name, region=None, key=None, keyid=None, profile=N
     """
     Delete an ElastiCache subnet group.
 
-    Example:
+    name (str):
+        The name of the cache subnet group to delete.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the cache subnet group is located.
 
-        salt myminion boto3_elasticache.delete_subnet_group my-subnet-group region=us-east-1
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional arguments to pass to the underlying boto3 delete_cache_subnet_group call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.delete_cache_subnet_group
+        salt-call boto3_elasticache.delete_cache_subnet_group my-subnet-group
 
     """
     return _delete_resource(
@@ -991,18 +1196,28 @@ def describe_cache_security_groups(
     """
     Return details about all (or just one) Elasticache cache clusters.
 
-    Example:
+    name (str, optional):
+        The name of the cache security group to describe. If not provided, details about all cache security groups will be returned.
+    region (str, optional):
+        The AWS region where the cache security group is located.
 
-    .. code-block:: bash
+    keyid (str, optional):
+        The AWS access key ID.
 
-        salt myminion boto3_elasticache.describe_cache_security_groups
-        salt myminion boto3_elasticache.describe_cache_security_groups mycachesecgrp
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional arguments to pass to the underlying boto3 describe_cache_security_groups call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.describe_cache_security_groups
+        salt-call boto3_elasticache.describe_cache_security_groups mycachesecgrp
 
     """
     return _describe_resource(
@@ -1022,17 +1237,26 @@ def cache_security_group_exists(name, region=None, key=None, keyid=None, profile
     """
     Check to see if an ElastiCache security group exists.
 
-    Example:
+    name (str):
+        The name of the cache security group to check for existence.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the cache security group is located.
 
-        salt myminion boto3_elasticache.cache_security_group_exists mysecuritygroup
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.cache_security_group_exists
+        salt-call boto3_elasticache.cache_security_group_exists mysecuritygroup
 
     """
     return bool(
@@ -1046,17 +1270,29 @@ def create_cache_security_group(name, region=None, key=None, keyid=None, profile
     """
     Create a cache security group.
 
-    Example:
+    name (str):
+        The name of the cache security group to create.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the cache security group will be created.
 
-        salt myminion boto3_elasticache.create_cache_security_group mycachesecgrp Description='My Cache Security Group'
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional arguments to pass to the underlying boto3 create_cache_security_group call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.create_cache_security_group
+        salt-call boto3_elasticache.create_cache_security_group mycachesecgrp Description='My Cache Security Group'
 
     """
     return _create_resource(
@@ -1076,17 +1312,29 @@ def delete_cache_security_group(name, region=None, key=None, keyid=None, profile
     """
     Delete a cache security group.
 
-    Example:
+    name (str):
+        The name of the cache security group to delete.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the cache security group is located.
 
-        salt myminion boto3_elasticache.delete_cache_security_group myelasticachesg
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional arguments to pass to the underlying boto3 delete_cache_security_group call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.delete_cache_security_group
+        salt-call boto3_elasticache.delete_cache_security_group myelasticachesg
 
     """
     return _delete_resource(
@@ -1108,20 +1356,29 @@ def authorize_cache_security_group_ingress(
     """
     Authorize network ingress from an ec2 security group to a cache security group.
 
-    Example:
+    name (str):
+        The name of the cache security group to authorize ingress for.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the cache security group is located.
 
-        salt myminion boto3_elasticache.authorize_cache_security_group_ingress \
-                                        mycachesecgrp \
-                                        EC2SecurityGroupName=someEC2sg \
-                                        EC2SecurityGroupOwnerId=SOMEOWNERID
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional arguments to pass to the underlying boto3 authorize_cache_security_group_ingress call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.authorize_cache_security_group_ingress
+        salt-call boto3_elasticache.authorize_cache_security_group_ingress myelasticachesg EC2SecurityGroupName=someEC2sg EC2SecurityGroupOwnerId=SOMEOWNERID
 
     """
     conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
@@ -1156,20 +1413,29 @@ def revoke_cache_security_group_ingress(
     Revoke network ingress from an ec2 security group to a cache security
     group.
 
-    Example:
+    name (str):
+        The name of the cache security group to revoke ingress from.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the cache security group is located.
 
-        salt myminion boto3_elasticache.revoke_cache_security_group_ingress \
-                                        mycachesecgrp \
-                                        EC2SecurityGroupName=someEC2sg \
-                                        EC2SecurityGroupOwnerId=SOMEOWNERID
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional arguments to pass to the underlying boto3 revoke_cache_security_group_ingress call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.revoke_cache_security_group_ingress
+        salt-call boto3_elasticache.revoke_cache_security_group_ingress mycachesecgrp EC2SecurityGroupName=someEC2sg EC2SecurityGroupOwnerId=SOMEOWNERID
 
     """
     conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
@@ -1201,25 +1467,37 @@ def list_tags_for_resource(name, region=None, key=None, keyid=None, profile=None
     """
     List tags on an Elasticache resource.
 
-    Note that this function is essentially useless as it requires a full AWS ARN for the
-    resource being operated on, but there is no provided API or programmatic way to find
-    the ARN for a given object from its name or ID alone.  It requires specific knowledge
-    about the account number, AWS partition, and other magic details to generate.
+    .. note::
+        This function is essentially useless as it requires a full AWS ARN for the
+        resource being operated on, but there is no provided API or programmatic way to find
+        the ARN for a given object from its name or ID alone.  It requires specific knowledge
+        about the account number, AWS partition, and other magic details to generate.
 
-    If you happen to have those handy, feel free to utilize this however...
+        If you happen to have those handy, feel free to utilize this however...
 
-    Example:
+    name (str):
+        The full ARN of the Elasticache resource to list tags for.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the Elasticache resource is located.
 
-        salt myminion boto3_elasticache.list_tags_for_resource \
-                name'=arn:aws:elasticache:us-west-2:0123456789:snapshot:mySnapshot'
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional arguments to pass to the underlying boto3 list_tags_for_resource call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.list_tags_for_resource
+        salt-call boto3_elasticache.list_tags_for_resource name='arn:aws:elasticache:us-west-2:0123456789:snapshot:mySnapshot'
 
     """
     conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
@@ -1247,26 +1525,37 @@ def add_tags_to_resource(name, region=None, key=None, keyid=None, profile=None, 
     """
     Add tags to an Elasticache resource.
 
-    Note that this function is essentially useless as it requires a full AWS ARN for the
-    resource being operated on, but there is no provided API or programmatic way to find
-    the ARN for a given object from its name or ID alone.  It requires specific knowledge
-    about the account number, AWS partition, and other magic details to generate.
+    .. note::
+        This function is essentially useless as it requires a full AWS ARN for the
+        resource being operated on, but there is no provided API or programmatic way to find
+        the ARN for a given object from its name or ID alone.  It requires specific knowledge
+        about the account number, AWS partition, and other magic details to generate.
 
-    If you happen to have those at hand though, feel free to utilize this function...
+        If you happen to have those at hand though, feel free to utilize this function...
 
-    Example:
+    name (str):
+        The full ARN of the Elasticache resource to add tags to.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the Elasticache resource is located.
 
-        salt myminion boto3_elasticache.add_tags_to_resource \
-                name'=arn:aws:elasticache:us-west-2:0123456789:snapshot:mySnapshot' \
-                Tags="[{'Key': 'TeamOwner', 'Value': 'infrastructure'}]"
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional arguments to pass to the underlying boto3 add_tags_to_resource call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.add_tags_to_resource
+        salt-call boto3_elasticache.add_tags_to_resource name='arn:aws:elasticache:us-west-2:0123456789:snapshot:mySnapshot' Tags="[{'Key': 'TeamOwner', 'Value': 'infrastructure'}]"
 
     """
     conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
@@ -1293,27 +1582,37 @@ def remove_tags_from_resource(name, region=None, key=None, keyid=None, profile=N
     """
     Remove tags from an Elasticache resource.
 
-    Note that this function is essentially useless as it requires a full AWS ARN for the
-    resource being operated on, but there is no provided API or programmatic way to find
-    the ARN for a given object from its name or ID alone.  It requires specific knowledge
-    about the account number, AWS partition, and other magic details to generate.
+    .. note::
+        That this function is essentially useless as it requires a full AWS ARN for the
+        resource being operated on, but there is no provided API or programmatic way to find
+        the ARN for a given object from its name or ID alone.  It requires specific knowledge
+        about the account number, AWS partition, and other magic details to generate.
 
-    If you happen to have those at hand though, feel free to utilize this function...
+        If you happen to have those at hand though, feel free to utilize this function...
 
-    Example:
+    name (str):
+        The ARN of the Elasticache resource from which to remove tags.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the Elasticache resource is located.
 
-        salt myminion boto3_elasticache.remove_tags_from_resource \
-                name'=arn:aws:elasticache:us-west-2:0123456789:snapshot:mySnapshot' \
-                TagKeys="['TeamOwner']"
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional arguments to pass to the underlying boto3 remove_tags_from_resource call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.remove_tags_from_resource
-
+        salt-call boto3_elasticache.remove_tags_from_resource name='arn:aws:elasticache:us-west-2:0123456789:snapshot:mySnapshot' TagKeys="['TeamOwner']"
     """
     conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
     if "ResourceName" in args:
@@ -1328,10 +1627,10 @@ def remove_tags_from_resource(name, region=None, key=None, keyid=None, profile=N
     args = {k: v for k, v in args.items() if not k.startswith("_")}
     try:
         conn.remove_tags_from_resource(**args)
-        log.info("Added tags %s to %s.", args["Tags"], name)
+        log.info("Removed tags %s from %s.", args["TagKeys"], name)
         return True
     except botocore.exceptions.ClientError as e:
-        log.error("Failed to add tags to %s: %s", name, e)
+        log.error("Failed to remove tags from %s: %s", name, e)
         return False
 
 
@@ -1339,18 +1638,29 @@ def copy_snapshot(name, region=None, key=None, keyid=None, profile=None, **args)
     """
     Make a copy of an existing snapshot.
 
-    Example:
+    name (str):
+        The name of the source snapshot to copy.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the Elasticache resource is located.
 
-        salt myminion boto3_elasticache.copy_snapshot name=mySnapshot \
-                                                      TargetSnapshotName=copyOfMySnapshot
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional arguments to pass to the underlying boto3 copy_snapshot call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.copy_snapshot
+        salt-call boto3_elasticache.copy_snapshot name='mySnapshot' TargetSnapshotName='copyOfMySnapshot'
 
     """
     conn = _get_conn("elasticache", region=region, key=key, keyid=keyid, profile=profile)
@@ -1379,18 +1689,26 @@ def describe_cache_parameter_groups(
     """
     Return details about all (or just one) Elasticache cache clusters.
 
-    Example:
+    name (str, optional):
+        The name of the cache parameter group to describe. If not provided, details about all cache parameter groups will be returned.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the Elasticache resource is located.
 
-        salt myminion boto3_elasticache.describe_cache_parameter_groups
-        salt myminion boto3_elasticache.describe_cache_parameter_groups myParameterGroup
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.describe_cache_parameter_groups
+        salt-call boto3_elasticache.describe_cache_parameter_groups name='myParameterGroup'
 
     """
     return _describe_resource(
@@ -1410,20 +1728,29 @@ def create_cache_parameter_group(name, region=None, key=None, keyid=None, profil
     """
     Create a cache parameter group.
 
-    Example:
+    name (str):
+        The name of the cache parameter group to create.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the Elasticache resource is located.
 
-        salt myminion boto3_elasticache.create_cache_parameter_group \
-                name=myParamGroup \
-                CacheParameterGroupFamily=redis2.8 \
-                Description="My Parameter Group"
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    **args (optional):
+        Additional arguments to pass to the underlying boto3 create_cache_parameter_group call.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.create_cache_parameter_group
+        salt-call boto3_elasticache.create_cache_parameter_group name='myParameterGroup' CacheParameterGroupFamily='redis2.8' Description='My Parameter Group'
 
     """
     return _create_resource(
@@ -1443,17 +1770,26 @@ def delete_cache_parameter_group(name, region=None, key=None, keyid=None, profil
     """
     Delete a cache parameter group.
 
-    Example:
+    name (str):
+        The name of the cache parameter group to delete.
 
-    .. code-block:: bash
+    region (str, optional):
+        The AWS region where the Elasticache resource is located.
 
-        salt myminion boto3_elasticache.delete_cache_parameter_group myParamGroup
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticache.delete_cache_parameter_group
+        salt-call boto3_elasticache.delete_cache_parameter_group name='myParamGroup'
 
     """
     return _delete_resource(

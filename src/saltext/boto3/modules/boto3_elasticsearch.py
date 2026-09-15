@@ -118,14 +118,27 @@ def add_tags(
     Tags are a set of case-sensitive key value pairs.
     An Elasticsearch domain may have up to 10 tags.
 
-    :param str domain_name: The name of the Elasticsearch domain you want to add tags to.
-    :param str arn: The ARN of the Elasticsearch domain you want to add tags to.
-        Specifying this overrides ``domain_name``.
-    :param dict tags: The dict of tags to add to the Elasticsearch domain.
+    domain_name (str, optional):
+        The name of the Elasticsearch domain you want to add tags to.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon failure, also contains a key 'error' with the error message as value.
+    arn (str, optional):
+        The ARN of the Elasticsearch domain you want to add tags to.
+        Specifying this overrides ``domain_name``.
+
+    tags (dict, optional):
+        The dict of tags to add to the Elasticsearch domain.
+
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -173,19 +186,26 @@ def cancel_elasticsearch_service_software_update(
     only perform this operation before the AutomatedUpdateDate and when the UpdateStatus
     is in the PENDING_UPDATE state.
 
-    :param str domain_name: The name of the domain that you want to stop the latest
-        service software update on.
+    domain_name (str):
+        The name of the Elasticsearch domain for which to cancel the scheduled service software update.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with the current service software options.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.cancel_elasticsearch_service_software_update
+        salt-call boto3_elasticsearch.cancel_elasticsearch_service_software_update domain_name=mydomain
 
     """
     ret = {"result": False}
@@ -221,127 +241,197 @@ def create_elasticsearch_domain(
     """
     Given a valid config, create a domain.
 
-    :param str domain_name: The name of the Elasticsearch domain that you are creating.
-        Domain names are unique across the domains owned by an account within an
-        AWS region. Domain names must start with a letter or number and can contain
-        the following characters: a-z (lowercase), 0-9, and - (hyphen).
-    :param str elasticsearch_version: String of format X.Y to specify version for
-        the Elasticsearch domain eg. "1.5" or "2.3".
-    :param dict elasticsearch_cluster_config: Dictionary specifying the configuration
-        options for an Elasticsearch domain. Keys (case sensitive) in here are:
+    domain_name (str):
+        The name of the Elasticsearch domain to create.
 
-        - InstanceType (str): The instance type for an Elasticsearch cluster.
-        - InstanceCount (int): The instance type for an Elasticsearch cluster.
-        - DedicatedMasterEnabled (bool): Indicate whether a dedicated master
-          node is enabled.
-        - ZoneAwarenessEnabled (bool): Indicate whether zone awareness is enabled.
-          If this is not enabled, the Elasticsearch domain will only be in one
-          availability zone.
-        - ZoneAwarenessConfig (dict): Specifies the zone awareness configuration
-          for a domain when zone awareness is enabled.
-          Keys (case sensitive) in here are:
+    elasticsearch_version (str, optional):
+        The version of Elasticsearch to use for the domain.
 
-          - AvailabilityZoneCount (int): An integer value to indicate the
-            number of availability zones for a domain when zone awareness is
-            enabled. This should be equal to number of subnets if VPC endpoints
-            is enabled. Allowed values: 2, 3
+    elasticsearch_cluster_config (dict, optional):
+        The configuration for the Elasticsearch cluster.
 
-        - DedicatedMasterType (str): The instance type for a dedicated master node.
-        - DedicatedMasterCount (int): Total number of dedicated master nodes,
-          active and on standby, for the cluster.
-    :param dict ebs_options: Dict specifying the options to enable or disable and
-        specifying the type and size of EBS storage volumes.
-        Keys (case sensitive) in here are:
+        Example:
 
-        - EBSEnabled (bool): Specifies whether EBS-based storage is enabled.
-        - VolumeType (str): Specifies the volume type for EBS-based storage.
-        - VolumeSize (int): Integer to specify the size of an EBS volume.
-        - Iops (int): Specifies the IOPD for a Provisioned IOPS EBS volume (SSD).
-    :type access_policies: str or dict
-    :param access_policies: Dict or JSON string with the IAM access policy.
-    :param dict snapshot_options: Dict specifying the snapshot options.
-        Keys (case sensitive) in here are:
+        .. code-block:: json
 
-        - AutomatedSnapshotStartHour (int): Specifies the time, in UTC format,
-          when the service takes a daily automated snapshot of the specified
-          Elasticsearch domain. Default value is 0 hours.
-    :param dict vpc_options: Dict with the options to specify the subnets and security
-        groups for the VPC endpoint.
-        Keys (case sensitive) in here are:
+            {
+              "InstanceType": "t2.micro.elasticsearch",
+              "InstanceCount": 1,
+              "DedicatedMasterEnabled": False,
+              "ZoneAwarenessEnabled": False
+            }
 
-        - SubnetIds (list): The list of subnets for the VPC endpoint.
-        - SecurityGroupIds (list): The list of security groups for the VPC endpoint.
-    :param dict cognito_options: Dict with options to specify the cognito user and
-        identity pools for Kibana authentication.
-        Keys (case sensitive) in here are:
+    ebs_options (dict, optional):
+        The EBS options for the domain.
 
-        - Enabled (bool): Specifies the option to enable Cognito for Kibana authentication.
-        - UserPoolId (str): Specifies the Cognito user pool ID for Kibana authentication.
-        - IdentityPoolId (str): Specifies the Cognito identity pool ID for Kibana authentication.
-        - RoleArn (str): Specifies the role ARN that provides Elasticsearch permissions
-          for accessing Cognito resources.
-    :param dict encryption_at_rest_options: Dict specifying the encryption at rest
-        options. Keys (case sensitive) in here are:
+        Example:
 
-        - Enabled (bool): Specifies the option to enable Encryption At Rest.
-        - KmsKeyId (str): Specifies the KMS Key ID for Encryption At Rest options.
-    :param dict node_to_node_encryption_options: Dict specifying the node to node
-        encryption options. Keys (case sensitive) in here are:
+        .. code-block:: json
 
-        - Enabled (bool): Specify True to enable node-to-node encryption.
-    :param dict advanced_options: Dict with option to allow references to indices
-        in an HTTP request body. Must be False when configuring access to individual
-        sub-resources. By default, the value is True.
-        See http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide\
-        /es-createupdatedomains.html#es-createdomain-configure-advanced-options
-        for more information.
-    :param dict log_publishing_options: Dict with options for various type of logs.
-        The keys denote the type of log file and can be one of the following:
+            {
+              "EBSEnabled": True,
+              "VolumeType": "gp2",
+              "VolumeSize": 10,
+              "Iops": 0
+            }
 
-        - INDEX_SLOW_LOGS
-        - SEARCH_SLOW_LOGS
-        - ES_APPLICATION_LOGS
+    access_policies (dict, optional):
+        The access policies for the domain.
 
-        The value assigned to each key is a dict with the following case sensitive keys:
+        Example:
 
-        - CloudWatchLogsLogGroupArn (str): The ARN of the Cloudwatch log
-          group to which the log needs to be published.
-        - Enabled (bool): Specifies whether given log publishing option is enabled or not.
-    :param bool blocking: Whether or not to wait (block) until the Elasticsearch
-        domain has been created.
+        .. code-block:: json
 
-    Note: Not all instance types allow enabling encryption at rest. See https://docs.aws.amazon.com\
+            {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Principal": {"AWS": "*"},
+                  "Action": "es:*",
+                  "Resource": "arn:aws:es:us-east-1:111111111111:domain/mydomain/*",
+                  "Condition": {"IpAddress": {"aws:SourceIp": ["127.0.0.1"]}}
+                }
+              ]
+            }
+
+    snapshot_options (dict, optional):
+        The snapshot options for the domain.
+
+        Example:
+
+        .. code-block:: json
+
+            {
+              "AutomatedSnapshotStartHour": 0
+            }
+
+    vpc_options (dict, optional):
+        The VPC options for the domain.
+
+        Example:
+
+        .. code-block:: json
+
+            {
+              "SubnetIds": ["subnet-12345678"],
+              "SecurityGroupIds": ["sg-12345678"]
+            }
+
+    cognito_options (dict, optional):
+        The Cognito options for the domain.
+
+        Example:
+
+        .. code-block:: json
+
+            {
+              "Enabled": True,
+              "UserPoolId": "us-east-1_123456789",
+              "IdentityPoolId": "us-east-1:12345678-1234-1234-1234-123456789012",
+              "RoleArn": "arn:aws:iam::111111111111:role/CognitoAccessRole"
+            }
+
+    encryption_at_rest_options (dict, optional):
+        The encryption at rest options for the domain.
+
+        Example:
+
+        .. code-block:: json
+
+            {
+              "Enabled": True,
+              "KmsKeyId": "arn:aws:kms:us-east-1:111111111111:key/12345678-1234-1234-1234-123456789012"
+            }
+
+    node_to_node_encryption_options (dict, optional):
+        The node-to-node encryption options for the domain.
+
+        Example:
+
+        .. code-block:: json
+
+            {
+              "Enabled": True
+            }
+
+    advanced_options (dict, optional):
+        The advanced options for the domain.
+
+        Example:
+
+        .. code-block:: json
+
+            {
+              "rest.action.multi.allow_explicit_index": "true"
+            }
+
+    log_publishing_options (dict, optional):
+        The log publishing options for the domain.
+
+        Example:
+
+        .. code-block:: json
+
+            {
+              "INDEX_SLOW_LOGS": {
+                "CloudWatchLogsLogGroupArn": "arn:aws:logs:us-east-1:111111111111:log-group:my-log-group",
+                "Enabled": True
+              },
+              "SEARCH_SLOW_LOGS": {
+                "CloudWatchLogsLogGroupArn": "arn:aws:logs:us-east-1:111111111111:log-group:my-log-group",
+                "Enabled": True
+              },
+              "ES_APPLICATION_LOGS": {
+                "CloudWatchLogsLogGroupArn": "arn:aws:logs:us-east-1:111111111111:log-group:my-log-group",
+                "Enabled": True
+              }
+            }
+
+
+    blocking (bool, optional):
+        Whether to block until the domain is available.
+
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    .. note::
+        Not all instance types allow enabling encryption at rest. See https://docs.aws.amazon.com\
         /elasticsearch-service/latest/developerguide/aes-supported-instance-types.html
-
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with the domain status configuration.
-        Upon failure, also contains a key 'error' with the error message as value.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_elasticsearch.create_elasticsearch_domain mydomain \\
-        elasticsearch_cluster_config='{ \\
-          "InstanceType": "t2.micro.elasticsearch", \\
-          "InstanceCount": 1, \\
-          "DedicatedMasterEnabled": False, \\
-          "ZoneAwarenessEnabled": False}' \\
-        ebs_options='{ \\
-          "EBSEnabled": True, \\
-          "VolumeType": "gp2", \\
-          "VolumeSize": 10, \\
-          "Iops": 0}' \\
-        access_policies='{ \\
-          "Version": "2012-10-17", \\
-          "Statement": [ \\
-            {"Effect": "Allow", \\
-             "Principal": {"AWS": "*"}, \\
-             "Action": "es:*", \\
-             "Resource": "arn:aws:es:us-east-1:111111111111:domain/mydomain/*", \\
-             "Condition": {"IpAddress": {"aws:SourceIp": ["127.0.0.1"]}}}]}' \\
-        snapshot_options='{"AutomatedSnapshotStartHour": 0}' \\
+        salt myminion boto3_elasticsearch.create_elasticsearch_domain mydomain \
+        elasticsearch_cluster_config='{ \
+          "InstanceType": "t2.micro.elasticsearch", \
+          "InstanceCount": 1, \
+          "DedicatedMasterEnabled": False, \
+          "ZoneAwarenessEnabled": False}' \
+        ebs_options='{ \
+          "EBSEnabled": True, \
+          "VolumeType": "gp2", \
+          "VolumeSize": 10, \
+          "Iops": 0}' \
+        access_policies='{ \
+          "Version": "2012-10-17", \
+          "Statement": [ \
+            {"Effect": "Allow", \
+             "Principal": {"AWS": "*"}, \
+             "Action": "es:*", \
+             "Resource": "arn:aws:es:us-east-1:111111111111:domain/mydomain/*", \
+             "Condition": {"IpAddress": {"aws:SourceIp": ["127.0.0.1"]}}}]}' \
+        snapshot_options='{"AutomatedSnapshotStartHour": 0}' \
         advanced_options='{"rest.action.multi.allow_explicit_index": "true"}'
     """
     boto_kwargs = salt.utils.data.filter_falsey(
@@ -385,19 +475,30 @@ def delete_elasticsearch_domain(
     Permanently deletes the specified Elasticsearch domain and all of its data.
     Once a domain is deleted, it cannot be recovered.
 
-    :param str domain_name: The name of the domain to delete.
-    :param bool blocking: Whether or not to wait (block) until the Elasticsearch
+    domain_name (str):
+        The name of the domain to delete.
+
+    blocking (bool, optional):
+        Whether or not to wait (block) until the Elasticsearch
         domain has been deleted.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.delete_elasticsearch_domain
+        salt-call boto3_elasticsearch.delete_elasticsearch_domain domain_name="my-domain"
 
     """
     ret = {"result": False}
@@ -419,9 +520,17 @@ def delete_elasticsearch_service_role(region=None, keyid=None, key=None, profile
     maintain VPC domains. Role deletion will fail if any existing VPC domains use
     the role. You must delete any such Elasticsearch domains before deleting the role.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch service role is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -444,18 +553,26 @@ def describe_elasticsearch_domain(domain_name, region=None, keyid=None, key=None
     """
     Given a domain name gets its status description.
 
-    :param str domain_name: The name of the domain to get the status of.
+    domain_name (str):
+        The name of the domain to get the status of.
 
-    :rtype: dict
-    :return: Dictionary ith key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with the domain status information.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.describe_elasticsearch_domain
+        salt-call boto3_elasticsearch.describe_elasticsearch_domain domain_name="my-domain"
 
     """
     ret = {"result": False}
@@ -477,18 +594,26 @@ def describe_elasticsearch_domain_config(
     Provides cluster configuration information about the specified Elasticsearch domain,
     such as the state, creation date, update version, and update date for cluster options.
 
-    :param str domain_name: The name of the domain to describe.
+    domain_name (str):
+        The name of the domain to describe.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with the current configuration information.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.describe_elasticsearch_domain_config
+        salt-call boto3_elasticsearch.describe_elasticsearch_domain_config domain_name="my-domain"
 
     """
     ret = {"result": False}
@@ -508,12 +633,20 @@ def describe_elasticsearch_domains(domain_names, region=None, keyid=None, key=No
     Returns domain configuration information about the specified Elasticsearch
     domains, including the domain ID, domain endpoint, and domain ARN.
 
-    :param list domain_names: List of domain names to get information for.
+    domain_names (list):
+        A list of domain names to get information for.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with the list of domain status information.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch domains are located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -548,26 +681,36 @@ def describe_elasticsearch_instance_type_limits(
     When modifying existing Domain, specify the `` DomainName `` to know what Limits
     are supported for modifying.
 
-    :param str instance_type: The instance type for an Elasticsearch cluster for
-        which Elasticsearch ``Limits`` are needed.
-    :param str elasticsearch_version: Version of Elasticsearch for which ``Limits``
-        are needed.
-    :param str domain_name: Represents the name of the Domain that we are trying
-        to modify. This should be present only if we are querying for Elasticsearch
-        ``Limits`` for existing domain.
+    instance_type (str):
+        The instance type for an Elasticsearch cluster for which Elasticsearch ``Limits`` are needed.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with the limits information.
-        Upon failure, also contains a key 'error' with the error message as value.
+    elasticsearch_version (str):
+        Version of Elasticsearch for which ``Limits`` are needed.
+
+    domain_name (str, optional):
+        Represents the name of the Domain that we are trying to modify. This should be present only
+        if we are querying for Elasticsearch ``Limits`` for an existing domain.
+
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_elasticsearch.describe_elasticsearch_instance_type_limits \\
-          instance_type=r3.8xlarge.elasticsearch \\
-          elasticsearch_version='6.2'
+        salt myminion boto3_elasticsearch.describe_elasticsearch_instance_type_limits \
+          instance_type=r3.8xlarge.elasticsearch \
+          elasticsearch_version='6.2' \
+          domain_name='my-domain'
     """
     ret = {"result": False}
     boto_params = salt.utils.data.filter_falsey(
@@ -599,21 +742,28 @@ def describe_reserved_elasticsearch_instance_offerings(
     """
     Lists available reserved Elasticsearch instance offerings.
 
-    :param str reserved_elasticsearch_instance_offering_id: The offering identifier
-        filter value. Use this parameter to show only the available offering that
-        matches the specified reservation identifier.
+    reserved_elasticsearch_instance_offering_id (str, optional):
+        The offering identifier filter value. Use this parameter to show only the
+        available offering that matches the specified reservation identifier.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with the list of offerings information.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.describe_reserved_elasticsearch_instance_offerings
-
+        salt-call boto3_elasticsearch.describe_reserved_elasticsearch_instance_offerings \
+          reserved_elasticsearch_instance_offering_id='my-offering-id'
     """
     ret = {"result": False}
     try:
@@ -645,25 +795,32 @@ def describe_reserved_elasticsearch_instances(
     """
     Returns information about reserved Elasticsearch instances for this account.
 
-    :param str reserved_elasticsearch_instance_id: The reserved instance identifier
-        filter value. Use this parameter to show only the reservation that matches
-        the specified reserved Elasticsearch instance ID.
+    reserved_elasticsearch_instance_id (str, optional):
+        The reserved instance identifier filter value. Use this parameter to show only the
+        reservation that matches the specified reserved Elasticsearch instance ID.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with a list of information on
-        reserved instances.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
 
-    :note: Version 1.9.174 of boto3 has a bug in that reserved_elasticsearch_instance_id
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    .. note::
+        Version 1.9.174 of boto3 has a bug in that reserved_elasticsearch_instance_id
         is considered a required argument, even though the documentation says otherwise.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.describe_reserved_elasticsearch_instances
-
+        salt-call boto3_elasticsearch.describe_reserved_elasticsearch_instances \
+          reserved_elasticsearch_instance_id='my-instance-id'
     """
     ret = {"result": False}
     try:
@@ -693,19 +850,28 @@ def get_compatible_elasticsearch_versions(
     pass a ``domain_name`` to get all upgrade compatible Elasticsearch versions
     for that specific domain.
 
-    :param str domain_name: The name of an Elasticsearch domain.
+    domain_name (str, optional):
+        The name of an Elasticsearch domain. If specified, the function will return
+        upgrade compatible Elasticsearch versions for that specific domain.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with a list of compatible versions.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.get_compatible_elasticsearch_versions
-
+        salt-call boto3_elasticsearch.get_compatible_elasticsearch_versions \
+          domain_name='my-domain'
     """
     ret = {"result": False}
     boto_params = salt.utils.data.filter_falsey({"DomainName": domain_name})
@@ -725,22 +891,27 @@ def get_upgrade_history(domain_name, region=None, keyid=None, key=None, profile=
     """
     Retrieves the complete history of the last 10 upgrades that were performed on the domain.
 
-    :param str domain_name: The name of an Elasticsearch domain. Domain names are
-        unique across the domains owned by an account within an AWS region. Domain
-        names start with a letter or number and can contain the following characters:
-        a-z (lowercase), 0-9, and - (hyphen).
+    domain_name (str):
+        The name of an Elasticsearch domain. Domain names are unique across the domains owned by an account within an AWS region.
+        Domain names start with a letter or number and can contain the following characters: a-z (lowercase), 0-9, and - (hyphen).
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with a list of upgrade histories.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.get_upgrade_history
-
+        salt-call boto3_elasticsearch.get_upgrade_history domain_name='myDomain'
     """
     ret = {"result": False}
     try:
@@ -763,22 +934,27 @@ def get_upgrade_status(domain_name, region=None, keyid=None, key=None, profile=N
     Retrieves the latest status of the last upgrade or upgrade eligibility check
     that was performed on the domain.
 
-    :param str domain_name: The name of an Elasticsearch domain. Domain names are
-        unique across the domains owned by an account within an AWS region. Domain
-        names start with a letter or number and can contain the following characters:
-        a-z (lowercase), 0-9, and - (hyphen).
+    domain_name (str):
+        The name of an Elasticsearch domain. Domain names are unique across the domains owned by an account within an AWS region.
+        Domain names start with a letter or number and can contain the following characters: a-z (lowercase), 0-9, and - (hyphen).
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with upgrade status information.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.get_upgrade_status
-
+        salt-call boto3_elasticsearch.get_upgrade_status domain_name='myDomain'
     """
     ret = {"result": False}
     boto_params = {"DomainName": domain_name}
@@ -797,17 +973,23 @@ def list_domain_names(region=None, keyid=None, key=None, profile=None):
     """
     Returns the name of all Elasticsearch domains owned by the current user's account.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with a list of domain names.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch domains are located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.list_domain_names
-
+        salt-call boto3_elasticsearch.list_domain_names region='us-west-2'
     """
     ret = {"result": False}
     try:
@@ -833,23 +1015,31 @@ def list_elasticsearch_instance_types(
     """
     List all Elasticsearch instance types that are supported for given ElasticsearchVersion.
 
-    :param str elasticsearch_version: Version of Elasticsearch for which list of
-        supported elasticsearch instance types are needed.
-    :param str domain_name: DomainName represents the name of the Domain that we
-        are trying to modify. This should be present only if we are querying for
-        list of available Elasticsearch instance types when modifying existing domain.
+    elasticsearch_version (str):
+        The version of Elasticsearch for which to list supported instance types.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with a list of Elasticsearch instance types.
-        Upon failure, also contains a key 'error' with the error message as value.
+    domain_name (str, optional):
+        The name of the Elasticsearch domain. This should be provided only if querying for
+        instance types when modifying an existing domain.
+
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.list_elasticsearch_instance_types
-
+        salt-call boto3_elasticsearch.list_elasticsearch_instance_types \
+            elasticsearch_version='7.10' domain_name='myDomain'
     """
     ret = {"result": False}
     try:
@@ -876,17 +1066,23 @@ def list_elasticsearch_versions(region=None, keyid=None, key=None, profile=None)
     """
     List all supported Elasticsearch versions.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with a list of Elasticsearch versions.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
         salt-call boto3_elasticsearch.list_elasticsearch_versions
-
     """
     ret = {"result": False}
     try:
@@ -906,17 +1102,29 @@ def list_tags(domain_name=None, arn=None, region=None, key=None, keyid=None, pro
     """
     Returns all tags for the given Elasticsearch domain.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with a dict of tags.
-        Upon failure, also contains a key 'error' with the error message as value.
+    domain_name (str, optional):
+        The name of the Elasticsearch domain for which to list tags.
+
+    arn (str, optional):
+        The ARN of the Elasticsearch domain for which to list tags.
+
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.list_tags
-
+        salt-call boto3_elasticsearch.list_tags domain_name='myDomain'
     """
     if not any((arn, domain_name)):
         raise SaltInvocationError("At least one of domain_name or arn must be specified.")
@@ -959,22 +1167,33 @@ def purchase_reserved_elasticsearch_instance_offering(
     """
     Allows you to purchase reserved Elasticsearch instances.
 
-    :param str reserved_elasticsearch_instance_offering_id: The ID of the reserved
-        Elasticsearch instance offering to purchase.
-    :param str reservation_name: A customer-specified identifier to track this reservation.
-    :param int instance_count: The number of Elasticsearch instances to reserve.
+    reserved_elasticsearch_instance_offering_id (str):
+        The ID of the reserved Elasticsearch instance offering to purchase.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with purchase information.
-        Upon failure, also contains a key 'error' with the error message as value.
+    reservation_name (str):
+        A customer-specified identifier to track this reservation.
+
+    instance_count (int, optional):
+        The number of Elasticsearch instances to reserve.
+
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.purchase_reserved_elasticsearch_instance_offering
-
+        salt-call boto3_elasticsearch.purchase_reserved_elasticsearch_instance_offering my_offering_id \
+            my_reservation_name instance_count=1 region=us-west-2 keyid=my_keyid key=my_key profile=my_profile
     """
     ret = {"result": False}
     boto_params = salt.utils.data.filter_falsey(
@@ -1007,14 +1226,27 @@ def remove_tags(
     """
     Removes the specified set of tags from the specified Elasticsearch domain.
 
-    :param list tag_keys: List with tag keys you want to remove from the Elasticsearch domain.
-    :param str domain_name: The name of the Elasticsearch domain you want to remove tags from.
-    :param str arn: The ARN of the Elasticsearch domain you want to remove tags from.
+    tag_keys (list):
+        List with tag keys you want to remove from the Elasticsearch domain.
+
+    domain_name (str, optional):
+        The name of the Elasticsearch domain you want to remove tags from.
+
+    arn (str, optional):
+        The ARN of the Elasticsearch domain you want to remove tags from.
         Specifying this overrides ``domain_name``.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -1056,19 +1288,26 @@ def start_elasticsearch_service_software_update(
     """
     Schedules a service software update for an Amazon ES domain.
 
-    :param str domain_name: The name of the domain that you want to update to the
-        latest service software.
+    domain_name (str):
+        The name of the domain that you want to update to the latest service software.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with service software information.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.start_elasticsearch_service_software_update
+        salt-call boto3_elasticsearch.start_elasticsearch_service_software_update my_domain
 
     """
     ret = {"result": False}
@@ -1104,106 +1343,168 @@ def update_elasticsearch_domain_config(
     Modifies the cluster configuration of the specified Elasticsearch domain,
     for example setting the instance type and the number of instances.
 
-    :param str domain_name: The name of the Elasticsearch domain that you are creating.
-        Domain names are unique across the domains owned by an account within an
-        AWS region. Domain names must start with a letter or number and can contain
-        the following characters: a-z (lowercase), 0-9, and - (hyphen).
-    :param dict elasticsearch_cluster_config: Dictionary specifying the configuration
-        options for an Elasticsearch domain. Keys (case sensitive) in here are:
+    domain_name (str):
+        The name of the Elasticsearch domain that you want to update.
 
-        - InstanceType (str): The instance type for an Elasticsearch cluster.
-        - InstanceCount (int): The instance type for an Elasticsearch cluster.
-        - DedicatedMasterEnabled (bool): Indicate whether a dedicated master
-          node is enabled.
-        - ZoneAwarenessEnabled (bool): Indicate whether zone awareness is enabled.
-        - ZoneAwarenessConfig (dict): Specifies the zone awareness configuration
-          for a domain when zone awareness is enabled.
-          Keys (case sensitive) in here are:
+    elasticsearch_cluster_config (dict, optional):
+        The configuration for the Elasticsearch cluster, such as instance type and count.
 
-          - AvailabilityZoneCount (int): An integer value to indicate the
-            number of availability zones for a domain when zone awareness is
-            enabled. This should be equal to number of subnets if VPC endpoints
-            is enabled.
+        Example:
 
-        - DedicatedMasterType (str): The instance type for a dedicated master node.
-        - DedicatedMasterCount (int): Total number of dedicated master nodes,
-          active and on standby, for the cluster.
-    :param dict ebs_options: Dict specifying the options to enable or disable and
-        specifying the type and size of EBS storage volumes.
-        Keys (case sensitive) in here are:
+        .. code-block:: json
 
-        - EBSEnabled (bool): Specifies whether EBS-based storage is enabled.
-        - VolumeType (str): Specifies the volume type for EBS-based storage.
-        - VolumeSize (int): Integer to specify the size of an EBS volume.
-        - Iops (int): Specifies the IOPD for a Provisioned IOPS EBS volume (SSD).
-    :param dict snapshot_options: Dict specifying the snapshot options.
-        Keys (case sensitive) in here are:
+            {
+                "InstanceType": "t2.micro.elasticsearch",
+                "InstanceCount": 1,
+                "DedicatedMasterEnabled": false,
+                "ZoneAwarenessEnabled": false
+            }
 
-        - AutomatedSnapshotStartHour (int): Specifies the time, in UTC format,
-          when the service takes a daily automated snapshot of the specified
-          Elasticsearch domain. Default value is 0 hours.
-    :param dict vpc_options: Dict with the options to specify the subnets and security
-        groups for the VPC endpoint.
-        Keys (case sensitive) in here are:
+    ebs_options (dict, optional):
+        The configuration for EBS volumes attached to the domain.
 
-        - SubnetIds (list): The list of subnets for the VPC endpoint.
-        - SecurityGroupIds (list): The list of security groups for the VPC endpoint.
-    :param dict cognito_options: Dict with options to specify the cognito user and
-        identity pools for Kibana authentication.
-        Keys (case sensitive) in here are:
+        Example:
 
-        - Enabled (bool): Specifies the option to enable Cognito for Kibana authentication.
-        - UserPoolId (str): Specifies the Cognito user pool ID for Kibana authentication.
-        - IdentityPoolId (str): Specifies the Cognito identity pool ID for Kibana authentication.
-        - RoleArn (str): Specifies the role ARN that provides Elasticsearch permissions
-          for accessing Cognito resources.
-    :param dict advanced_options: Dict with option to allow references to indices
-        in an HTTP request body. Must be False when configuring access to individual
-        sub-resources. By default, the value is True.
-        See http://docs.aws.amazon.com/elasticsearch-service/latest/developerguide\
-        /es-createupdatedomains.html#es-createdomain-configure-advanced-options
-        for more information.
-    :param str/dict access_policies: Dict or JSON string with the IAM access policy.
-    :param dict log_publishing_options: Dict with options for various type of logs.
-        The keys denote the type of log file and can be one of the following:
+        .. code-block:: json
 
-            INDEX_SLOW_LOGS, SEARCH_SLOW_LOGS, ES_APPLICATION_LOGS.
+            {
+                "EBSEnabled": true,
+                "VolumeType": "gp2",
+                "VolumeSize": 10,
+                "Iops": 0
+            }
 
-        The value assigned to each key is a dict with the following case sensitive keys:
+    vpc_options (dict, optional):
+        The VPC configuration for the domain.
 
-        - CloudWatchLogsLogGroupArn (str): The ARN of the Cloudwatch log
-          group to which the log needs to be published.
-        - Enabled (bool): Specifies whether given log publishing option
-          is enabled or not.
-    :param bool blocking: Whether or not to wait (block) until the Elasticsearch
-        domain has been updated.
+        Example:
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with the domain configuration.
-        Upon failure, also contains a key 'error' with the error message as value.
+        .. code-block:: json
+
+            {
+                "VPCId": "vpc-12345678",
+                "SubnetIds": ["subnet-12345678", "subnet-87654321"],
+                "SecurityGroupIds": ["sg-12345678"]
+            }
+
+    access_policies (dict, optional):
+        The access policies for the domain.
+
+        Example:
+
+        .. code-block:: json
+
+            {
+                "Version": "2012-10-17",
+                "Statement": [
+                    {
+                        "Effect": "Allow",
+                        "Principal": {"AWS": "*"},
+                        "Action": "es:*",
+                        "Resource": "arn:aws:es:us-east-1:111111111111:domain/mydomain/*",
+                        "Condition": {"IpAddress": {"aws:SourceIp": ["127.0.0.1"]}}
+                    }
+                ]
+            }
+
+    snapshot_options (dict, optional):
+        The snapshot options for the domain.
+
+        Example:
+
+        .. code-block:: json
+
+            {
+                "AutomatedSnapshotStartHour": 0
+            }
+
+    cognito_options (dict, optional):
+        The Amazon Cognito options for the domain.
+
+        Example:
+
+        .. code-block:: json
+
+            {
+                "Enabled": true,
+                "UserPoolId": "us-east-1_123456789",
+                "IdentityPoolId": "us-east-1:12345678-1234-1234-1234-123456789012",
+                "RoleArn": "arn:aws:iam::111111111111:role/CognitoAccessRole"
+            }
+
+    advanced_options (dict, optional):
+        The advanced options for the domain.
+
+        Example:
+
+        .. code-block:: json
+
+            {
+                "rest.action.multi.allow_explicit_index": "true"
+            }
+
+    log_publishing_options (dict, optional):
+        The log publishing options for the domain.
+
+        Example:
+
+        .. code-block:: json
+
+            {
+                "INDEX_SLOW_LOGS": {
+                    "CloudWatchLogsLogGroupArn": "arn:aws:logs:us-east-1:111111111111:log-group:my-log-group",
+                    "Enabled": true
+                }
+            }
+
+    blocking (bool, optional):
+        Whether to block until the domain is available after the update.
+
+    region (str, optional):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_elasticsearch.update_elasticsearch_domain_config mydomain \\
-          elasticsearch_cluster_config='{\\
-            "InstanceType": "t2.micro.elasticsearch", \\
-            "InstanceCount": 1, \\
-            "DedicatedMasterEnabled": false,
-            "ZoneAwarenessEnabled": false}' \\
-          ebs_options='{\\
-            "EBSEnabled": true, \\
-            "VolumeType": "gp2", \\
-            "VolumeSize": 10, \\
-            "Iops": 0}' \\
-          access_policies='{"Version": "2012-10-17", "Statement": [{\\
-            "Effect": "Allow", "Principal": {"AWS": "*"}, "Action": "es:*", \\
-            "Resource": "arn:aws:es:us-east-1:111111111111:domain/mydomain/*", \\
-            "Condition": {"IpAddress": {"aws:SourceIp": ["127.0.0.1"]}}}]}' \\
-          snapshot_options='{"AutomatedSnapshotStartHour": 0}' \\
-          advanced_options='{"rest.action.multi.allow_explicit_index": "true"}'
+        salt myminion boto3_elasticsearch.update_elasticsearch_domain_config mydomain \
+          elasticsearch_cluster_config='{\
+            "InstanceType": "t2.micro.elasticsearch", \
+            "InstanceCount": 1, \
+            "DedicatedMasterEnabled": false, \
+            "ZoneAwarenessEnabled": false \
+          }' \
+          ebs_options='{\
+            "EBSEnabled": true, \
+            "VolumeType": "gp2", \
+            "VolumeSize": 10, \
+            "Iops": 0 \
+          }' \
+          access_policies='{\
+            "Version": "2012-10-17", \
+            "Statement": [{\
+              "Effect": "Allow", \
+              "Principal": {"AWS": "*"}, \
+              "Action": "es:*", \
+              "Resource": "arn:aws:es:us-east-1:111111111111:domain/mydomain/*", \
+              "Condition": {"IpAddress": {"aws:SourceIp": ["127.0.0.1"]}}\
+            }]\
+          }' \
+          snapshot_options='{\
+            "AutomatedSnapshotStartHour": 0 \
+          }' \
+          advanced_options='{\
+            "rest.action.multi.allow_explicit_index": "true" \
+          }'
     """
     ret = {"result": False}
     boto_kwargs = salt.utils.data.filter_falsey(
@@ -1253,29 +1554,36 @@ def upgrade_elasticsearch_domain(
     Allows you to either upgrade your domain or perform an Upgrade eligibility
     check to a compatible Elasticsearch version.
 
-    :param str domain_name: The name of an Elasticsearch domain. Domain names are
-        unique across the domains owned by an account within an AWS region. Domain
-        names start with a letter or number and can contain the following characters:
-        a-z (lowercase), 0-9, and - (hyphen).
-    :param str target_version: The version of Elasticsearch that you intend to
-        upgrade the domain to.
-    :param bool perform_check_only: This flag, when set to True, indicates that
-        an Upgrade Eligibility Check needs to be performed. This will not actually
-        perform the Upgrade.
-    :param bool blocking: Whether or not to wait (block) until the Elasticsearch
-        domain has been upgraded.
+    domain_name (str):
+        The name of the Elasticsearch domain to upgrade.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with the domain configuration.
-        Upon failure, also contains a key 'error' with the error message as value.
+    target_version (str):
+        The version of Elasticsearch that you intend to upgrade the domain to.
+
+    perform_check_only (bool):
+        This flag, when set to True, indicates that an Upgrade Eligibility Check needs to be performed. This will not actually perform the Upgrade.
+
+    blocking (bool):
+        Whether or not to wait (block) until the Elasticsearch domain has been upgraded.
+
+    region (str):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str):
+        The AWS access key ID.
+
+    key (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt myminion boto3_elasticsearch.upgrade_elasticsearch_domain mydomain \\
-        target_version='6.7' \\
+        salt myminion boto3_elasticsearch.upgrade_elasticsearch_domain mydomain \
+        target_version='6.7' \
         perform_check_only=True
     """
     ret = {"result": False}
@@ -1303,17 +1611,26 @@ def exists(domain_name, region=None, key=None, keyid=None, profile=None):
     """
     Given a domain name, check to see if the given domain exists.
 
-    :param str domain_name: The name of the domain to check.
+    domain_name (str):
+        The name of the domain to check.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str):
+        The AWS access key ID.
+
+    key (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.exists
+        salt-call boto3_elasticsearch.exists mydomain
 
     """
     ret = {"result": False}
@@ -1331,17 +1648,26 @@ def wait_for_upgrade(domain_name, region=None, keyid=None, key=None, profile=Non
     """
     Block until an upgrade-in-progress for domain ``name`` is finished.
 
-    :param str name: The name of the domain to wait for.
+    domain_name (str):
+        The name of the domain to wait for an upgrade to finish.
 
-    :rtype dict:
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon failure, also contains a key 'error' with the error message as value.
+    region (str):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str):
+        The AWS access key ID.
+
+    key (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
 
     CLI Example:
 
     .. code-block:: bash
 
-        salt-call boto3_elasticsearch.wait_for_upgrade
+        salt-call boto3_elasticsearch.wait_for_upgrade mydomain
 
     """
     ret = {"result": False}
@@ -1376,13 +1702,23 @@ def check_upgrade_eligibility(
     - Perform a check if the Elasticsearch domain is eligible for the upgrade.
     - Check the result of the check and return the result as a boolean.
 
-    :param str name: The Elasticsearch domain name to check.
-    :param str elasticsearch_version: The Elasticsearch version to upgrade to.
+    domain_name (str):
+        The name of the Elasticsearch domain to check.
 
-    :rtype: dict
-    :return: Dictionary with key 'result' and as value a boolean denoting success or failure.
-        Upon success, also contains a key 'reponse' with boolean result of the check.
-        Upon failure, also contains a key 'error' with the error message as value.
+    elasticsearch_version (str):
+        The Elasticsearch version to upgrade to.
+
+    region (str):
+        The AWS region where the Elasticsearch domain is located.
+
+    keyid (str):
+        The AWS access key ID.
+
+    key (str):
+        The AWS secret access key.
+
+    profile (str):
+        The AWS profile to use.
 
     CLI Example:
 

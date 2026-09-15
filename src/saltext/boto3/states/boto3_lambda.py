@@ -110,60 +110,60 @@ def function_present(
     """
     Ensure function exists.
 
-    name
+    name (string)
         The name of the state definition
 
-    FunctionName
+    FunctionName (string)
         Name of the Function.
 
-    Runtime
+    Runtime (string)
         The Runtime environment for the function. One of
         'nodejs', 'java8', or 'python2.7'
 
-    Role
+    Role (string)
         The name or ARN of the IAM role that the function assumes when it executes your
         function to access any other AWS resources.
 
-    Handler
+    Handler (string)
         The function within your code that Lambda calls to begin execution. For Node.js it is the
         module-name.*export* value in your function. For Java, it can be package.classname::handler or
         package.class-name.
 
-    ZipFile
+    ZipFile (string)
         A path to a .zip file containing your deployment package. If this is
         specified, S3Bucket and S3Key must not be specified.
 
-    S3Bucket
+    S3Bucket (string)
         Amazon S3 bucket name where the .zip file containing your package is
         stored. If this is specified, S3Key must be specified and ZipFile must
         NOT be specified.
 
-    S3Key
+    S3Key (string)
         The Amazon S3 object (the deployment package) key name you want to
         upload. If this is specified, S3Key must be specified and ZipFile must
         NOT be specified.
 
-    S3ObjectVersion
+    S3ObjectVersion (string)
         The version of S3 object to use. Optional, should only be specified if
         S3Bucket and S3Key are specified.
 
-    Description
+    Description (string)
         A short, user-defined function description. Lambda does not use this value. Assign a meaningful
         description as you see fit.
 
-    Timeout
+    Timeout (int)
         The function execution time at which Lambda should terminate this function. Because the execution
         time has cost implications, we recommend you set this value based on your expected execution time.
         The default is 3 seconds.
 
-    MemorySize
+    MemorySize (int)
         The amount of memory, in MB, your function is given. Lambda uses this memory size to infer
         the amount of CPU and memory allocated to your function. Your function use-case determines your
         CPU and memory requirements. For example, a database operation might need less memory compared
         to an image processing function. The default value is 128 MB. The value must be a multiple of
         64 MB.
 
-    VpcConfig
+    VpcConfig (dict)
         If your Lambda function accesses resources in a VPC, you must provide this parameter
         identifying the list of security group IDs/Names and subnet IDs/Name.  These must all belong
         to the same VPC.  This is a dict of the form:
@@ -184,15 +184,15 @@ def function_present(
 
         If VpcConfig is provided at all, you MUST pass at least one security group and one subnet.
 
-    Permissions
+    Permissions (dict)
         A list of permission definitions to be added to the function's policy
 
-    RoleRetries
+    RoleRetries (int)
         IAM Roles may take some time to propagate to all regions once created.
         During that time function creation may fail; this state will
         atuomatically retry this number of times. The default is 5.
 
-    Environment
+    Environment (dict)
         The parent object that contains your environment's configuration
         settings.  This is a dictionary of the form:
 
@@ -200,19 +200,30 @@ def function_present(
 
             {"Variables": {"VariableName": "VariableValue"}}
 
-
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (dict)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
+
+    Example:
+
+    .. code-block:: yaml
+
+      my_lambda_function:
+        boto3_lambda.function_present:
+          FunctionName: my_lambda_function
+          Runtime: python3.8
+          Role: my_iam_role
+          Handler: my_handler
+          ZipFile: /path/to/my/deployment/package.zip
     """
     ret = {"name": FunctionName, "result": True, "comment": "", "changes": {}}
 
@@ -602,22 +613,22 @@ def function_absent(
     """
     Ensure function with passed properties is absent.
 
-    name
+    name (string)
         The name of the state definition.
 
-    FunctionName
+    FunctionName (string)
         Name of the function.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (dict)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -628,7 +639,6 @@ def function_absent(
         ensure-function-absent:
           boto3_lambda.function_absent:
             - name: example
-
     """
 
     ret = {"name": FunctionName, "result": True, "comment": "", "changes": {}}
@@ -676,32 +686,32 @@ def alias_present(
     """
     Ensure alias exists.
 
-    name
+    name (string)
         The name of the state definition.
 
-    FunctionName
+    FunctionName (string)
         Name of the function for which you want to create an alias.
 
-    Name
+    Name (string)
         The name of the alias to be created.
 
-    FunctionVersion
+    FunctionVersion (string)
         Function version for which you are creating the alias.
 
-    Description
+    Description (string)
         A short, user-defined function description. Lambda does not use this value. Assign a meaningful
         description as you see fit.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (dict)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -712,7 +722,10 @@ def alias_present(
         ensure-alias-present:
           boto3_lambda.alias_present:
             - name: example
-
+            - FunctionName: my_lambda_function
+            - Name: my_alias
+            - FunctionVersion: 1
+            - Description: My alias description
     """
     ret = {"name": Name, "result": True, "comment": "", "changes": {}}
 
@@ -800,25 +813,25 @@ def alias_absent(
     """
     Ensure alias with passed properties is absent.
 
-    name
+    name (string)
         The name of the state definition.
 
-    FunctionName
+    FunctionName (string)
         Name of the function.
 
-    Name
+    Name (string)
         Name of the alias.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (dict)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -828,8 +841,8 @@ def alias_absent(
 
         ensure-alias-absent:
           boto3_lambda.alias_absent:
-            - name: example
-
+            - FunctionName: my_lambda_function
+            - Name: my_alias
     """
 
     ret = {"name": Name, "result": True, "comment": "", "changes": {}}
@@ -892,14 +905,14 @@ def event_source_mapping_present(
     """
     Ensure event source mapping exists.
 
-    name
+    name (string)
         The name of the state definition.
 
-    EventSourceArn
+    EventSourceArn (string)
         The Amazon Resource Name (ARN) of the Amazon Kinesis or the Amazon
         DynamoDB stream that is the event source.
 
-    FunctionName
+    FunctionName (string)
         The Lambda function to invoke when AWS Lambda detects an event on the
         stream.
 
@@ -911,30 +924,30 @@ def event_source_mapping_present(
         applies only to the ARN. If you specify only the function name, it is
         limited to 64 character in length.
 
-    StartingPosition
+    StartingPosition (string)
         The position in the stream where AWS Lambda should start reading.
         (TRIM_HORIZON | LATEST)
 
-    Enabled
+    Enabled (bool)
         Indicates whether AWS Lambda should begin polling the event source. By
         default, Enabled is true.
 
-    BatchSize
+    BatchSize (int)
         The largest number of records that AWS Lambda will retrieve from your
         event source at the time of invoking your function. Your function
         receives an event with all the retrieved records. The default is 100
         records.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (dict)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -944,8 +957,11 @@ def event_source_mapping_present(
 
         ensure-event-source-mapping-present:
           boto3_lambda.event_source_mapping_present:
-            - name: example
-
+            - EventSourceArn: arn:aws:kinesis:us-west-2:account-id:stream/example-stream
+              FunctionName: my_lambda_function
+              StartingPosition: LATEST
+              Enabled: true
+              BatchSize: 100
     """
     ret = {"name": None, "result": True, "comment": "", "changes": {}}
 
@@ -1057,25 +1073,25 @@ def event_source_mapping_absent(
     """
     Ensure event source mapping with passed properties is absent.
 
-    name
+    name (string)
         The name of the state definition.
 
-    EventSourceArn
+    EventSourceArn (string)
         ARN of the event source.
 
-    FunctionName
+    FunctionName (string)
         Name of the lambda function.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (dict)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -1085,8 +1101,8 @@ def event_source_mapping_absent(
 
         ensure-event-source-mapping-absent:
           boto3_lambda.event_source_mapping_absent:
-            - name: example
-
+            - EventSourceArn: arn:aws:kinesis:us-west-2:account-id:stream/example-stream
+              FunctionName: my_lambda_function
     """
 
     ret = {"name": None, "result": True, "comment": "", "changes": {}}

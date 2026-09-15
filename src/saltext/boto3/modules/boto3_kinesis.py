@@ -141,6 +141,21 @@ def get_stream_when_active(stream_name, region=None, key=None, keyid=None, profi
     Continues to retry when stream is updating or creating.
     If the stream is deleted during retries, the loop will catch the error and break.
 
+    stream_name (str):
+        The name of the Kinesis stream to retrieve complete information for.
+
+    region (str, optional):
+        The AWS region where the Kinesis stream is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -173,6 +188,21 @@ def exists(stream_name, region=None, key=None, keyid=None, profile=None):
     """
     Check if the stream exists. Returns False and the error if it does not.
 
+    stream_name (str):
+        The name of the Kinesis stream to check for existence.
+
+    region (str, optional):
+        The AWS region where the Kinesis stream is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -196,6 +226,24 @@ def create_stream(stream_name, num_shards, region=None, key=None, keyid=None, pr
     """
     Create a stream with name stream_name and initial number of shards num_shards.
 
+    stream_name (str):
+        The name of the Kinesis stream to create.
+
+    num_shards (int):
+        The initial number of shards for the stream.
+
+    region (str, optional):
+        The AWS region where the Kinesis stream will be created.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -212,6 +260,21 @@ def create_stream(stream_name, num_shards, region=None, key=None, keyid=None, pr
 def delete_stream(stream_name, region=None, key=None, keyid=None, profile=None):
     """
     Delete the stream with name stream_name. This cannot be undone! All data will be lost!!
+
+    stream_name (str):
+        The name of the Kinesis stream to delete.
+
+    region (str, optional):
+        The AWS region where the Kinesis stream is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -231,6 +294,24 @@ def increase_stream_retention_period(
 ):
     """
     Increase stream retention period to retention_hours
+
+    stream_name (str):
+        The name of the Kinesis stream for which to increase the retention period.
+
+    retention_hours (int):
+        The new retention period for the stream, in hours.
+
+    region (str, optional):
+        The AWS region where the Kinesis stream is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -256,6 +337,24 @@ def decrease_stream_retention_period(
     """
     Decrease stream retention period to retention_hours
 
+    stream_name (str):
+        The name of the Kinesis stream for which to decrease the retention period.
+
+    retention_hours (int):
+        The new retention period for the stream, in hours.
+
+    region (str, optional):
+        The AWS region where the Kinesis stream is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -279,6 +378,24 @@ def enable_enhanced_monitoring(
 ):
     """
     Enable enhanced monitoring for the specified shard-level metrics on stream stream_name
+
+    stream_name (str):
+        The name of the Kinesis stream for which to enable enhanced monitoring.
+
+    metrics (list):
+        A list of shard-level metrics to enable for enhanced monitoring.
+
+    region (str, optional):
+        The AWS region where the Kinesis stream is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -305,6 +422,24 @@ def disable_enhanced_monitoring(
     """
     Disable enhanced monitoring for the specified shard-level metrics on stream stream_name
 
+    stream_name (str):
+        The name of the Kinesis stream for which to disable enhanced monitoring.
+
+    metrics (list):
+        A list of shard-level metrics to disable for enhanced monitoring.
+
+    region (str, optional):
+        The AWS region where the Kinesis stream is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -329,6 +464,10 @@ def get_info_for_reshard(stream_details):
     Collect some data: number of open shards, key range, etc.
     Modifies stream_details to add a sorted list of OpenShards.
     Returns (min_hash_key, max_hash_key, stream_details)
+
+    stream_details (dict):
+        The details of the Kinesis stream, including shard information.
+        This dictionary will be modified to include a sorted list of open shards under the key "OpenShards".
 
     CLI Example:
 
@@ -366,6 +505,9 @@ def long_int(hash_key):
     It's necessary to convert to int/long for comparison operations.
     This helper method handles python 2/3 incompatibility
 
+    hash_key (str):
+        The hash key as a string, representing a 128-bit integer.
+
     CLI Example:
 
     .. code-block:: bash
@@ -391,7 +533,28 @@ def reshard(
     then make a single split or merge operation. This function decides where to split or merge
     with the assumption that the ultimate goal is a balanced partition space.
 
-    For safety, user must past in force=True; otherwise, the function will dry run.
+    For safety, user must pass in force=True; otherwise, the function will dry run.
+
+    stream_name (str):
+        The name of the Kinesis stream to reshard.
+
+    desired_size (int):
+        The desired number of shards for the stream.
+
+    force (bool, optional):
+        Whether to force the reshard operation. Defaults to False.
+
+    region (str, optional):
+        The AWS region where the Kinesis stream is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
 
     CLI Example:
 
@@ -530,6 +693,18 @@ def list_streams(region=None, key=None, keyid=None, profile=None):
     """
     Return a list of all streams visible to the current account
 
+    region (str, optional):
+        The AWS region where the Kinesis stream is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
     CLI Example:
 
     .. code-block:: bash
@@ -580,20 +755,6 @@ def _execute_with_retries(conn, function, **kwargs):
     """
     Retry if we're rate limited by AWS or blocked by another call.
     Give up and return error message if resource not found or argument is invalid.
-
-    conn
-        The connection established by the calling method via boto3mod.get_connection()
-
-    function
-        The function to call on conn. i.e. create_stream
-
-    **kwargs
-        Any kwargs required by the above function, with their keywords
-        i.e. StreamName=stream_name
-
-    Returns:
-        The result dict with the HTTP response and JSON data if applicable
-        as 'result', or an error as 'error'
 
     CLI Example:
 

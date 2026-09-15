@@ -105,11 +105,11 @@ def present(
     There may be multiple deployments for the API object, each deployment is tagged with a description
     (i.e. unique label) in pretty printed json format consisting of the following key/values.
 
-    .. code-block:: text
+    .. code-block:: json
 
         {
             "api_name": api_name,
-            "swagger_file": basename_of_swagger_file
+            "swagger_file": basename_of_swagger_file,
             "swagger_file_md5sum": md5sum_of_swagger_file,
             "swagger_info_object": info_object_content_in_swagger_file
         }
@@ -172,27 +172,27 @@ def present(
               Error message, will be matched based on pattern.
               If no pattern is specified, the default pattern used for response mapping will be +*.
 
-    name
+    name (string)
         The name of the state definition
 
-    api_name
+    api_name (string)
         The name of the rest api that we want to ensure exists in AWS API Gateway
 
-    swagger_file
+    swagger_file (string)
         Name of the location of the swagger rest api definition file in YAML format.
 
-    stage_name
+    stage_name (string)
         Name of the stage we want to be associated with the given api_name and swagger_file
         definition
 
-    api_key_required
+    api_key_required (bool)
         True or False - whether the API Key is required to call API methods
 
-    lambda_integration_role
+    lambda_integration_role (string)
         The name or ARN of the IAM role that the AWS ApiGateway assumes when it
         executes your lambda function to handle incoming requests
 
-    lambda_region
+    lambda_region (string)
         The region where we expect to find the lambda functions.  This is used to
         determine the region where we should look for the Lambda Function for
         integration purposes.  The region determination is based on the following
@@ -205,34 +205,34 @@ def present(
            boto3_apigateway functions, a final lookup will be attempted using
            the boto3_apigateway region.
 
-    stage_variables
+    stage_variables (dict)
         A dict with variables and their values, or a pillar key (string) that
         contains a dict with variables and their values.
         key and values in the dict must be strings.  {'string': 'string'}
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (dict or string)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
-    lambda_funcname_format
+    lambda_funcname_format (string)
         Please review the earlier example for the usage.  The only substituable keys in the funcname
         format are {stage}, {api}, {resource}, {method}.
         Any other keys or positional substitution parameters will be flagged as an invalid input.
 
-    authorization_type
+    authorization_type (string)
         This field can be either 'NONE', or 'AWS_IAM'.  This will be applied to all methods in the given
         swagger spec file.  Default is set to 'NONE'
 
-    error_response_template
+    error_response_template (string)
         String value that defines the response template mapping that should be applied in cases error occurs.
         Refer to AWS documentation for details: http://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-mapping-template-reference.html
 
@@ -257,12 +257,21 @@ def present(
             '  ]\\n'
 
 
-    response_template
+    response_template (string)
         String value that defines the response template mapping applied in case
         of success (including OPTIONS method) If set to None, empty ({})
         template is assumed, which will transfer response from the lambda
         function as is.
 
+    Example:
+
+    .. code-block:: yaml
+
+        Ensure Apigateway API exists:
+          boto3_apigateway.present:
+            - name: myfunction
+            - stage_name: dev
+            - swagger_file: /path/to/swagger.json
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -400,31 +409,31 @@ def absent(
     present state is removed.  If the currently associated deployment to the given stage_name has
     no other stages associated with it, the deployment will also be removed.
 
-    name
+    name (string)
         Name of the swagger file in YAML format
 
-    api_name
+    api_name (string)
         Name of the rest api on AWS ApiGateway to ensure is absent.
 
-    stage_name
+    stage_name (string)
         Name of the stage to be removed irrespective of the swagger file content.
         If the current deployment associated with the stage_name has no other stages associated
         with it, the deployment will also be removed.
 
-    nuke_api
+    nuke_api (bool)
         If True, removes the API itself only if there are no other stages associated with any other
         deployments once the given stage_name is removed.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (string or dict)
         A dict with region, key and keyid, or a pillar key (string) that
         contains a dict with region, key and keyid.
 
@@ -435,7 +444,9 @@ def absent(
         ensure-absent:
           boto3_apigateway.absent:
             - name: example
-
+            - api_name: my_api
+            - stage_name: dev
+            - nuke_api: True
     """
 
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
@@ -1746,32 +1757,31 @@ class _Swagger:
         Method to create a method for the given resource path, along with its associated
         request and response integrations.
 
-        ret
+        ret (dict)
             a dictionary for returning status to Saltstack
 
-        resource_path
+        resource_path (string)
             the full resource path where the named method_name will be associated with.
 
-        method_name
+        method_name (string)
             a string that is one of the following values: 'delete', 'get', 'head', 'options',
             'patch', 'post', 'put'
 
-        method_data
+        method_data (dict)
             the value dictionary for this method in the swagger definition file.
 
-        api_key_required
+        api_key_required (bool)
             True or False, whether api key is required to access this method.
 
-        lambda_integration_role
+        lambda_integration_role (string)
             name of the IAM role or IAM role arn that Api Gateway will assume when executing
             the associated lambda function
 
-        lambda_region
+        lambda_region (string)
             the region for the lambda function that Api Gateway will integrate to.
 
-        authorization_type
+        authorization_type (string)
             'NONE' or 'AWS_IAM'
-
         """
         method = self._parse_method_data(method_name.lower(), method_data)
 
@@ -1875,20 +1885,20 @@ class _Swagger:
         """
         Method to deploy resources defined in the swagger file.
 
-        ret
+        ret (dict)
             a dictionary for returning status to Saltstack
 
-        api_key_required
+        api_key_required (bool)
             True or False, whether api key is required to access this method.
 
-        lambda_integration_role
+        lambda_integration_role (string)
             name of the IAM role or IAM role arn that Api Gateway will assume when executing
             the associated lambda function
 
-        lambda_region
+        lambda_region (string)
             the region for the lambda function that Api Gateway will integrate to.
 
-        authorization_type
+        authorization_type (string)
             'NONE' or 'AWS_IAM'
         """
 
@@ -1930,13 +1940,13 @@ def usage_plan_present(
     Ensure the spcifieda usage plan with the corresponding metrics is deployed
 
 
-    name
+    name (string)
         name of the state
 
-    plan_name
+    plan_name (string)
         [Required] name of the usage plan
 
-    throttle
+    throttle (dict)
         [Optional] throttling parameters expressed as a dictionary.
         If provided, at least one of the throttling parameters must be present
 
@@ -1946,7 +1956,7 @@ def usage_plan_present(
         burstLimit
             maximum rate allowed
 
-    quota
+    quota (dict)
         [Optional] quota on the number of api calls permitted by the plan.
         If provided, limit and period must be present
 
@@ -1972,7 +1982,6 @@ def usage_plan_present(
                 offset: 0
                 period: DAY
             - profile: my_profile
-
     """
     func_params = locals()
 
@@ -2071,12 +2080,23 @@ def usage_plan_absent(name, plan_name, region=None, key=None, keyid=None, profil
     """
     Ensures usage plan identified by name is no longer present
 
-
-    name
+    name (string)
         name of the state
 
-    plan_name
+    plan_name (string)
         name of the plan to remove
+
+    region (string)
+        AWS region to use
+
+    key (string)
+        AWS access key ID
+
+    keyid (string)
+        AWS secret access key
+
+    profile (string)
+        AWS profile to use
 
     .. code-block:: yaml
 
@@ -2133,15 +2153,14 @@ def usage_plan_association_present(
     """
     Ensures usage plan identified by name is added to provided api_stages
 
-
-    name
+    name (string)
         name of the state
 
-    plan_name
+    plan_name (string)
         name of the plan to use
 
-    api_stages
-        list of dictionaries, where each dictionary consists of the following keys:
+    api_stages (list)
+        A list of dictionaries, where each dictionary contains the following keys: apiId and stage.
 
         apiId
             apiId of the api to attach usage plan to
@@ -2160,7 +2179,6 @@ def usage_plan_association_present(
               - apiId: l9v7o2aj90
                 stage: my_stage
             - profile: my_profile
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     try:
@@ -2228,15 +2246,14 @@ def usage_plan_association_absent(
     If a plan is associated to stages not listed in api_stages parameter,
     those associations remain intact.
 
-
-    name
+    name (string)
         name of the state
 
-    plan_name
+    plan_name (string)
         name of the plan to use
 
-    api_stages
-        list of dictionaries, where each dictionary consists of the following keys:
+    api_stages (list)
+        A list of dictionaries, where each dictionary contains the following keys: apiId and stage.
 
         apiId
             apiId of the api to detach usage plan from

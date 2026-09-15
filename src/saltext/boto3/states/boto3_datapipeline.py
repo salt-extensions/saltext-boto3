@@ -94,37 +94,37 @@ def present(
     """
     Ensure the data pipeline exists with matching definition.
 
-    name
+    name (string)
         Name of the service to ensure a data pipeline exists for.
 
-    pipeline_objects
+    pipeline_objects (dict)
         Pipeline objects to use. Will override objects read from pillars.
 
-    pipeline_objects_from_pillars
+    pipeline_objects_from_pillars (string)
         The pillar key to use for lookup.
 
-    parameter_objects
+    parameter_objects (dict)
         Parameter objects to use. Will override objects read from pillars.
 
-    parameter_objects_from_pillars
+    parameter_objects_from_pillars (string)
         The pillar key to use for lookup.
 
-    parameter_values
+    parameter_values (dict)
         Parameter values to use. Will override values read from pillars.
 
-    parameter_values_from_pillars
+    parameter_values_from_pillars (string)
         The pillar key to use for lookup.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (string)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -135,7 +135,6 @@ def present(
         ensure-present:
           boto3_datapipeline.present:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
@@ -503,19 +502,19 @@ def absent(name, region=None, key=None, keyid=None, profile=None):
     """
     Ensure a pipeline with the given name does not exist.
 
-    name
+    name (string)
         Name of the service to ensure a data pipeline does not exist for.
 
-    region
+    region (string)
         Region to connect to.
 
-    key
+    key (string)
         Secret key to be used.
 
-    keyid
+    keyid (string)
         Access key to be used.
 
-    profile
+    profile (string)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -526,7 +525,6 @@ def absent(name, region=None, key=None, keyid=None, profile=None):
         ensure-absent:
           boto3_datapipeline.absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 

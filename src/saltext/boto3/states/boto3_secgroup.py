@@ -145,53 +145,52 @@ def present(
     """
     Ensure the security group exists with the specified rules.
 
-    name
+    name (str)
         Name of the security group.
 
-    description
+    description (str)
         A description of this security group.
 
-    vpc_id
+    vpc_id (str)
         The ID of the VPC to create the security group in, if any. Exclusive with vpc_name.
 
-    vpc_name
+    vpc_name (str)
         The name of the VPC to create the security group in, if any. Exclusive with vpc_id.
 
-
-    rules
+    rules (list)
         A list of ingress rule dicts. If not specified, ``rules=None``,
         the ingress rules will be unmanaged. If set to an empty list, ``[]``,
         then all ingress rules will be removed.
 
-    rules_egress
+    rules_egress (list)
         A list of egress rule dicts. If not specified, ``rules_egress=None``,
         the egress rules will be unmanaged. If set to an empty list, ``[]``,
         then all egress rules will be removed.
 
-    delete_ingress_rules
+    delete_ingress_rules (bool)
         Some tools (EMR comes to mind) insist on adding rules on-the-fly, which
         salt will happily remove on the next run.  Set this param to False to
         avoid deleting rules which were added outside of salt.
 
-    delete_egress_rules
+    delete_egress_rules (bool)
         Some tools (EMR comes to mind) insist on adding rules on-the-fly, which
         salt will happily remove on the next run.  Set this param to False to
         avoid deleting rules which were added outside of salt.
 
-    region
+    region (str)
         Region to connect to.
 
-    key
+    key (str)
         Secret key to be used.
 
-    keyid
+    keyid (str)
         Access key to be used.
 
-    profile
+    profile (dict)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key, and keyid.
 
-    tags
+    tags (list)
         List of key:value pairs of tags to set on the security group
 
     Example:
@@ -201,7 +200,22 @@ def present(
         ensure-present:
           boto3_secgroup.present:
             - name: example
-
+            - description: Example security group
+            - vpc_id: vpc-123456
+            - rules:
+                - proto: tcp
+                  from_port: 22
+                  to_port: 22
+                  cidr_ip: 0.0.0.0/0
+            - rules_egress:
+                - proto: tcp
+                  from_port: 80
+                  to_port: 80
+                  cidr_ip: 0.0.0.0/0
+            - delete_ingress_rules: True
+            - delete_egress_rules: True
+            - tags:
+                - Environment: Production
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
     _ret = _security_group_present(
@@ -779,26 +793,25 @@ def absent(name, vpc_id=None, vpc_name=None, region=None, key=None, keyid=None, 
     """
     Ensure a security group with the specified name does not exist.
 
-    name
+    name (str)
         Name of the security group.
 
-    vpc_id
+    vpc_id (str)
         The ID of the VPC to remove the security group from, if any. Exclusive with vpc_name.
 
-    vpc_name
+    vpc_name (str)
         The name of the VPC to remove the security group from, if any. Exclusive with vpc_name.
 
-
-    region
+    region (str)
         Region to connect to.
 
-    key
+    key (str)
         Secret key to be used.
 
-    keyid
+    keyid (str)
         Access key to be used.
 
-    profile
+    profile (dict)
         A dict with region, key and keyid, or a pillar key (string)
         that contains a dict with region, key and keyid.
 
@@ -809,7 +822,6 @@ def absent(name, vpc_id=None, vpc_name=None, region=None, key=None, keyid=None, 
         ensure-absent:
           boto3_secgroup.absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 

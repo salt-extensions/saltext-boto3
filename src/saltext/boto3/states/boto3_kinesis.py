@@ -143,7 +143,10 @@ def present(
         ensure-present:
           boto3_kinesis.present:
             - name: example
-
+            - retention_hours: 48
+            - enhanced_monitoring: ['ALL']
+            - num_shards: 2
+            - do_reshard: True
     """
 
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
@@ -441,7 +444,6 @@ def absent(name, region=None, key=None, keyid=None, profile=None):
         ensure-absent:
           boto3_kinesis.absent:
             - name: example
-
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
