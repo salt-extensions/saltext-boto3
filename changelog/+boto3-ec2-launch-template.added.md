@@ -1,0 +1,1 @@
+Added `boto3_ec2.create_launch_template`, `boto3_ec2.delete_launch_template`, and `boto3_ec2.describe_launch_templates` execution functions along with `boto3_ec2.launch_template_present` and `boto3_ec2.launch_template_absent` state functions.

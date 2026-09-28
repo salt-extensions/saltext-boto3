@@ -2266,3 +2266,409 @@ def private_ips_absent(
         ret["changes"] = {}
 
     return ret
+
+
+def launch_template_present(
+    name,
+    image_id=None,
+    instance_type=None,
+    key_name=None,
+    security_groups=None,
+    user_data=None,
+    block_device_mappings=None,
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+):
+    """
+    Ensure a launch template exists. Creates it if absent; no-ops if already present.
+
+    name (str):
+        The name of the launch template.
+
+    image_id (str, optional):
+        The AMI ID to use.
+
+    instance_type (str, optional):
+        The instance type (e.g. ``t3.medium``).
+
+    key_name (str, optional):
+        The name of the key pair.
+
+    security_groups (list, optional):
+        A list of security group IDs.
+
+    user_data (str, optional):
+        User data script (plain text; base64-encoded automatically).
+
+    block_device_mappings (list, optional):
+        A list of block device mapping dicts.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    Example:
+
+    .. code-block:: yaml
+
+        my-launch-template:
+          boto3_ec2.launch_template_present:
+            - image_id: ami-0abcdef1234567890
+            - instance_type: t3.medium
+            - profile: my-profile
+
+    .. versionadded:: 1.2.0
+    """
+    ret = {"name": name, "changes": {}, "result": True, "comment": ""}
+
+    existing = __salt__["boto3_ec2.describe_launch_templates"](
+        launch_template_names=[name],
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
+
+    if isinstance(existing, dict) and existing.get("error"):
+        if "InvalidLaunchTemplateName.NotFoundException" not in str(existing["error"]):
+            ret["result"] = False
+            ret["comment"] = f"Error describing launch template {name}: {existing['error']}"
+            return ret
+        existing = []
+
+    if existing:
+        ret["comment"] = f"Launch template {name} already present."
+        return ret
+
+    if __opts__["test"]:
+        ret["result"] = None
+        ret["comment"] = f"Launch template {name} would be created."
+        return ret
+
+    result = __salt__["boto3_ec2.create_launch_template"](
+        name=name,
+        image_id=image_id,
+        instance_type=instance_type,
+        key_name=key_name,
+        security_groups=security_groups,
+        user_data=user_data,
+        block_device_mappings=block_device_mappings,
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
+
+    if isinstance(result, dict) and result.get("error"):
+        if "InvalidLaunchTemplateName.AlreadyExistsException" in str(result["error"]):
+            ret["comment"] = f"Launch template {name} already present."
+            return ret
+        ret["result"] = False
+        ret["comment"] = f"Error creating launch template {name}: {result['error']}"
+        return ret
+
+    ret["changes"]["new"] = result
+    ret["comment"] = f"Launch template {name} created."
+    return ret
+
+
+def launch_template_absent(
+    name,
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+):
+    """
+    Ensure a launch template is absent. Deletes it if present; no-ops if already gone.
+
+    name (str):
+        The name of the launch template.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    Example:
+
+    .. code-block:: yaml
+
+        my-launch-template:
+          boto3_ec2.launch_template_absent:
+            - profile: my-profile
+
+    .. versionadded:: 1.2.0
+    """
+    ret = {"name": name, "changes": {}, "result": True, "comment": ""}
+
+    existing = __salt__["boto3_ec2.describe_launch_templates"](
+        launch_template_names=[name],
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
+
+    if isinstance(existing, dict) and existing.get("error"):
+        if "InvalidLaunchTemplateName.NotFoundException" in str(existing["error"]):
+            ret["comment"] = f"Launch template {name} already absent."
+            return ret
+        ret["result"] = False
+        ret["comment"] = f"Error describing launch template {name}: {existing['error']}"
+        return ret
+
+    if not existing:
+        ret["comment"] = f"Launch template {name} already absent."
+        return ret
+
+    if __opts__["test"]:
+        ret["result"] = None
+        ret["comment"] = f"Launch template {name} would be deleted."
+        return ret
+
+    result = __salt__["boto3_ec2.delete_launch_template"](
+        name=name,
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
+
+    if isinstance(result, dict) and result.get("error"):
+        ret["result"] = False
+        ret["comment"] = f"Error deleting launch template {name}: {result['error']}"
+        return ret
+
+    ret["changes"]["old"] = existing[0] if existing else {}
+    ret["comment"] = f"Launch template {name} deleted."
+    return ret
+
+
+def instance_metadata_options(
+    name,
+    http_tokens=None,
+    http_put_response_hop_limit=None,
+    http_endpoint=None,
+    http_protocol_ipv6=None,
+    instance_metadata_tags=None,
+    instance_ids=None,
+    instance_name=None,
+    tags=None,
+    filters=None,
+    in_states=None,
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+):
+    """
+    Ensure the given Instance Metadata Service (IMDS) options are applied to all
+    matching instances. Instances can be targeted by ID, Name tag, arbitrary tags,
+    or raw boto3 filters — or any combination thereof.
+
+    At least one of ``http_tokens``, ``http_put_response_hop_limit``,
+    ``http_endpoint``, ``http_protocol_ipv6``, or ``instance_metadata_tags``
+    must be provided.
+
+    name (str):
+        Salt state ID.
+
+    http_tokens (str, optional):
+        ``"optional"`` or ``"required"``. ``"required"`` enforces IMDSv2.
+
+    http_put_response_hop_limit (int, optional):
+        HTTP PUT response hop limit (1-64). Set to ``3`` when using Pod Identity.
+
+    http_endpoint (str, optional):
+        ``"enabled"`` or ``"disabled"``.
+
+    http_protocol_ipv6 (str, optional):
+        ``"enabled"`` or ``"disabled"``.
+
+    instance_metadata_tags (str, optional):
+        ``"enabled"`` or ``"disabled"``.
+
+    instance_ids (list, optional):
+        Explicit list of instance IDs to target.
+
+    instance_name (str, optional):
+        Target instances by their ``Name`` tag.
+
+    tags (dict, optional):
+        Target instances by arbitrary tag key/value pairs.
+
+    filters (list, optional):
+        Raw boto3 filter list (``[{"Name": "...", "Values": [...]}]``).
+        Applied in addition to any ``instance_ids``, ``instance_name``, or ``tags``.
+
+    in_states (list, optional):
+        Restrict to instances in these states. Default: ``["running"]``.
+
+    region (str, optional):
+        The AWS region to connect to.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    Example — enforce IMDSv2 + Pod Identity hop limit on an EKS nodegroup:
+
+    .. code-block:: yaml
+
+        enforce-imds-on-my-nodegroup:
+          boto3_ec2.instance_metadata_options:
+            - tags:
+                eks:cluster-name: my-cluster
+                eks:nodegroup-name: my-nodegroup
+            - http_tokens: required
+            - http_put_response_hop_limit: 3
+            - profile: my-profile
+
+    Example — disable IMDS on specific instances:
+
+    .. code-block:: yaml
+
+        disable-imds-on-bastion:
+          boto3_ec2.instance_metadata_options:
+            - instance_name: bastion-host
+            - http_endpoint: disabled
+            - profile: my-profile
+
+    .. versionadded:: 1.2.0
+    """
+    ret = {"name": name, "changes": {}, "result": True, "comment": ""}
+
+    desired = {
+        k: v
+        for k, v in {
+            "http_tokens": http_tokens,
+            "http_put_response_hop_limit": (
+                int(http_put_response_hop_limit)
+                if http_put_response_hop_limit is not None
+                else None
+            ),
+            "http_endpoint": http_endpoint,
+            "http_protocol_ipv6": http_protocol_ipv6,
+            "instance_metadata_tags": instance_metadata_tags,
+        }.items()
+        if v is not None
+    }
+
+    if not desired:
+        ret["result"] = False
+        ret["comment"] = (
+            "At least one of http_tokens, http_put_response_hop_limit, http_endpoint, "
+            "http_protocol_ipv6, or instance_metadata_tags must be provided."
+        )
+        return ret
+
+    if __opts__["test"]:
+        ret["result"] = None
+        ret["comment"] = f"Instance metadata options would be applied: {desired}."
+        return ret
+
+    instances = __salt__["boto3_ec2.find_instances"](
+        instance_id=instance_ids[0] if instance_ids and len(instance_ids) == 1 else None,
+        name=instance_name,
+        tags=tags,
+        filters=filters,
+        in_states=in_states or ["running"],
+        return_objs=True,
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
+
+    # find_instances with multiple explicit IDs requires filters
+    if instance_ids and len(instance_ids) > 1:
+        instances = [i for i in (instances or []) if i["InstanceId"] in instance_ids]
+
+    if not instances:
+        ret["comment"] = "No matching running instances found."
+        return ret
+
+    updated = []
+    already_compliant = []
+    errors = []
+
+    for instance in instances:
+        iid = instance["InstanceId"]
+        meta = instance.get("MetadataOptions", {})
+
+        needs_update = False
+        for opt, desired_val in desired.items():
+            aws_key = {
+                "http_tokens": "HttpTokens",
+                "http_put_response_hop_limit": "HttpPutResponseHopLimit",
+                "http_endpoint": "HttpEndpoint",
+                "http_protocol_ipv6": "HttpProtocolIpv6",
+                "instance_metadata_tags": "InstanceMetadataTags",
+            }[opt]
+            current_val = meta.get(aws_key)
+            if opt == "http_put_response_hop_limit":
+                if current_val is None or int(current_val) < desired_val:
+                    needs_update = True
+                    break
+            elif current_val != desired_val:
+                needs_update = True
+                break
+
+        if not needs_update:
+            already_compliant.append(iid)
+            continue
+
+        resp = __salt__["boto3_ec2.modify_instance_metadata_options"](
+            instance_id=iid,
+            region=region,
+            key=key,
+            keyid=keyid,
+            profile=profile,
+            **desired,
+        )
+
+        if resp.get("error"):
+            errors.append({"instance_id": iid, "error": resp["error"]})
+        else:
+            updated.append(iid)
+
+    if errors:
+        ret["result"] = False
+        ret["comment"] = f"Errors applying instance metadata options: {errors}"
+        if updated:
+            ret["changes"]["updated"] = updated
+        return ret
+
+    if updated:
+        ret["changes"] = {"updated": updated, "options": desired}
+        ret["comment"] = (
+            f"Applied metadata options to {len(updated)} instance(s). "
+            f"{len(already_compliant)} already compliant."
+        )
+    else:
+        ret["comment"] = f"All {len(already_compliant)} instance(s) already compliant."
+
+    return ret
