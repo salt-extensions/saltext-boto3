@@ -342,3 +342,184 @@ def test_private_ips_absent_unassign_failed(mock_salt):
             "eni-1", network_interface_id="eni-1", private_ip_addresses=["10.0.0.6"]
         )
     assert ret["result"] is False
+
+
+def test_launch_template_present_already_exists(mock_salt):
+    with mock_salt(
+        boto3_ec2, {"boto3_ec2.describe_launch_templates": [{"LaunchTemplateName": "lt"}]}
+    ):
+        ret = boto3_ec2.launch_template_present("lt")
+    assert ret["result"] is True
+    assert "already present" in ret["comment"]
+    assert not ret["changes"]
+
+
+def test_launch_template_present_creates(mock_salt):
+    salt_map = {
+        "boto3_ec2.describe_launch_templates": [],
+        "boto3_ec2.create_launch_template": {
+            "LaunchTemplateId": "lt-1",
+            "LaunchTemplateName": "lt",
+        },
+    }
+    with mock_salt(boto3_ec2, salt_map):
+        ret = boto3_ec2.launch_template_present("lt", image_id="ami-123", instance_type="t3.medium")
+    assert ret["result"] is True
+    assert ret["changes"]["new"]
+
+
+def test_launch_template_present_test_mode(mock_salt):
+    with mock_salt(boto3_ec2, {"boto3_ec2.describe_launch_templates": []}, test=True):
+        ret = boto3_ec2.launch_template_present("lt")
+    assert ret["result"] is None
+    assert "would be created" in ret["comment"]
+
+
+def test_launch_template_present_describe_error(mock_salt):
+    with mock_salt(boto3_ec2, {"boto3_ec2.describe_launch_templates": {"error": "AccessDenied"}}):
+        ret = boto3_ec2.launch_template_present("lt")
+    assert ret["result"] is False
+    assert "Error describing" in ret["comment"]
+
+
+def test_launch_template_absent_already_gone(mock_salt):
+    with mock_salt(boto3_ec2, {"boto3_ec2.describe_launch_templates": []}):
+        ret = boto3_ec2.launch_template_absent("lt")
+    assert ret["result"] is True
+    assert "already absent" in ret["comment"]
+
+
+def test_launch_template_absent_deletes(mock_salt):
+    salt_map = {
+        "boto3_ec2.describe_launch_templates": [{"LaunchTemplateName": "lt"}],
+        "boto3_ec2.delete_launch_template": {"LaunchTemplateName": "lt"},
+    }
+    with mock_salt(boto3_ec2, salt_map):
+        ret = boto3_ec2.launch_template_absent("lt")
+    assert ret["result"] is True
+    assert ret["changes"]["old"]
+    assert "deleted" in ret["comment"]
+
+
+def test_launch_template_absent_test_mode(mock_salt):
+    with mock_salt(
+        boto3_ec2,
+        {"boto3_ec2.describe_launch_templates": [{"LaunchTemplateName": "lt"}]},
+        test=True,
+    ):
+        ret = boto3_ec2.launch_template_absent("lt")
+    assert ret["result"] is None
+    assert "would be deleted" in ret["comment"]
+
+
+def test_instance_metadata_options_no_options(mock_salt):
+    with mock_salt(boto3_ec2, {}):
+        ret = boto3_ec2.instance_metadata_options("s")
+    assert ret["result"] is False
+    assert "At least one" in ret["comment"]
+
+
+def test_instance_metadata_options_test_mode(mock_salt):
+    with mock_salt(boto3_ec2, {}, test=True):
+        ret = boto3_ec2.instance_metadata_options("s", http_tokens="required")
+    assert ret["result"] is None
+    assert "would be applied" in ret["comment"]
+
+
+def test_instance_metadata_options_no_instances(mock_salt):
+    with mock_salt(boto3_ec2, {"boto3_ec2.find_instances": []}):
+        ret = boto3_ec2.instance_metadata_options("s", tags={"k": "v"}, http_tokens="required")
+    assert ret["result"] is True
+    assert "No matching" in ret["comment"]
+
+
+def test_instance_metadata_options_all_compliant(mock_salt):
+    instances = [
+        {
+            "InstanceId": "i-1",
+            "MetadataOptions": {"HttpTokens": "required", "HttpPutResponseHopLimit": 3},
+        },
+        {
+            "InstanceId": "i-2",
+            "MetadataOptions": {"HttpTokens": "required", "HttpPutResponseHopLimit": 4},
+        },
+    ]
+    salt_map = {"boto3_ec2.find_instances": instances}
+    with mock_salt(boto3_ec2, salt_map):
+        ret = boto3_ec2.instance_metadata_options(
+            "s",
+            tags={"eks:cluster-name": "my-cluster"},
+            http_tokens="required",
+            http_put_response_hop_limit=3,
+        )
+    assert ret["result"] is True
+    assert not ret["changes"]
+    assert "compliant" in ret["comment"]
+
+
+def test_instance_metadata_options_hop_limit_already_higher(mock_salt):
+    # hop limit >= desired means compliant — should not update
+    instances = [
+        {"InstanceId": "i-1", "MetadataOptions": {"HttpPutResponseHopLimit": 5}},
+    ]
+    salt_map = {"boto3_ec2.find_instances": instances}
+    with mock_salt(boto3_ec2, salt_map):
+        ret = boto3_ec2.instance_metadata_options("s", http_put_response_hop_limit=3)
+    assert ret["result"] is True
+    assert not ret["changes"]
+
+
+def test_instance_metadata_options_updates_instances(mock_salt):
+    instances = [
+        {
+            "InstanceId": "i-1",
+            "MetadataOptions": {"HttpTokens": "optional", "HttpPutResponseHopLimit": 1},
+        },
+    ]
+    salt_map = {
+        "boto3_ec2.find_instances": instances,
+        "boto3_ec2.modify_instance_metadata_options": {},
+    }
+    with mock_salt(boto3_ec2, salt_map):
+        ret = boto3_ec2.instance_metadata_options(
+            "s",
+            tags={"eks:cluster-name": "my-cluster"},
+            http_tokens="required",
+            http_put_response_hop_limit=3,
+        )
+    assert ret["result"] is True
+    assert "i-1" in ret["changes"]["updated"]
+
+
+def test_instance_metadata_options_by_name(mock_salt):
+    instances = [
+        {"InstanceId": "i-bastion", "MetadataOptions": {"HttpEndpoint": "enabled"}},
+    ]
+    salt_map = {
+        "boto3_ec2.find_instances": instances,
+        "boto3_ec2.modify_instance_metadata_options": {},
+    }
+    with mock_salt(boto3_ec2, salt_map):
+        ret = boto3_ec2.instance_metadata_options(
+            "s", instance_name="bastion-host", http_endpoint="disabled"
+        )
+    assert ret["result"] is True
+    assert "i-bastion" in ret["changes"]["updated"]
+
+
+def test_instance_metadata_options_error(mock_salt):
+    instances = [
+        {
+            "InstanceId": "i-bad",
+            "MetadataOptions": {"HttpTokens": "optional", "HttpPutResponseHopLimit": 1},
+        }
+    ]
+    salt_map = {
+        "boto3_ec2.find_instances": instances,
+        "boto3_ec2.modify_instance_metadata_options": {"error": "AccessDenied"},
+    }
+    with mock_salt(boto3_ec2, salt_map):
+        ret = boto3_ec2.instance_metadata_options(
+            "s", http_tokens="required", http_put_response_hop_limit=3
+        )
+    assert ret["result"] is False

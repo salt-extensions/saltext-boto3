@@ -48,6 +48,7 @@ as a passed in dict, or as a string to pull from pillars or minion config:
 .. versionadded:: 1.0.0
 """
 
+import base64
 import logging
 import os
 import time
@@ -3213,3 +3214,246 @@ def require_imdsv2(instance_id, region=None, key=None, keyid=None, profile=None)
         keyid=keyid,
         profile=profile,
     )
+
+
+def _base64_encode(data):
+    """
+    Base64-encode a string or bytes value for use in EC2 API calls (e.g. UserData).
+    """
+    if not data:
+        return None
+    if isinstance(data, str):
+        data = data.encode("utf-8")
+    return base64.b64encode(data).decode("utf-8")
+
+
+def create_launch_template(
+    name,
+    image_id,
+    instance_type,
+    key_name=None,
+    security_groups=None,
+    user_data=None,
+    block_device_mappings=None,
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+):
+    """
+    Create an EC2 launch template.
+
+    name (str):
+        The name of the launch template.
+
+    image_id (str):
+        The ID of the AMI to use.
+
+    instance_type (str):
+        The instance type (e.g. ``t3.medium``).
+
+    key_name (str, optional):
+        The name of the key pair.
+
+    security_groups (list, optional):
+        A list of security group IDs.
+
+    user_data (str, optional):
+        User data script (plain text; base64-encoded automatically).
+
+    block_device_mappings (list, optional):
+        A list of block device mapping dicts.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt myminion boto3_ec2.create_launch_template my-lt ami-12345678 t3.medium profile=myprofile
+
+    .. versionadded:: 1.2.0
+    """
+    conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
+    launch_template_data = {
+        k: v
+        for k, v in {
+            "ImageId": image_id,
+            "InstanceType": instance_type,
+            "KeyName": key_name,
+            "SecurityGroupIds": security_groups,
+            "UserData": _base64_encode(user_data),
+            "BlockDeviceMappings": block_device_mappings,
+        }.items()
+        if v is not None
+    }
+    try:
+        resp = conn.create_launch_template(
+            LaunchTemplateName=name,
+            LaunchTemplateData=launch_template_data,
+        )
+        return resp.get("LaunchTemplate", {})
+    except ClientError as e:
+        return {"error": boto3mod.get_error(e)}
+
+
+def delete_launch_template(name, region=None, key=None, keyid=None, profile=None):
+    """
+    Delete an EC2 launch template by name.
+
+    name (str):
+        The name of the launch template.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt myminion boto3_ec2.delete_launch_template my-lt profile=myprofile
+
+    .. versionadded:: 1.2.0
+    """
+    conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
+    try:
+        return conn.delete_launch_template(LaunchTemplateName=name)
+    except ClientError as e:
+        return {"error": boto3mod.get_error(e)}
+
+
+def describe_launch_templates(
+    launch_template_ids=None,
+    launch_template_names=None,
+    filters=None,
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+):
+    """
+    Describe EC2 launch templates, optionally filtered by IDs, names, or filters.
+
+    launch_template_ids (list, optional):
+        A list of launch template IDs to describe.
+
+    launch_template_names (list, optional):
+        A list of launch template names to describe.
+
+    filters (list, optional):
+        A list of filter dicts (``[{"Name": "...", "Values": [...]}]``).
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt myminion boto3_ec2.describe_launch_templates launch_template_names='["my-lt"]' profile=myprofile
+
+    .. versionadded:: 1.2.0
+    """
+    conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
+    params = {}
+    if launch_template_ids:
+        params["LaunchTemplateIds"] = launch_template_ids
+    if launch_template_names:
+        params["LaunchTemplateNames"] = launch_template_names
+    if filters:
+        params["Filters"] = filters
+    try:
+        resp = conn.describe_launch_templates(**params)
+        return resp.get("LaunchTemplates", [])
+    except ClientError as e:
+        return {"error": boto3mod.get_error(e)}
+
+
+def get_dns_name(
+    name=None,
+    instance_id=None,
+    dns_type="private",
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+):
+    """
+    Return the DNS name of an EC2 instance looked up by Name tag or instance ID.
+
+    name (str, optional):
+        The Name tag of the instance.
+
+    instance_id (str, optional):
+        The ID of the instance.
+
+    dns_type (str, optional):
+        ``"private"`` (default) or ``"public"``. Public DNS is only populated when the
+        instance has a public IP and the VPC has DNS hostnames enabled.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt myminion boto3_ec2.get_dns_name name=my-instance profile=myprofile
+        salt myminion boto3_ec2.get_dns_name name=my-instance dns_type=public profile=myprofile
+
+    .. versionadded:: 1.2.0
+    """
+    if not (name or instance_id):
+        return {"error": "Either 'name' or 'instance_id' must be provided."}
+    if dns_type not in ("private", "public"):
+        return {"error": f"dns_type must be 'private' or 'public', got {dns_type!r}"}
+    field = "PrivateDnsName" if dns_type == "private" else "PublicDnsName"
+    conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
+    try:
+        if name:
+            resp = conn.describe_instances(Filters=[{"Name": "tag:Name", "Values": [name]}])
+        else:
+            resp = conn.describe_instances(InstanceIds=[instance_id])
+        reservations = resp.get("Reservations", [])
+        if not reservations or not reservations[0].get("Instances"):
+            return {"error": "No instance found."}
+        return reservations[0]["Instances"][0].get(field, "")
+    except ClientError as e:
+        return {"error": boto3mod.get_error(e)}
