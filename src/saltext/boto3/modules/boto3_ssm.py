@@ -50,6 +50,10 @@ as a passed in dict, or as a string to pull from pillars or minion config:
 
 import logging
 
+import jinja2
+import jinja2.exceptions
+from jinja2 import BaseLoader
+from jinja2.sandbox import SandboxedEnvironment
 from salt.utils import json
 
 from saltext.boto3.utils import boto3mod
@@ -556,3 +560,131 @@ def list_command_invocations(
     except ClientError as e:
         return {"error": boto3mod.get_error(e)}
     return invocations
+
+
+def run_shell_script_document(
+    document_name,
+    salt_script_source,
+    target_type="tags",
+    target_tags=None,
+    instance_ids=None,
+    template_context=None,
+    timeout_seconds=3600,
+    comment=None,
+    enable_cloudwatch=False,
+    cloudwatch_log_group_name=None,
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+):
+    """
+    Render a Salt-managed shell script and execute it on EC2 instances via SSM Run Command.
+
+    Retrieves the script from the Salt fileserver (``salt://`` URI), optionally renders
+    Jinja template variables, then dispatches via :py:func:`send_command`.
+
+    document_name (str):
+        The SSM document to execute (e.g. ``AWS-RunShellScript``).
+
+    salt_script_source (str):
+        A ``salt://`` URI pointing to the shell script. May contain Jinja template
+        variables rendered from ``template_context``.
+
+    target_type (str, optional):
+        How to select target instances: ``"tags"`` or ``"instance_ids"``.
+        Default: ``"tags"``.
+
+    target_tags (dict, optional):
+        Tag key/value pairs used when ``target_type="tags"``.
+        Example: ``{"eks:cluster-name": "my-cluster"}``.
+
+    instance_ids (list, optional):
+        EC2 instance IDs to target when ``target_type="instance_ids"``.
+
+    template_context (dict, optional):
+        Variables to render into the script via Jinja.
+
+    timeout_seconds (int, optional):
+        Command execution timeout in seconds. Default: 3600.
+
+    comment (str, optional):
+        Optional comment for the SSM command.
+
+    enable_cloudwatch (bool, optional):
+        Enable CloudWatch logging for command output. Default: False.
+
+    cloudwatch_log_group_name (str, optional):
+        CloudWatch log group name for command output.
+
+    region (str, optional):
+        The AWS region to use.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    .. versionadded:: 1.2.0
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt myminion boto3_ssm.run_shell_script_document \\
+            document_name=AWS-RunShellScript \\
+            salt_script_source=salt://scripts/setup.sh \\
+            target_type=tags \\
+            target_tags='{"eks:cluster-name": "my-cluster"}' \\
+            template_context='{"salt_version": "3006"}' \\
+            region=us-east-1
+    """
+    if not document_name:
+        raise ValueError("The 'document_name' argument is required.")
+    if not salt_script_source:
+        raise ValueError("The 'salt_script_source' argument is required.")
+
+    script_content = __salt__["cp.get_file_str"](salt_script_source)
+    if not script_content:
+        return {"success": False, "error": f"Failed to retrieve script from {salt_script_source}"}
+
+    if template_context:
+        try:
+            env = SandboxedEnvironment(loader=BaseLoader())
+            script_content = env.from_string(script_content).render(**template_context)
+        except jinja2.exceptions.TemplateError as e:
+            return {"success": False, "error": f"Failed to render script template: {e}"}
+
+    commands = script_content.splitlines()
+
+    if target_type == "tags":
+        if not target_tags:
+            raise ValueError("'target_tags' is required when target_type is 'tags'.")
+        targets = [{"Key": f"tag:{k}", "Values": [v]} for k, v in target_tags.items()]
+        instance_ids = None
+    elif target_type == "instance_ids":
+        if not instance_ids:
+            raise ValueError("'instance_ids' is required when target_type is 'instance_ids'.")
+        targets = instance_ids
+        instance_ids = None
+    else:
+        raise ValueError(f"Invalid target_type '{target_type}'. Use 'tags' or 'instance_ids'.")
+
+    output_s3_bucket = cloudwatch_log_group_name if enable_cloudwatch else None
+
+    return send_command(
+        targets=targets,
+        document_name=document_name,
+        parameters={"commands": commands},
+        comment=comment,
+        timeout_seconds=timeout_seconds,
+        output_s3_bucket_name=output_s3_bucket,
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
