@@ -4,6 +4,16 @@ This project uses [Semantic Versioning](https://semver.org/) - MAJOR.MINOR.PATCH
 
 # Changelog
 
+## 1.2.0 (2026-09-29)
+
+
+### Added
+
+- Added `boto3_ec2.create_launch_template`, `boto3_ec2.delete_launch_template`, and `boto3_ec2.describe_launch_templates` execution functions along with `boto3_ec2.launch_template_present` and `boto3_ec2.launch_template_absent` state functions.
+- Added `boto3_ec2.get_dns_name` to return the private or public DNS name of an EC2 instance looked up by Name tag or instance ID.
+- Added `boto3_ec2.instance_metadata_options` state to apply Instance Metadata Service (IMDS) options to any matching instances targeted by ID, Name tag, arbitrary tags, or raw boto3 filters.
+- Added `boto3_ssm.run_shell_script_document` to fetch a script via Salt's file server, optionally render it as a Jinja template, and dispatch it via SSM Run Command targeting instances by tags or instance IDs.
+
 ## 1.1.0 (2026-09-15)
 
 
