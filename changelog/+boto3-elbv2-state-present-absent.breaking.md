@@ -1,0 +1,1 @@
+Renamed state functions `create_target_group` → `target_group_present` and `delete_target_group` → `target_group_absent`; fixed `targets_registered` and `targets_deregistered` to issue a single bulk API call instead of one call per target.

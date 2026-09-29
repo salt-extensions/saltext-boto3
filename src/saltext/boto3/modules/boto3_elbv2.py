@@ -45,6 +45,12 @@ as a passed in dict, or as a string to pull from pillars or minion config:
         key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
         region: us-east-1
 
+.. CLI Example:
+
+.. code-block:: bash
+
+    salt '*' boto3_elbv2.create_target_group name='my-target-group' protocol='HTTP' port=80 vpc_id='vpc-1'
+
 .. versionadded:: 1.0.0
 """
 
@@ -171,7 +177,7 @@ def create_target_group(
     """
 
     conn = _get_conn("elbv2", region=region, key=key, keyid=keyid, profile=profile)
-    if target_group_exists(name, region, key, keyid, profile):
+    if target_group_exists(name=name, region=region, key=key, keyid=keyid, profile=profile):
         return True
 
     try:
@@ -204,12 +210,15 @@ def create_target_group(
         )
 
 
-def delete_target_group(name, region=None, key=None, keyid=None, profile=None):
+def delete_target_group(name=None, arn=None, region=None, key=None, keyid=None, profile=None):
     """
-    Delete target group.
+    Delete target group. Exactly one of ``name`` or ``arn`` must be provided.
 
-    name (str):
-        The name or Amazon Resource Name (ARN) of the target group to delete.
+    name (str, optional):
+        The name of the target group.
+
+    arn (str, optional):
+        The ARN of the target group.
 
     region (str, optional):
         The AWS region where the target group is located.
@@ -227,29 +236,38 @@ def delete_target_group(name, region=None, key=None, keyid=None, profile=None):
 
     .. code-block:: bash
 
-        salt myminion boto3_elbv2.delete_target_group arn:aws:elasticloadbalancing:us-west-2:644138682826:targetgroup/learn1give1-api/414788a16b5cf163
-    """
-    conn = _get_conn("elbv2", region=region, key=key, keyid=keyid, profile=profile)
+        salt myminion boto3_elbv2.delete_target_group name=mytg region=us-east-1
+        salt myminion boto3_elbv2.delete_target_group arn=arn:aws:elasticloadbalancing:us-west-2:644138682826:targetgroup/learn1give1-api/414788a16b5cf163
 
-    if not target_group_exists(name, region, key, keyid, profile):
+    .. versionchanged:: 2.0.0
+        Added ``arn`` parameter; ``name`` is now optional so either identifier may be used.
+        ARN is resolved via ``describe_target_group`` rather than accepted directly as the positional argument.
+    """
+    if not boto3mod.exactly_one([name, arn]):
+        log.error("delete_target_group requires exactly one of 'name' or 'arn'")
+        return False
+
+    if not target_group_exists(
+        name=name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
+    ):
         return True
 
+    tg = describe_target_group(
+        name=name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
+    )
+    if tg is None:
+        return False
+    tg_arn = tg["TargetGroupArn"]
+
+    conn = _get_conn("elbv2", region=region, key=key, keyid=keyid, profile=profile)
     try:
-        if name.startswith("arn:aws:elasticloadbalancing"):
-            conn.delete_target_group(TargetGroupArn=name)
-            log.info("Deleted target group %s", name)
-        else:
-            tg_info = conn.describe_target_groups(Names=[name])
-            if len(tg_info["TargetGroups"]) != 1:
-                return False
-            arn = tg_info["TargetGroups"][0]["TargetGroupArn"]
-            conn.delete_target_group(TargetGroupArn=arn)
-            log.info("Deleted target group %s ARN %s", name, arn)
+        conn.delete_target_group(TargetGroupArn=tg_arn)
+        log.info("Deleted target group %s (ARN %s)", name or arn, tg_arn)
         return True
     except ClientError as error:
         log.error(
             "Failed to delete target group %s: %s: %s",
-            name,
+            name or arn,
             error.response["Error"]["Code"],
             error.response["Error"]["Message"],
             exc_info_on_loglevel=logging.DEBUG,
@@ -257,12 +275,16 @@ def delete_target_group(name, region=None, key=None, keyid=None, profile=None):
         return False
 
 
-def target_group_exists(name, region=None, key=None, keyid=None, profile=None):
+def describe_target_group(name=None, arn=None, region=None, key=None, keyid=None, profile=None):
     """
-    Check to see if a target group exists.
+    Describe a target group by name or ARN. Exactly one of ``name`` or ``arn`` must be
+    provided. Returns the target group dict or ``None`` if not found.
 
-    name (str):
-        The name or Amazon Resource Name (ARN) of the target group to check for existence.
+    name (str, optional):
+        The name of the target group.
+
+    arn (str, optional):
+        The ARN of the target group.
 
     region (str, optional):
         The AWS region where the target group is located.
@@ -280,31 +302,82 @@ def target_group_exists(name, region=None, key=None, keyid=None, profile=None):
 
     .. code-block:: bash
 
-        salt myminion boto3_elbv2.target_group_exists arn:aws:elasticloadbalancing:us-west-2:644138682826:targetgroup/learn1give1-api/414788a16b5cf163
+        salt myminion boto3_elbv2.describe_target_group name=mytg region=us-east-1
+        salt myminion boto3_elbv2.describe_target_group arn=arn:aws:elasticloadbalancing:... region=us-east-1
+
+    .. versionadded:: 2.0.0
     """
+    if not boto3mod.exactly_one([name, arn]):
+        log.error("describe_target_group requires exactly one of 'name' or 'arn'")
+        return None
+
     conn = _get_conn("elbv2", region=region, key=key, keyid=keyid, profile=profile)
 
     try:
-        if name.startswith("arn:aws:elasticloadbalancing"):
-            alb = conn.describe_target_groups(TargetGroupArns=[name])
+        if arn:
+            resp = conn.describe_target_groups(TargetGroupArns=[arn])
         else:
-            alb = conn.describe_target_groups(Names=[name])
-        if alb:
-            return True
-        else:
-            log.warning("The target group does not exist in region %s", region)
-            return False
-    except ClientError as error:
-        log.warning("target_group_exists check for %s returned: %s", name, error)
+            resp = conn.describe_target_groups(Names=[name])
+        groups = resp.get("TargetGroups", [])
+        return groups[0] if groups else None
+    except ClientError as e:
+        log.error("Failed to describe target group %s: %s", arn or name, e)
+        return None
+
+
+def target_group_exists(name=None, arn=None, region=None, key=None, keyid=None, profile=None):
+    """
+    Check to see if a target group exists. Exactly one of ``name`` or ``arn`` must be provided.
+
+    name (str, optional):
+        The name of the target group.
+
+    arn (str, optional):
+        The ARN of the target group.
+
+    region (str, optional):
+        The AWS region where the target group is located.
+
+    key (str, optional):
+        The AWS secret access key.
+
+    keyid (str, optional):
+        The AWS access key ID.
+
+    profile (str, optional):
+        The profile to use for AWS credentials.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt myminion boto3_elbv2.target_group_exists name=mytg region=us-east-1
+        salt myminion boto3_elbv2.target_group_exists arn=arn:aws:elasticloadbalancing:us-west-2:644138682826:targetgroup/learn1give1-api/414788a16b5cf163
+
+    .. versionchanged:: 2.0.0
+        Added ``arn`` parameter; ``name`` is now optional so either identifier may be used.
+    """
+    tg = describe_target_group(
+        name=name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
+    )
+    if tg is None:
+        log.warning("The target group does not exist in region %s", region)
         return False
+    return True
 
 
-def describe_target_health(name, targets=None, region=None, key=None, keyid=None, profile=None):
+def describe_target_health(
+    name=None, arn=None, targets=None, region=None, key=None, keyid=None, profile=None
+):
     """
     Get the current health check status for targets in a target group.
+    Exactly one of ``name`` or ``arn`` must be provided.
 
-    name (str):
-        The name or Amazon Resource Name (ARN) of the target group.
+    name (str, optional):
+        The name of the target group.
+
+    arn (str, optional):
+        The ARN of the target group.
 
     targets (list, optional):
         A list of target instance IDs to check the health status for.
@@ -325,40 +398,54 @@ def describe_target_health(name, targets=None, region=None, key=None, keyid=None
 
     .. code-block:: bash
 
-        salt myminion boto3_elbv2.describe_target_health \
-            arn:aws:elasticloadbalancing:us-west-2:644138682826:targetgroup/learn1give1-api/414788a16b5cf163 \
-            targets=["i-isdf23ifjf"]
+        salt myminion boto3_elbv2.describe_target_health name=mytg targets='["i-isdf23ifjf"]'
+        salt myminion boto3_elbv2.describe_target_health arn=arn:aws:elasticloadbalancing:... targets='["i-isdf23ifjf"]'
+
+    .. versionchanged:: 2.0.0
+        Added ``arn`` parameter; ``name`` is now optional. First positional argument was ``name``; it is now keyword-only.
     """
+    if not boto3mod.exactly_one([name, arn]):
+        log.error("describe_target_health requires exactly one of 'name' or 'arn'")
+        return {}
+
+    tg = describe_target_group(
+        name=name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
+    )
+    if tg is None:
+        return {}
+    tg_arn = tg["TargetGroupArn"]
+
     conn = _get_conn("elbv2", region=region, key=key, keyid=keyid, profile=profile)
 
     try:
         if targets:
-            targetsdict = []
-            for target in targets:
-                targetsdict.append({"Id": target})
-            instances = conn.describe_target_health(TargetGroupArn=name, Targets=targetsdict)
+            targetsdict = [{"Id": target} for target in targets]
+            instances = conn.describe_target_health(TargetGroupArn=tg_arn, Targets=targetsdict)
         else:
-            instances = conn.describe_target_health(TargetGroupArn=name)
-        ret = {}
-        for instance in instances["TargetHealthDescriptions"]:
-            ret.update({instance["Target"]["Id"]: instance["TargetHealth"]["State"]})
-
-        return ret
+            instances = conn.describe_target_health(TargetGroupArn=tg_arn)
+        return {
+            instance["Target"]["Id"]: instance["TargetHealth"]["State"]
+            for instance in instances["TargetHealthDescriptions"]
+        }
     except ClientError as error:
         log.warning(error)
         return {}
 
 
-def register_targets(name, targets, region=None, key=None, keyid=None, profile=None):
+def register_targets(targets, name=None, arn=None, region=None, key=None, keyid=None, profile=None):
     """
-    Register targets to a target group of an ALB. ``targets`` is either a
-    single instance id string or a list of instance id's.
-
-    name (str):
-        The name or Amazon Resource Name (ARN) of the target group.
+    Register targets to a target group of an ALB. Exactly one of ``name`` or
+    ``arn`` must be provided. ``targets`` is either a single instance ID string
+    or a list of instance IDs.
 
     targets (str or list):
-        A single target instance ID or a list of target instance IDs to register with the target group.
+        A single target instance ID or a list of target instance IDs to register.
+
+    name (str, optional):
+        The name of the target group.
+
+    arn (str, optional):
+        The ARN of the target group.
 
     region (str, optional):
         The AWS region where the target group is located.
@@ -376,37 +463,54 @@ def register_targets(name, targets, region=None, key=None, keyid=None, profile=N
 
     .. code-block:: bash
 
-        salt myminion boto3_elbv2.register_targets myelb instance_id
-        salt myminion boto3_elbv2.register_targets myelb "[instance_id,instance_id]"
-    """
-    targetsdict = []
-    if isinstance(targets, str):
-        targetsdict.append({"Id": targets})
-    else:
-        for target in targets:
-            targetsdict.append({"Id": target})
-    conn = _get_conn("elbv2", region=region, key=key, keyid=keyid, profile=profile)
+        salt myminion boto3_elbv2.register_targets instance_id name=mytg
+        salt myminion boto3_elbv2.register_targets "[instance_id,instance_id]" arn=arn:aws:elasticloadbalancing:...
 
-    try:
-        registered_targets = conn.register_targets(TargetGroupArn=name, Targets=targetsdict)
-        if registered_targets:
-            return True
+    .. versionchanged:: 2.0.0
+        Added ``arn`` parameter. ``name`` (formerly the first positional argument) and ``arn``
+        are now keyword-only; ``targets`` moves to the first positional argument.
+    """
+    if not boto3mod.exactly_one([name, arn]):
+        log.error("register_targets requires exactly one of 'name' or 'arn'")
         return False
+
+    tg = describe_target_group(
+        name=name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
+    )
+    if tg is None:
+        return False
+    tg_arn = tg["TargetGroupArn"]
+
+    if isinstance(targets, str):
+        targetsdict = [{"Id": targets}]
+    else:
+        targetsdict = [{"Id": t} for t in targets]
+
+    conn = _get_conn("elbv2", region=region, key=key, keyid=keyid, profile=profile)
+    try:
+        conn.register_targets(TargetGroupArn=tg_arn, Targets=targetsdict)
+        return True
     except ClientError as error:
         log.warning(error)
         return False
 
 
-def deregister_targets(name, targets, region=None, key=None, keyid=None, profile=None):
+def deregister_targets(
+    targets, name=None, arn=None, region=None, key=None, keyid=None, profile=None
+):
     """
-    Deregister targets from a target group of an ALB. ``targets`` is either a
-    single instance id string or a list of instance id's.
-
-    name (str):
-        The name or Amazon Resource Name (ARN) of the target group.
+    Deregister targets from a target group of an ALB. Exactly one of ``name``
+    or ``arn`` must be provided. ``targets`` is either a single instance ID
+    string or a list of instance IDs.
 
     targets (str or list):
-        A single target instance ID or a list of target instance IDs to deregister from the target group.
+        A single target instance ID or a list of target instance IDs to deregister.
+
+    name (str, optional):
+        The name of the target group.
+
+    arn (str, optional):
+        The ARN of the target group.
 
     region (str, optional):
         The AWS region where the target group is located.
@@ -424,22 +528,33 @@ def deregister_targets(name, targets, region=None, key=None, keyid=None, profile
 
     .. code-block:: bash
 
-        salt myminion boto3_elbv2.deregister_targets myelb instance_id
-        salt myminion boto3_elbv2.deregister_targets myelb "[instance_id,instance_id]"
-    """
-    targetsdict = []
-    if isinstance(targets, str):
-        targetsdict.append({"Id": targets})
-    else:
-        for target in targets:
-            targetsdict.append({"Id": target})
-    conn = _get_conn("elbv2", region=region, key=key, keyid=keyid, profile=profile)
+        salt myminion boto3_elbv2.deregister_targets instance_id name=mytg
+        salt myminion boto3_elbv2.deregister_targets "[instance_id,instance_id]" arn=arn:aws:elasticloadbalancing:...
 
-    try:
-        registered_targets = conn.deregister_targets(TargetGroupArn=name, Targets=targetsdict)
-        if registered_targets:
-            return True
+    .. versionchanged:: 2.0.0
+        Added ``arn`` parameter. ``name`` (formerly the first positional argument) and ``arn``
+        are now keyword-only; ``targets`` moves to the first positional argument.
+    """
+    if not boto3mod.exactly_one([name, arn]):
+        log.error("deregister_targets requires exactly one of 'name' or 'arn'")
         return False
+
+    tg = describe_target_group(
+        name=name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
+    )
+    if tg is None:
+        return False
+    tg_arn = tg["TargetGroupArn"]
+
+    if isinstance(targets, str):
+        targetsdict = [{"Id": targets}]
+    else:
+        targetsdict = [{"Id": t} for t in targets]
+
+    conn = _get_conn("elbv2", region=region, key=key, keyid=keyid, profile=profile)
+    try:
+        conn.deregister_targets(TargetGroupArn=tg_arn, Targets=targetsdict)
+        return True
     except ClientError as error:
         log.warning(error)
         return False
