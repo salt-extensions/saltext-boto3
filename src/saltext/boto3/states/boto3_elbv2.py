@@ -16,8 +16,6 @@ This module uses ``boto3``, which can be installed via package, or pip.
 Create and destroy Elastic Load Balancers (ELB). Be aware that this interacts with Amazon's
 services, and so may incur charges.
 
-This module uses boto3, which can be installed via package, or pip.
-
 This module accepts explicit ELB credentials but can also utilize
 IAM roles assigned to the instance through Instance Profiles. Dynamic
 credentials are then automatically obtained from AWS API and no further
@@ -35,8 +33,7 @@ or as a profile. For example, to specify them in the minion's config file:
     elb.keyid: GKTADJGHEIQSXMKKRBJ08H
     elb.key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
 
-It's also possible to specify key, keyid and region via a profile, either
-as a passed in dict, or as a string to pull from pillars or minion config:
+It's also possible to specify key, keyid and region via a profile:
 
 .. code-block:: yaml
 
@@ -45,20 +42,20 @@ as a passed in dict, or as a string to pull from pillars or minion config:
         key: askdjghsdfjkghWupUjasdflkdfklgjsdfjajkghs
         region: us-east-1
 
+.. Example:
+
 .. code-block:: yaml
 
-    create-target:
-      boto3_elb2.create_targets_group:
-        - name: myALB
-        - protocol: https
-        - port: 443
-        - vpc_id: myVPC
+    my-target-group:
+      boto3_elbv2.target_group_present:
+        - protocol: HTTP
+        - port: 80
+        - vpc_id: vpc-deadbeef
         - profile: myprofile
 
 .. versionadded:: 1.0.0
 """
 
-import copy
 import logging
 
 log = logging.getLogger(__name__)
@@ -76,7 +73,7 @@ def __virtual__():
     )
 
 
-def create_target_group(
+def target_group_present(
     name,
     protocol,
     port,
@@ -95,86 +92,83 @@ def create_target_group(
     **kwargs,
 ):
     """
+    Ensure a target group exists. Creates it if absent; no-ops if already present.
 
-    Create target group if not present.
-
-    name (string)
+    name (str):
         The name of the target group.
 
-    protocol (string)
-        The protocol to use for routing traffic to the targets
+    protocol (str):
+        The protocol to use for routing traffic to the targets (e.g. ``HTTP``, ``HTTPS``).
 
-    port (int)
-        The port on which the targets receive traffic. This port is used unless
-        you specify a port override when registering the traffic.
+    port (int):
+        The port on which the targets receive traffic.
 
-    vpc_id (string)
-        The identifier of the virtual private cloud (VPC).
+    vpc_id (str):
+        The identifier of the VPC.
 
-    region (string)
-        The AWS region where the target group will be created. If not specified, the default region will be used.
+    region (str, optional):
+        The AWS region where the target group will be created.
 
-    key (string)
-        The AWS access key ID. If not specified, the default key will be used.
+    key (str, optional):
+        The AWS secret access key.
 
-    keyid (string)
-        The AWS secret access key. If not specified, the default key will be used.
+    keyid (str, optional):
+        The AWS access key ID.
 
-    profile (string)
-        The AWS profile to use. If not specified, the default profile will be used.
+    profile (str, optional):
+        The AWS profile to use.
 
-    health_check_protocol (string)
-        The protocol the load balancer uses when performing health check on
-        targets. The default is the HTTP protocol.
+    health_check_protocol (str, optional):
+        Protocol the load balancer uses for health checks. Default: ``HTTP``.
 
-    health_check_port (string)
-        The port the load balancer uses when performing health checks on
-        targets. The default is 'traffic-port', which indicates the port on which each
-        target receives traffic from the load balancer.
+    health_check_port (str, optional):
+        Port used for health checks. Default: ``traffic-port``.
 
-    health_check_path (string)
-        The ping path that is the destination on the targets for health
-        checks. The default is /.
+    health_check_path (str, optional):
+        Destination path for health checks. Default: ``/``.
 
-    health_check_interval_seconds (integer)
-        The approximate amount of time, in seconds, between health checks
-        of an individual target. The default is 30 seconds.
+    health_check_interval_seconds (int, optional):
+        Seconds between health checks. Default: ``30``.
 
-    health_check_timeout_seconds (integer)
-        The amount of time, in seconds, during which no response from a
-        target means a failed health check. The default is 5 seconds.
+    health_check_timeout_seconds (int, optional):
+        Seconds before a health check times out. Default: ``5``.
 
-    healthy_threshold_count (integer)
-        The number of consecutive health checks successes required before
-        considering an unhealthy target healthy. The default is 5.
+    healthy_threshold_count (int, optional):
+        Consecutive successes before marking healthy. Default: ``5``.
 
-    unhealthy_threshold_count (integer)
-        The number of consecutive health check failures required before
-        considering a target unhealthy. The default is 2.
+    unhealthy_threshold_count (int, optional):
+        Consecutive failures before marking unhealthy. Default: ``2``.
 
     Example:
 
     .. code-block:: yaml
 
-        create-target:
-          boto3_elbv2.create_target_group:
-            - name: myALB
-            - protocol: https
-            - port: 443
-            - vpc_id: myVPC
-    """
-    ret = {"name": name, "result": None, "comment": "", "changes": {}}
+        my-target-group:
+          boto3_elbv2.target_group_present:
+            - protocol: HTTP
+            - port: 80
+            - vpc_id: vpc-deadbeef
+            - profile: myprofile
 
-    if __salt__["boto3_elbv2.target_group_exists"](name, region, key, keyid, profile):
-        ret["result"] = True
-        ret["comment"] = f"Target Group {name} already exists"
+    .. versionchanged:: 2.0.0
+        Renamed from ``create_target_group``. Replace any existing
+        ``boto3_elbv2.create_target_group`` state references with
+        ``boto3_elbv2.target_group_present``; the parameters are unchanged.
+    """
+    ret = {"name": name, "result": True, "comment": "", "changes": {}}
+
+    if __salt__["boto3_elbv2.target_group_exists"](
+        name=name, region=region, key=key, keyid=keyid, profile=profile
+    ):
+        ret["comment"] = f"Target group {name} already present."
         return ret
 
     if __opts__["test"]:
-        ret["comment"] = f"Target Group {name} will be created"
+        ret["result"] = None
+        ret["comment"] = f"Target group {name} would be created."
         return ret
 
-    state = __salt__["boto3_elbv2.create_target_group"](
+    created = __salt__["boto3_elbv2.create_target_group"](
         name,
         protocol,
         port,
@@ -193,250 +187,235 @@ def create_target_group(
         **kwargs,
     )
 
-    if state:
-        ret["changes"]["target_group"] = name
-        ret["result"] = True
-        ret["comment"] = f"Target Group {name} created"
+    if created:
+        ret["changes"]["new"] = name
+        ret["comment"] = f"Target group {name} created."
     else:
         ret["result"] = False
-        ret["comment"] = f"Target Group {name} creation failed"
+        ret["comment"] = f"Failed to create target group {name}."
     return ret
 
 
-def delete_target_group(name, region=None, key=None, keyid=None, profile=None):
+def target_group_absent(name, region=None, key=None, keyid=None, profile=None):
     """
-    Delete target group.
+    Ensure a target group is absent. Deletes it if present; no-ops if already gone.
 
-    name (string)
-        The Amazon Resource Name (ARN) of the resource.
+    name (str):
+        The name or ARN of the target group.
 
-    region (string)
-        The AWS region where the target group is located. If not specified, the default region will be used.
+    region (str, optional):
+        The AWS region where the target group is located.
 
-    key (string)
-        The AWS access key ID. If not specified, the default key will be used.
+    key (str, optional):
+        The AWS secret access key.
 
-    keyid (string)
-        The AWS secret access key. If not specified, the default key will be used.
+    keyid (str, optional):
+        The AWS access key ID.
 
-    profile (string)
-        The AWS profile to use. If not specified, the default profile will be used.
+    profile (str, optional):
+        The AWS profile to use.
 
     Example:
 
     .. code-block:: yaml
 
-        ensure-delete-target-group:
-          boto3_elbv2.delete_target_group:
-            - name: example
+        my-target-group:
+          boto3_elbv2.target_group_absent:
+            - profile: myprofile
 
+    .. versionchanged:: 2.0.0
+        Renamed from ``delete_target_group``. Replace any existing
+        ``boto3_elbv2.delete_target_group`` state references with
+        ``boto3_elbv2.target_group_absent``; the parameters are unchanged.
     """
-    ret = {"name": name, "result": None, "comment": "", "changes": {}}
+    ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
-    if not __salt__["boto3_elbv2.target_group_exists"](name, region, key, keyid, profile):
-        ret["result"] = True
-        ret["comment"] = f"Target Group {name} does not exists"
+    if not __salt__["boto3_elbv2.target_group_exists"](
+        name=name, region=region, key=key, keyid=keyid, profile=profile
+    ):
+        ret["comment"] = f"Target group {name} already absent."
         return ret
 
     if __opts__["test"]:
-        ret["comment"] = f"Target Group {name} will be deleted"
+        ret["result"] = None
+        ret["comment"] = f"Target group {name} would be deleted."
         return ret
 
-    state = __salt__["boto3_elbv2.delete_target_group"](
+    deleted = __salt__["boto3_elbv2.delete_target_group"](
         name, region=region, key=key, keyid=keyid, profile=profile
     )
 
-    if state:
-        ret["result"] = True
-        ret["changes"]["target_group"] = name
-        ret["comment"] = f"Target Group {name} deleted"
+    if deleted:
+        ret["changes"]["old"] = name
+        ret["comment"] = f"Target group {name} deleted."
     else:
         ret["result"] = False
-        ret["comment"] = f"Target Group {name} deletion failed"
+        ret["comment"] = f"Failed to delete target group {name}."
     return ret
 
 
 def targets_registered(name, targets, region=None, key=None, keyid=None, profile=None, **_kwargs):
     """
+    Ensure the given targets are registered in a target group. Already-registered
+    targets are left untouched; only missing ones are added.
 
-    Add targets to an Application Load Balancer target group. This state will not remove targets.
+    name (str):
+        The name or ARN of the target group.
 
-    name (string)
-        The ARN of the Application Load Balancer Target Group to add targets to.
+    targets (list or str):
+        One or more target instance IDs to register.
 
-    targets (list|string)
-        A list of target IDs or a string of a single target that this target group should
-        distribute traffic to.
+    region (str, optional):
+        The AWS region where the target group is located.
 
-    region (string)
-        The AWS region where the target group is located. If not specified, the default region will be used.
+    key (str, optional):
+        The AWS secret access key.
 
-    key (string)
-        The AWS access key ID. If not specified, the default key will be used.
+    keyid (str, optional):
+        The AWS access key ID.
 
-    keyid (string)
-        The AWS secret access key. If not specified, the default key will be used.
-
-    profile (string)
-        The AWS profile to use. If not specified, the default profile will be used.
-
-    ``**kwargs``
-        Additional keyword arguments to pass to the underlying boto3 call.
+    profile (str, optional):
+        The AWS profile to use.
 
     Example:
 
     .. code-block:: yaml
 
-        add-targets:
-          boto3_elb.targets_registered:
-            - name: arn:myloadbalancer
+        my-target-group:
+          boto3_elbv2.targets_registered:
             - targets:
-              - instance-id1
-              - instance-id2
+              - i-1234567890abcdef0
+              - i-0987654321fedcba0
+            - profile: myprofile
+
+    .. versionchanged:: 2.0.0
+        Previously issued one ``register_targets`` API call per target; now issues
+        a single bulk call for all missing targets.
     """
-    ret = {"name": name, "result": None, "comment": "", "changes": {}}
+    ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
-    if __salt__["boto3_elbv2.target_group_exists"](name, region, key, keyid, profile):
-        health = __salt__["boto3_elbv2.describe_target_health"](
-            name, region=region, key=key, keyid=keyid, profile=profile
-        )
-        failure = False
-        changes = False
-        newhealth_mock = copy.copy(health)
-
-        if isinstance(targets, str):
-            targets = [targets]
-
-        for target in targets:
-            if target in health and health.get(target) != "draining":
-                ret["comment"] = (
-                    ret["comment"]
-                    + f"Target/s {target} already registered and is {health[target]}.\n"
-                )
-                ret["result"] = True
-            else:
-                if __opts__["test"]:
-                    changes = True
-                    newhealth_mock.update({target: "initial"})
-                else:
-                    state = __salt__["boto3_elbv2.register_targets"](
-                        name,
-                        targets,
-                        region=region,
-                        key=key,
-                        keyid=keyid,
-                        profile=profile,
-                    )
-                    if state:
-                        changes = True
-                        ret["result"] = True
-                    else:
-                        ret["comment"] = f"Target Group {name} failed to add targets"
-                        failure = True
-        if failure:
-            ret["result"] = False
-        if changes:
-            ret["changes"]["old"] = health
-            if __opts__["test"]:
-                ret["comment"] = f"Target Group {name} would be changed"
-                ret["result"] = None
-                ret["changes"]["new"] = newhealth_mock
-            else:
-                ret["comment"] = f"Target Group {name} has been changed"
-                newhealth = __salt__["boto3_elbv2.describe_target_health"](
-                    name, region=region, key=key, keyid=keyid, profile=profile
-                )
-                ret["changes"]["new"] = newhealth
+    if not __salt__["boto3_elbv2.target_group_exists"](
+        name=name, region=region, key=key, keyid=keyid, profile=profile
+    ):
+        ret["result"] = False
+        ret["comment"] = f"Target group {name} not found."
         return ret
+
+    if isinstance(targets, str):
+        targets = [targets]
+
+    health = __salt__["boto3_elbv2.describe_target_health"](
+        name=name, region=region, key=key, keyid=keyid, profile=profile
+    )
+
+    to_register = [t for t in targets if t not in health or health.get(t) == "draining"]
+
+    if not to_register:
+        ret["comment"] = f"All targets already registered in {name}."
+        return ret
+
+    if __opts__["test"]:
+        ret["result"] = None
+        ret["comment"] = f"{len(to_register)} target(s) would be registered in {name}."
+        ret["changes"]["old"] = health
+        ret["changes"]["new"] = {**health, **{t: "initial" for t in to_register}}
+        return ret
+
+    registered = __salt__["boto3_elbv2.register_targets"](
+        to_register, name=name, region=region, key=key, keyid=keyid, profile=profile
+    )
+
+    if registered:
+        new_health = __salt__["boto3_elbv2.describe_target_health"](
+            name=name, region=region, key=key, keyid=keyid, profile=profile
+        )
+        ret["changes"]["old"] = health
+        ret["changes"]["new"] = new_health
+        ret["comment"] = f"Registered {len(to_register)} target(s) in {name}."
     else:
-        ret["comment"] = f"Could not find target group {name}"
+        ret["result"] = False
+        ret["comment"] = f"Failed to register targets in {name}."
     return ret
 
 
 def targets_deregistered(name, targets, region=None, key=None, keyid=None, profile=None, **_kwargs):
     """
-    Remove targets from an Application Load Balancer target group.
+    Ensure the given targets are deregistered from a target group. Already-absent or
+    draining targets are left untouched; only active ones are removed.
 
-    name (string)
-        The ARN of the Application Load Balancer Target Group to remove targets from.
+    name (str):
+        The name or ARN of the target group.
 
-    targets (list|string)
-        A list of target IDs or a string of a single target registered to the target group to be removed
+    targets (list or str):
+        One or more target instance IDs to deregister.
 
-    region (string)
-        The AWS region where the target group is located. If not specified, the default region will be used.
+    region (str, optional):
+        The AWS region where the target group is located.
 
-    key (string)
-        The AWS access key ID. If not specified, the default key will be used.
+    key (str, optional):
+        The AWS secret access key.
 
-    keyid (string)
-        The AWS secret access key. If not specified, the default key will be used.
+    keyid (str, optional):
+        The AWS access key ID.
 
-    profile (string)
-        The AWS profile to use. If not specified, the default profile will be used.
-
-    ``**kwargs``
-        Additional keyword arguments to pass to the underlying boto3 call.
+    profile (str, optional):
+        The AWS profile to use.
 
     Example:
 
     .. code-block:: yaml
 
-        remove-targets:
-          boto3_elb.targets_deregistered:
-            - name: arn:myloadbalancer
+        my-target-group:
+          boto3_elbv2.targets_deregistered:
             - targets:
-              - instance-id1
-              - instance-id2
+              - i-1234567890abcdef0
+            - profile: myprofile
+
+    .. versionchanged:: 2.0.0
+        Previously issued one ``deregister_targets`` API call per target; now issues
+        a single bulk call for all targets to remove.
     """
-    ret = {"name": name, "result": None, "comment": "", "changes": {}}
-    if __salt__["boto3_elbv2.target_group_exists"](name, region, key, keyid, profile):
-        health = __salt__["boto3_elbv2.describe_target_health"](
-            name, region=region, key=key, keyid=keyid, profile=profile
-        )
-        failure = False
-        changes = False
-        newhealth_mock = copy.copy(health)
-        if isinstance(targets, str):
-            targets = [targets]
-        for target in targets:
-            if target not in health or health.get(target) == "draining":
-                ret["comment"] = ret["comment"] + f"Target/s {target} already deregistered\n"
-                ret["result"] = True
-            else:
-                if __opts__["test"]:
-                    changes = True
-                    newhealth_mock.update({target: "draining"})
-                else:
-                    state = __salt__["boto3_elbv2.deregister_targets"](
-                        name,
-                        targets,
-                        region=region,
-                        key=key,
-                        keyid=keyid,
-                        profile=profile,
-                    )
-                    if state:
-                        changes = True
-                        ret["result"] = True
-                    else:
-                        ret["comment"] = f"Target Group {name} failed to remove targets"
-                        failure = True
-        if failure:
-            ret["result"] = False
-        if changes:
-            ret["changes"]["old"] = health
-            if __opts__["test"]:
-                ret["comment"] = f"Target Group {name} would be changed"
-                ret["result"] = None
-                ret["changes"]["new"] = newhealth_mock
-            else:
-                ret["comment"] = f"Target Group {name} has been changed"
-                newhealth = __salt__["boto3_elbv2.describe_target_health"](
-                    name, region=region, key=key, keyid=keyid, profile=profile
-                )
-                ret["changes"]["new"] = newhealth
+    ret = {"name": name, "result": True, "comment": "", "changes": {}}
+
+    if not __salt__["boto3_elbv2.target_group_exists"](
+        name=name, region=region, key=key, keyid=keyid, profile=profile
+    ):
+        ret["result"] = False
+        ret["comment"] = f"Target group {name} not found."
         return ret
+
+    if isinstance(targets, str):
+        targets = [targets]
+
+    health = __salt__["boto3_elbv2.describe_target_health"](
+        name=name, region=region, key=key, keyid=keyid, profile=profile
+    )
+
+    to_deregister = [t for t in targets if t in health and health.get(t) != "draining"]
+
+    if not to_deregister:
+        ret["comment"] = f"All targets already deregistered from {name}."
+        return ret
+
+    if __opts__["test"]:
+        ret["result"] = None
+        ret["comment"] = f"{len(to_deregister)} target(s) would be deregistered from {name}."
+        ret["changes"]["old"] = health
+        ret["changes"]["new"] = {**health, **{t: "draining" for t in to_deregister}}
+        return ret
+
+    deregistered = __salt__["boto3_elbv2.deregister_targets"](
+        to_deregister, name=name, region=region, key=key, keyid=keyid, profile=profile
+    )
+
+    if deregistered:
+        new_health = __salt__["boto3_elbv2.describe_target_health"](
+            name=name, region=region, key=key, keyid=keyid, profile=profile
+        )
+        ret["changes"]["old"] = health
+        ret["changes"]["new"] = new_health
+        ret["comment"] = f"Deregistered {len(to_deregister)} target(s) from {name}."
     else:
-        ret["comment"] = f"Could not find target group {name}"
+        ret["result"] = False
+        ret["comment"] = f"Failed to deregister targets from {name}."
     return ret
