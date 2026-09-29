@@ -1,0 +1,1 @@
+Added `boto3_ssm.run_shell_script_document` to fetch a script via Salt's file server, optionally render it as a Jinja template, and dispatch it via SSM Run Command targeting instances by tags or instance IDs.
