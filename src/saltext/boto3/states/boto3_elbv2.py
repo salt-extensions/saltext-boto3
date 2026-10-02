@@ -236,7 +236,6 @@ def target_group_absent(name, arn=None, region=None, key=None, keyid=None, profi
         Renamed from ``delete_target_group``. Replace any existing
         ``boto3_elbv2.delete_target_group`` state references with
         ``boto3_elbv2.target_group_absent``; the parameters are unchanged.
-    .. versionchanged:: 2.1.0
         Added ``arn`` parameter so the target group can be identified by ARN.
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
@@ -317,7 +316,6 @@ def targets_registered(
     .. versionchanged:: 2.0.0
         Previously issued one ``register_targets`` API call per target; now issues
         a single bulk call for all missing targets.
-    .. versionchanged:: 2.1.0
         Added ``arn`` parameter so the target group can be identified by ARN.
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
@@ -422,7 +420,6 @@ def targets_deregistered(
     .. versionchanged:: 2.0.0
         Previously issued one ``deregister_targets`` API call per target; now issues
         a single bulk call for all targets to remove.
-    .. versionchanged:: 2.1.0
         Added ``arn`` parameter so the target group can be identified by ARN.
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
