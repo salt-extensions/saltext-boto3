@@ -247,18 +247,13 @@ def delete_target_group(name=None, arn=None, region=None, key=None, keyid=None, 
         log.error("delete_target_group requires exactly one of 'name' or 'arn'")
         return False
 
-    if not target_group_exists(
-        name=name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
-    ):
-        return True
-
     tg = describe_target_group(
         name=name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
     )
     if tg is None:
-        return False
-    tg_arn = tg["TargetGroupArn"]
+        return True
 
+    tg_arn = tg["TargetGroupArn"]
     conn = _get_conn("elbv2", region=region, key=key, keyid=keyid, profile=profile)
     try:
         conn.delete_target_group(TargetGroupArn=tg_arn)
@@ -406,13 +401,13 @@ def describe_target_health(
     """
     if not boto3mod.exactly_one([name, arn]):
         log.error("describe_target_health requires exactly one of 'name' or 'arn'")
-        return {}
+        return None
 
     tg = describe_target_group(
         name=name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
     )
     if tg is None:
-        return {}
+        return None
     tg_arn = tg["TargetGroupArn"]
 
     conn = _get_conn("elbv2", region=region, key=key, keyid=keyid, profile=profile)
@@ -429,7 +424,7 @@ def describe_target_health(
         }
     except ClientError as error:
         log.warning(error)
-        return {}
+        return None
 
 
 def register_targets(targets, name=None, arn=None, region=None, key=None, keyid=None, profile=None):
