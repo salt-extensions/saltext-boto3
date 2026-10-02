@@ -116,6 +116,19 @@ def test_target_group_absent_delete_failure(mock_salt):
     assert "Failed" in ret["comment"]
 
 
+def test_target_group_absent_by_arn(mock_salt):
+    arn = "arn:aws:elasticloadbalancing:us-east-1:123:targetgroup/tg/abc"
+    salt_map = {
+        "boto3_elbv2.target_group_exists": True,
+        "boto3_elbv2.delete_target_group": True,
+    }
+    with mock_salt(elbv2_state, salt_map):
+        ret = elbv2_state.target_group_absent("state-id", arn=arn)
+    assert ret["result"] is True
+    assert arn in ret["comment"]
+    assert ret["changes"]["old"] == arn
+
+
 def test_targets_registered_group_not_found(mock_salt):
     with mock_salt(elbv2_state, {"boto3_elbv2.target_group_exists": False}):
         ret = elbv2_state.targets_registered("tg", ["i-1"])
@@ -192,6 +205,32 @@ def test_targets_registered_register_failure(mock_salt):
     assert "Failed" in ret["comment"]
 
 
+def test_targets_registered_health_error_returns_failure(mock_salt):
+    salt_map = {
+        "boto3_elbv2.target_group_exists": True,
+        "boto3_elbv2.describe_target_health": None,
+    }
+    with mock_salt(elbv2_state, salt_map):
+        ret = elbv2_state.targets_registered("tg", ["i-1"])
+    assert ret["result"] is False
+    assert "Failed to retrieve target health" in ret["comment"]
+
+
+def test_targets_registered_by_arn(mock_salt):
+    arn = "arn:aws:elasticloadbalancing:us-east-1:123:targetgroup/tg/abc"
+    describe = MagicMock(side_effect=[{}, {"i-1": "initial"}])
+    register = MagicMock(return_value=True)
+    salt_map = {
+        "boto3_elbv2.target_group_exists": True,
+        "boto3_elbv2.describe_target_health": describe,
+        "boto3_elbv2.register_targets": register,
+    }
+    with mock_salt(elbv2_state, salt_map):
+        ret = elbv2_state.targets_registered("state-id", ["i-1"], arn=arn)
+    assert ret["result"] is True
+    assert arn in ret["comment"]
+
+
 def test_targets_deregistered_group_not_found(mock_salt):
     with mock_salt(elbv2_state, {"boto3_elbv2.target_group_exists": False}):
         ret = elbv2_state.targets_deregistered("tg", ["i-1"])
@@ -261,3 +300,29 @@ def test_targets_deregistered_failure(mock_salt):
         ret = elbv2_state.targets_deregistered("tg", ["i-1"])
     assert ret["result"] is False
     assert "Failed" in ret["comment"]
+
+
+def test_targets_deregistered_health_error_returns_failure(mock_salt):
+    salt_map = {
+        "boto3_elbv2.target_group_exists": True,
+        "boto3_elbv2.describe_target_health": None,
+    }
+    with mock_salt(elbv2_state, salt_map):
+        ret = elbv2_state.targets_deregistered("tg", ["i-1"])
+    assert ret["result"] is False
+    assert "Failed to retrieve target health" in ret["comment"]
+
+
+def test_targets_deregistered_by_arn(mock_salt):
+    arn = "arn:aws:elasticloadbalancing:us-east-1:123:targetgroup/tg/abc"
+    describe = MagicMock(side_effect=[{"i-1": "healthy"}, {"i-1": "draining"}])
+    deregister = MagicMock(return_value=True)
+    salt_map = {
+        "boto3_elbv2.target_group_exists": True,
+        "boto3_elbv2.describe_target_health": describe,
+        "boto3_elbv2.deregister_targets": deregister,
+    }
+    with mock_salt(elbv2_state, salt_map):
+        ret = elbv2_state.targets_deregistered("state-id", ["i-1"], arn=arn)
+    assert ret["result"] is True
+    assert arn in ret["comment"]

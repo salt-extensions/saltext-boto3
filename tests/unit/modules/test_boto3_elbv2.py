@@ -64,12 +64,10 @@ def test_delete_target_group_missing_returns_true(conn, client_error):
 
 
 def test_delete_target_group_by_name(conn):
-    conn.describe_target_groups.side_effect = [
-        {"TargetGroups": [{"TargetGroupArn": "arn:tg/1"}]},
-        {"TargetGroups": [{"TargetGroupArn": "arn:tg/1"}]},
-    ]
+    conn.describe_target_groups.return_value = {"TargetGroups": [{"TargetGroupArn": "arn:tg/1"}]}
     assert boto3_elbv2.delete_target_group(name="tg") is True
     conn.delete_target_group.assert_called_once_with(TargetGroupArn="arn:tg/1")
+    conn.describe_target_groups.assert_called_once_with(Names=["tg"])
 
 
 def test_delete_target_group_by_arn(conn):

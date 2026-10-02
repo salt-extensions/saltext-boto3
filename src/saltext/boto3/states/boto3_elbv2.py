@@ -196,12 +196,16 @@ def target_group_present(
     return ret
 
 
-def target_group_absent(name, region=None, key=None, keyid=None, profile=None):
+def target_group_absent(name, arn=None, region=None, key=None, keyid=None, profile=None):
     """
     Ensure a target group is absent. Deletes it if present; no-ops if already gone.
 
     name (str):
-        The name or ARN of the target group.
+        The name of the target group. Used as the Salt state ID.
+
+    arn (str, optional):
+        The ARN of the target group. When provided, ``name`` is used only as
+        the state ID and ``arn`` is used to identify the target group.
 
     region (str, optional):
         The AWS region where the target group is located.
@@ -223,47 +227,62 @@ def target_group_absent(name, region=None, key=None, keyid=None, profile=None):
           boto3_elbv2.target_group_absent:
             - profile: myprofile
 
+        arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/my-tg/abc123:
+          boto3_elbv2.target_group_absent:
+            - arn: arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/my-tg/abc123
+            - profile: myprofile
+
     .. versionchanged:: 2.0.0
         Renamed from ``delete_target_group``. Replace any existing
         ``boto3_elbv2.delete_target_group`` state references with
         ``boto3_elbv2.target_group_absent``; the parameters are unchanged.
+    .. versionchanged:: 2.1.0
+        Added ``arn`` parameter so the target group can be identified by ARN.
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
+    tg_name = None if arn else name
+
     if not __salt__["boto3_elbv2.target_group_exists"](
-        name=name, region=region, key=key, keyid=keyid, profile=profile
+        name=tg_name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
     ):
-        ret["comment"] = f"Target group {name} already absent."
+        ret["comment"] = f"Target group {arn or name} already absent."
         return ret
 
     if __opts__["test"]:
         ret["result"] = None
-        ret["comment"] = f"Target group {name} would be deleted."
+        ret["comment"] = f"Target group {arn or name} would be deleted."
         return ret
 
     deleted = __salt__["boto3_elbv2.delete_target_group"](
-        name, region=region, key=key, keyid=keyid, profile=profile
+        name=tg_name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
     )
 
     if deleted:
-        ret["changes"]["old"] = name
-        ret["comment"] = f"Target group {name} deleted."
+        ret["changes"]["old"] = arn or name
+        ret["comment"] = f"Target group {arn or name} deleted."
     else:
         ret["result"] = False
-        ret["comment"] = f"Failed to delete target group {name}."
+        ret["comment"] = f"Failed to delete target group {arn or name}."
     return ret
 
 
-def targets_registered(name, targets, region=None, key=None, keyid=None, profile=None, **_kwargs):
+def targets_registered(
+    name, targets, arn=None, region=None, key=None, keyid=None, profile=None, **_kwargs
+):
     """
     Ensure the given targets are registered in a target group. Already-registered
     targets are left untouched; only missing ones are added.
 
     name (str):
-        The name or ARN of the target group.
+        The name of the target group. Used as the Salt state ID.
 
     targets (list or str):
         One or more target instance IDs to register.
+
+    arn (str, optional):
+        The ARN of the target group. When provided, ``name`` is used only as
+        the state ID and ``arn`` is used to identify the target group.
 
     region (str, optional):
         The AWS region where the target group is located.
@@ -288,66 +307,88 @@ def targets_registered(name, targets, region=None, key=None, keyid=None, profile
               - i-0987654321fedcba0
             - profile: myprofile
 
+        register-by-arn:
+          boto3_elbv2.targets_registered:
+            - arn: arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/my-tg/abc123
+            - targets:
+              - i-1234567890abcdef0
+            - profile: myprofile
+
     .. versionchanged:: 2.0.0
         Previously issued one ``register_targets`` API call per target; now issues
         a single bulk call for all missing targets.
+    .. versionchanged:: 2.1.0
+        Added ``arn`` parameter so the target group can be identified by ARN.
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
+    tg_name = None if arn else name
+
     if not __salt__["boto3_elbv2.target_group_exists"](
-        name=name, region=region, key=key, keyid=keyid, profile=profile
+        name=tg_name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
     ):
         ret["result"] = False
-        ret["comment"] = f"Target group {name} not found."
+        ret["comment"] = f"Target group {arn or name} not found."
         return ret
 
     if isinstance(targets, str):
         targets = [targets]
 
     health = __salt__["boto3_elbv2.describe_target_health"](
-        name=name, region=region, key=key, keyid=keyid, profile=profile
+        name=tg_name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
     )
+
+    if health is None:
+        ret["result"] = False
+        ret["comment"] = f"Failed to retrieve target health for {arn or name}."
+        return ret
 
     to_register = [t for t in targets if t not in health or health.get(t) == "draining"]
 
     if not to_register:
-        ret["comment"] = f"All targets already registered in {name}."
+        ret["comment"] = f"All targets already registered in {arn or name}."
         return ret
 
     if __opts__["test"]:
         ret["result"] = None
-        ret["comment"] = f"{len(to_register)} target(s) would be registered in {name}."
+        ret["comment"] = f"{len(to_register)} target(s) would be registered in {arn or name}."
         ret["changes"]["old"] = health
         ret["changes"]["new"] = {**health, **{t: "initial" for t in to_register}}
         return ret
 
     registered = __salt__["boto3_elbv2.register_targets"](
-        to_register, name=name, region=region, key=key, keyid=keyid, profile=profile
+        to_register, name=tg_name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
     )
 
     if registered:
         new_health = __salt__["boto3_elbv2.describe_target_health"](
-            name=name, region=region, key=key, keyid=keyid, profile=profile
+            name=tg_name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
         )
         ret["changes"]["old"] = health
         ret["changes"]["new"] = new_health
-        ret["comment"] = f"Registered {len(to_register)} target(s) in {name}."
+        ret["comment"] = f"Registered {len(to_register)} target(s) in {arn or name}."
     else:
         ret["result"] = False
-        ret["comment"] = f"Failed to register targets in {name}."
+        ret["comment"] = f"Failed to register targets in {arn or name}."
     return ret
 
 
-def targets_deregistered(name, targets, region=None, key=None, keyid=None, profile=None, **_kwargs):
+def targets_deregistered(
+    name, targets, arn=None, region=None, key=None, keyid=None, profile=None, **_kwargs
+):
     """
     Ensure the given targets are deregistered from a target group. Already-absent or
     draining targets are left untouched; only active ones are removed.
 
     name (str):
-        The name or ARN of the target group.
+        The name of the target group. Used as the Salt state ID.
 
     targets (list or str):
         One or more target instance IDs to deregister.
+
+    arn (str, optional):
+        The ARN of the target group. When provided, ``name`` is used only as
+        the state ID and ``arn`` is used to identify the target group.
 
     region (str, optional):
         The AWS region where the target group is located.
@@ -371,51 +412,67 @@ def targets_deregistered(name, targets, region=None, key=None, keyid=None, profi
               - i-1234567890abcdef0
             - profile: myprofile
 
+        deregister-by-arn:
+          boto3_elbv2.targets_deregistered:
+            - arn: arn:aws:elasticloadbalancing:us-east-1:123456789012:targetgroup/my-tg/abc123
+            - targets:
+              - i-1234567890abcdef0
+            - profile: myprofile
+
     .. versionchanged:: 2.0.0
         Previously issued one ``deregister_targets`` API call per target; now issues
         a single bulk call for all targets to remove.
+    .. versionchanged:: 2.1.0
+        Added ``arn`` parameter so the target group can be identified by ARN.
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
+    tg_name = None if arn else name
+
     if not __salt__["boto3_elbv2.target_group_exists"](
-        name=name, region=region, key=key, keyid=keyid, profile=profile
+        name=tg_name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
     ):
         ret["result"] = False
-        ret["comment"] = f"Target group {name} not found."
+        ret["comment"] = f"Target group {arn or name} not found."
         return ret
 
     if isinstance(targets, str):
         targets = [targets]
 
     health = __salt__["boto3_elbv2.describe_target_health"](
-        name=name, region=region, key=key, keyid=keyid, profile=profile
+        name=tg_name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
     )
+
+    if health is None:
+        ret["result"] = False
+        ret["comment"] = f"Failed to retrieve target health for {arn or name}."
+        return ret
 
     to_deregister = [t for t in targets if t in health and health.get(t) != "draining"]
 
     if not to_deregister:
-        ret["comment"] = f"All targets already deregistered from {name}."
+        ret["comment"] = f"All targets already deregistered from {arn or name}."
         return ret
 
     if __opts__["test"]:
         ret["result"] = None
-        ret["comment"] = f"{len(to_deregister)} target(s) would be deregistered from {name}."
+        ret["comment"] = f"{len(to_deregister)} target(s) would be deregistered from {arn or name}."
         ret["changes"]["old"] = health
         ret["changes"]["new"] = {**health, **{t: "draining" for t in to_deregister}}
         return ret
 
     deregistered = __salt__["boto3_elbv2.deregister_targets"](
-        to_deregister, name=name, region=region, key=key, keyid=keyid, profile=profile
+        to_deregister, name=tg_name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
     )
 
     if deregistered:
         new_health = __salt__["boto3_elbv2.describe_target_health"](
-            name=name, region=region, key=key, keyid=keyid, profile=profile
+            name=tg_name, arn=arn, region=region, key=key, keyid=keyid, profile=profile
         )
         ret["changes"]["old"] = health
         ret["changes"]["new"] = new_health
-        ret["comment"] = f"Deregistered {len(to_deregister)} target(s) from {name}."
+        ret["comment"] = f"Deregistered {len(to_deregister)} target(s) from {arn or name}."
     else:
         ret["result"] = False
-        ret["comment"] = f"Failed to deregister targets from {name}."
+        ret["comment"] = f"Failed to deregister targets from {arn or name}."
     return ret
