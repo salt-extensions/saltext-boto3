@@ -12,6 +12,8 @@ from saltext.boto3.modules import boto3_secgroup
 
 try:
     import botocore  # pylint: disable=unused-import
+    from botocore.session import get_session
+    from botocore.validate import validate_parameters
 
     HAS_BOTO3 = True
 except ImportError:
@@ -106,6 +108,55 @@ def test_parse_ip_permissions_splits_grants():
 
 def test_parse_ip_permissions_empty():
     assert not boto3_secgroup._parse_ip_permissions(None)
+
+
+@pytest.mark.parametrize("description", ["SSH access", ""])
+def test_parse_ip_permissions_preserves_descriptions(description):
+    rules = boto3_secgroup._parse_ip_permissions(
+        [
+            {
+                "IpProtocol": "tcp",
+                "FromPort": 22,
+                "ToPort": 22,
+                "IpRanges": [{"CidrIp": "10.0.0.1/32", "Description": description}],
+                "Ipv6Ranges": [{"CidrIpv6": "::1/128", "Description": description}],
+                "UserIdGroupPairs": [{"GroupId": "sg-2", "Description": description}],
+            }
+        ]
+    )
+    assert len(rules) == 3
+    assert all(rule["description"] == description for rule in rules)
+
+
+@pytest.mark.parametrize("description", [None, "", "SSH access"])
+@pytest.mark.parametrize(
+    "grants",
+    [
+        {"cidr_ip": ["10.0.0.1/32", "10.0.0.2/32"]},
+        {"source_group_group_id": "sg-2", "source_group_owner_id": "123"},
+    ],
+)
+def test_build_permission_descriptions(description, grants):
+    permission = boto3_secgroup._build_permission(
+        ip_protocol="tcp", description=description, **grants
+    )
+    entries = permission.get("IpRanges", []) + permission.get("UserIdGroupPairs", [])
+    assert entries
+    for entry in entries:
+        if description is None:
+            assert "Description" not in entry
+        else:
+            assert entry["Description"] == description
+
+
+@pytest.mark.parametrize("ip_protocol", ["all", "-1", -1])
+def test_build_permission_all_protocol_omits_ports(ip_protocol):
+    permission = boto3_secgroup._build_permission(
+        ip_protocol=ip_protocol, from_port=-1, to_port=-1, cidr_ip="0.0.0.0/0"
+    )
+    assert permission["IpProtocol"] == "-1"
+    assert "FromPort" not in permission
+    assert "ToPort" not in permission
 
 
 def test_get_all_security_groups(conn):
@@ -230,6 +281,37 @@ def test_delete_client_error(conn, client_error):
 
 
 @pytest.mark.usefixtures("sg_exists")
+@pytest.mark.parametrize("egress", [False, True])
+def test_authorize_with_description(conn, egress):
+    assert (
+        boto3_secgroup.authorize(
+            name="mysg",
+            ip_protocol="tcp",
+            from_port=22,
+            to_port=22,
+            cidr_ip="10.0.0.1/32",
+            description="SSH access",
+            egress=egress,
+        )
+        is True
+    )
+    operation = (
+        conn.authorize_security_group_egress if egress else conn.authorize_security_group_ingress
+    )
+    operation.assert_called_once_with(
+        GroupId="sg-1",
+        IpPermissions=[
+            {
+                "IpProtocol": "tcp",
+                "FromPort": 22,
+                "ToPort": 22,
+                "IpRanges": [{"CidrIp": "10.0.0.1/32", "Description": "SSH access"}],
+            }
+        ],
+    )
+
+
+@pytest.mark.usefixtures("sg_exists")
 def test_authorize(conn):
     conn.authorize_security_group_ingress.return_value = {}
     assert (
@@ -296,6 +378,117 @@ def test_revoke_client_error(conn, client_error):
             name="mysg", ip_protocol="tcp", from_port=80, to_port=80, cidr_ip="0.0.0.0/0"
         )
         is False
+    )
+
+
+@pytest.mark.usefixtures("sg_exists")
+@pytest.mark.parametrize("egress", [False, True])
+@pytest.mark.parametrize("description", ["SSH access", "", None])
+def test_update_rule_description(conn, egress, description):
+    operation = (
+        conn.update_security_group_rule_descriptions_egress
+        if egress
+        else conn.update_security_group_rule_descriptions_ingress
+    )
+    operation.return_value = {"Return": True}
+    assert (
+        boto3_secgroup.update_rule_description(
+            name="mysg",
+            ip_protocol="tcp",
+            from_port=22,
+            to_port=22,
+            cidr_ip="10.0.0.1/32",
+            description=description,
+            egress=egress,
+        )
+        is True
+    )
+    grant = {"CidrIp": "10.0.0.1/32"}
+    if description:
+        grant["Description"] = description
+    operation.assert_called_once_with(
+        GroupId="sg-1",
+        IpPermissions=[
+            {
+                "IpProtocol": "tcp",
+                "FromPort": 22,
+                "ToPort": 22,
+                "IpRanges": [grant],
+            }
+        ],
+    )
+    api_name = (
+        "UpdateSecurityGroupRuleDescriptionsEgress"
+        if egress
+        else "UpdateSecurityGroupRuleDescriptionsIngress"
+    )
+    shape = get_session().get_service_model("ec2").operation_model(api_name).input_shape
+    validate_parameters(operation.call_args.kwargs, shape)
+    conn.authorize_security_group_ingress.assert_not_called()
+    conn.authorize_security_group_egress.assert_not_called()
+    conn.revoke_security_group_ingress.assert_not_called()
+    conn.revoke_security_group_egress.assert_not_called()
+
+
+@pytest.mark.usefixtures("sg_exists")
+@pytest.mark.parametrize("egress", [False, True])
+def test_update_rule_description_failure(conn, client_error, egress):
+    operation = (
+        conn.update_security_group_rule_descriptions_egress
+        if egress
+        else conn.update_security_group_rule_descriptions_ingress
+    )
+    operation.side_effect = client_error("AccessDenied", "UpdateSecurityGroupRuleDescriptions")
+    assert (
+        boto3_secgroup.update_rule_description(name="mysg", cidr_ip="10.0.0.1/32", egress=egress)
+        is False
+    )
+    operation.side_effect = None
+    operation.return_value = {"Return": False}
+    assert (
+        boto3_secgroup.update_rule_description(name="mysg", cidr_ip="10.0.0.1/32", egress=egress)
+        is False
+    )
+
+
+@pytest.mark.usefixtures("sg_missing")
+def test_update_rule_description_missing(conn):
+    assert boto3_secgroup.update_rule_description(name="mysg", cidr_ip="10.0.0.1/32") is False
+    conn.update_security_group_rule_descriptions_ingress.assert_not_called()
+
+
+@pytest.mark.parametrize("description", [False, 123, [], {}])
+def test_invalid_rule_description(conn, description):
+    with pytest.raises(SaltInvocationError, match="description must be a string"):
+        boto3_secgroup.update_rule_description(
+            name="mysg", cidr_ip="10.0.0.1/32", description=description
+        )
+    conn.describe_security_groups.assert_not_called()
+
+
+@pytest.mark.usefixtures("sg_exists")
+def test_revoke_ignores_description(conn):
+    assert (
+        boto3_secgroup.revoke(
+            name="mysg",
+            ip_protocol="tcp",
+            from_port=22,
+            to_port=22,
+            cidr_ip="10.0.0.1/32",
+            description="SSH access",
+        )
+        is True
+    )
+    conn.revoke_security_group_ingress.assert_called_once_with(
+        GroupId="sg-1",
+        IpPermissions=[
+            {
+                "IpProtocol": "tcp",
+                "FromPort": 22,
+                "ToPort": 22,
+                "IpRanges": [{"CidrIp": "10.0.0.1/32"}],
+            }
+        ],
     )
 
 
