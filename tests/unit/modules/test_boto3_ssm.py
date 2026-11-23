@@ -2,6 +2,9 @@
 Unit tests for the ``boto3_ssm`` execution module.
 """
 
+import datetime
+import json
+
 import pytest
 
 from saltext.boto3.modules import boto3_ssm
@@ -113,6 +116,55 @@ def test_delete_parameter_failed(conn):
 def test_delete_parameter_not_found(conn):
     conn.delete_parameter.side_effect = conn.exceptions.ParameterNotFound()
     assert boto3_ssm.delete_parameter("n") is False
+
+
+def test_send_command_stringifies_datetimes(conn):
+    """boto3 returns datetime objects (e.g. ExpiresAfter); anything left in the
+    return breaks JSON consumers such as the Salt netapi (HTTP 500 on
+    jobs.lookup_jid for any orchestration embedding the result)."""
+    conn.send_command.return_value = {
+        "Command": {
+            "CommandId": "cmd-1",
+            "ExpiresAfter": datetime.datetime(2026, 11, 23, 16, 51, 16, 10000),
+            "RequestedDateTime": datetime.datetime(2026, 11, 23, 15, 51, 16),
+            "Targets": [{"Key": "tag:env", "Values": ["dev"]}],
+        }
+    }
+    result = boto3_ssm.send_command(
+        targets=["i-0123456789abcdef0"],
+        document_name="AWS-RunShellScript",
+        parameters={"commands": ["uptime"]},
+    )
+    assert result["ExpiresAfter"] == "2026-11-23T16:51:16.010000"
+    assert result["RequestedDateTime"] == "2026-11-23T15:51:16"
+    json.dumps(result)
+
+
+def test_get_command_invocation_stringifies_datetimes(conn):
+    conn.get_command_invocation.return_value = {
+        "CommandId": "cmd-1",
+        "ExecutionStartDateTime": datetime.datetime(2026, 11, 23, 15, 51, 20),
+        "Status": "Success",
+    }
+    result = boto3_ssm.get_command_invocation("cmd-1", "i-0123456789abcdef0")
+    assert result["ExecutionStartDateTime"] == "2026-11-23T15:51:20"
+    json.dumps(result)
+
+
+def test_list_command_invocations_stringifies_datetimes(conn):
+    conn.get_paginator.return_value.paginate.return_value = [
+        {
+            "CommandInvocations": [
+                {
+                    "CommandId": "cmd-1",
+                    "RequestedDateTime": datetime.datetime(2026, 11, 23, 15, 51, 16),
+                }
+            ]
+        }
+    ]
+    result = boto3_ssm.list_command_invocations(command_id="cmd-1")
+    assert result[0]["RequestedDateTime"] == "2026-11-23T15:51:16"
+    json.dumps(result)
 
 
 class TestRunShellScriptDocument:

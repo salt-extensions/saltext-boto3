@@ -48,6 +48,7 @@ as a passed in dict, or as a string to pull from pillars or minion config:
 .. versionadded:: 1.0.0
 """
 
+import datetime
 import logging
 
 import jinja2
@@ -92,6 +93,16 @@ def _get_conn(service, region=None, key=None, keyid=None, profile=None):
         keyid=keyid,
         profile=profile,
     )
+
+
+def _stringify_datetimes(obj):
+    if isinstance(obj, dict):
+        return {k: _stringify_datetimes(v) for k, v in obj.items()}
+    if isinstance(obj, list):
+        return [_stringify_datetimes(v) for v in obj]
+    if isinstance(obj, (datetime.datetime, datetime.date)):
+        return obj.isoformat()
+    return obj
 
 
 def get_parameter(
@@ -378,7 +389,7 @@ def send_command(
     )
     try:
         resp = conn.send_command(**kwargs)
-        return resp.get("Command", {})
+        return _stringify_datetimes(resp.get("Command", {}))
     except ClientError as e:
         return {"error": boto3mod.get_error(e)}
 
@@ -501,7 +512,9 @@ def get_command_invocation(
     """
     conn = _get_conn("ssm", region=region, key=key, keyid=keyid, profile=profile)
     try:
-        return conn.get_command_invocation(CommandId=command_id, InstanceId=instance_id)
+        return _stringify_datetimes(
+            conn.get_command_invocation(CommandId=command_id, InstanceId=instance_id)
+        )
     except ClientError as e:
         return {"error": boto3mod.get_error(e)}
 
@@ -559,7 +572,7 @@ def list_command_invocations(
             invocations.extend(page.get("CommandInvocations", []))
     except ClientError as e:
         return {"error": boto3mod.get_error(e)}
-    return invocations
+    return _stringify_datetimes(invocations)
 
 
 def run_shell_script_document(
