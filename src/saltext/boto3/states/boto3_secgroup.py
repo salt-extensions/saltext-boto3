@@ -69,8 +69,6 @@ passed in as a dict, or as a string to pull from pillars or minion config:
                   source_group_name_vpc: MyPeeredVPC
             - rules_egress:
                 - ip_protocol: all
-                  from_port: -1
-                  to_port: -1
                   cidr_ip:
                     - 10.0.0.0/8
                     - 192.168.0.0/16
@@ -161,11 +159,17 @@ def present(
         A list of ingress rule dicts. If not specified, ``rules=None``,
         the ingress rules will be unmanaged. If set to an empty list, ``[]``,
         then all ingress rules will be removed.
+        Each rule may include ``description``: a string manages it, an empty
+        string clears it, and an omitted or null value leaves it unmanaged.
+        Description-only changes update the rule without revoking access.
+        Requires ``ec2:UpdateSecurityGroupRuleDescriptionsIngress`` permission.
 
     rules_egress (list)
         A list of egress rule dicts. If not specified, ``rules_egress=None``,
         the egress rules will be unmanaged. If set to an empty list, ``[]``,
         then all egress rules will be removed.
+        Descriptions follow the same semantics as ingress rules and require
+        ``ec2:UpdateSecurityGroupRuleDescriptionsEgress`` permission.
 
     delete_ingress_rules (bool)
         Some tools (EMR comes to mind) insist on adding rules on-the-fly, which
@@ -218,6 +222,8 @@ def present(
                 - Environment: Production
     """
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
+    _validate_rule_descriptions(rules or [])
+    _validate_rule_descriptions(rules_egress or [])
     _ret = _security_group_present(
         name,
         description,
@@ -380,20 +386,17 @@ def _check_rule(rule, _rule):
     but may be functionally equivalent.
     """
 
-    # We need to alter what Boto returns if no ports are specified
-    # so that we can compare rules fairly.
-    #
-    # Boto returns None for from_port and to_port where we're required
-    # to pass in "-1" instead.
-    if _rule.get("from_port") is None:
-        _rule["from_port"] = -1
-    if _rule.get("to_port") is None:
-        _rule["to_port"] = -1
+    # Normalize missing ports to -1 on both sides so that rules can be
+    # compared fairly: boto3 omits FromPort/ToPort for "all"-protocol rules,
+    # and sls rules may omit them as well.
+    def _port(r, key):
+        value = r.get(key)
+        return -1 if value is None else value
 
     if (
-        rule["ip_protocol"] == _rule["ip_protocol"]
-        and str(rule["from_port"]) == str(_rule["from_port"])
-        and str(rule["to_port"]) == str(_rule["to_port"])
+        str(rule["ip_protocol"]) == str(_rule["ip_protocol"])
+        and str(_port(rule, "from_port")) == str(_port(_rule, "from_port"))
+        and str(_port(rule, "to_port")) == str(_port(_rule, "to_port"))
     ):
         _cidr_ip = _rule.get("cidr_ip")
         if _cidr_ip and _cidr_ip == rule.get("cidr_ip"):
@@ -452,6 +455,11 @@ def _get_rule_changes(rules, _rules):
         # For the 'all' case, we need to change the protocol name to '-1'.
         if ip_protocol == "all":
             rule["ip_protocol"] = "-1"
+        # AWS rejects FromPort/ToPort when the protocol is "all" (-1), so
+        # strip them before the rule is passed to authorize/revoke.
+        if str(rule["ip_protocol"]) == "-1":
+            rule.pop("from_port", None)
+            rule.pop("to_port", None)
         cidr_ip = rule.get("cidr_ip", None)
         group_name = rule.get("source_group_name", None)
         group_id = rule.get("source_group_group_id", None)
@@ -496,6 +504,40 @@ def _get_rule_changes(rules, _rules):
     log.debug("Rules to be deleted: %s", to_delete)
     log.debug("Rules to be created: %s", to_create)
     return (to_delete, to_create)
+
+
+def _validate_rule_descriptions(rules):
+    """Reject invalid description types before changing security-group rules."""
+    for rule in rules:
+        description = rule.get("description")
+        if description is not None and not isinstance(description, str):
+            raise SaltInvocationError("Rule description must be a string or None.")
+
+
+def _get_description_updates(rules, current_rules):
+    """Select existing rules with explicitly managed, differing descriptions."""
+    _validate_rule_descriptions(rules)
+    updates = []
+    for rule in rules:
+        description = rule.get("description")
+        if description is None:
+            continue
+        for current in current_rules:
+            if _check_rule(rule, current):
+                if description != (current.get("description") or ""):
+                    updates.append(rule)
+                break
+    return updates
+
+
+def _update_rule_descriptions(name, rules, ret, **kwargs):
+    """Apply description updates and record success or failure in the state result."""
+    for rule in rules:
+        if not __salt__["boto3_secgroup.update_rule_description"](name, **kwargs, **rule):
+            ret["result"] = False
+            ret["comment"] += f" Failed to update rule description on {name}."
+        else:
+            ret["comment"] += f" Updated rule description on {name}."
 
 
 def _rules_present(
@@ -563,15 +605,33 @@ def _rules_present(
     # rules = rules that exist in salt state
     # sg['rules'] = that exist in present group
     to_delete, to_create = _get_rule_changes(rules, sg["rules"])
+    to_update = _get_description_updates(rules, sg["rules"])
     to_delete = to_delete if delete_ingress_rules else []
-    if to_create or to_delete:
+    if to_create or to_delete or to_update:
         if __opts__["test"]:
             msg = """Security group {} set to have rules modified.
             To be created: {}
-            To be deleted: {}""".format(name, pprint.pformat(to_create), pprint.pformat(to_delete))
+            To be deleted: {}
+            Descriptions to be updated: {}""".format(
+                name,
+                pprint.pformat(to_create),
+                pprint.pformat(to_delete),
+                pprint.pformat(to_update),
+            )
             ret["comment"] = msg
             ret["result"] = None
             return ret
+        _update_rule_descriptions(
+            name,
+            to_update,
+            ret,
+            vpc_id=vpc_id,
+            vpc_name=vpc_name,
+            region=region,
+            key=key,
+            keyid=keyid,
+            profile=profile,
+        )
         if to_delete:
             deleted = True
             for rule in to_delete:
@@ -588,9 +648,9 @@ def _rules_present(
                 if not _deleted:
                     deleted = False
             if deleted:
-                ret["comment"] = f"Removed rules on {name} security group."
+                ret["comment"] += f" Removed rules on {name} security group."
             else:
-                ret["comment"] = f"Failed to remove rules on {name} security group."
+                ret["comment"] += f" Failed to remove rules on {name} security group."
                 ret["result"] = False
         if to_create:
             created = True
@@ -702,15 +762,34 @@ def _rules_egress_present(
     # rules_egress = rules that exist in salt state
     # sg['rules_egress'] = that exist in present group
     to_delete, to_create = _get_rule_changes(rules_egress, sg["rules_egress"])
+    to_update = _get_description_updates(rules_egress, sg["rules_egress"])
     to_delete = to_delete if delete_egress_rules else []
-    if to_create or to_delete:
+    if to_create or to_delete or to_update:
         if __opts__["test"]:
             msg = """Security group {} set to have rules modified.
             To be created: {}
-            To be deleted: {}""".format(name, pprint.pformat(to_create), pprint.pformat(to_delete))
+            To be deleted: {}
+            Descriptions to be updated: {}""".format(
+                name,
+                pprint.pformat(to_create),
+                pprint.pformat(to_delete),
+                pprint.pformat(to_update),
+            )
             ret["comment"] = msg
             ret["result"] = None
             return ret
+        _update_rule_descriptions(
+            name,
+            to_update,
+            ret,
+            vpc_id=vpc_id,
+            vpc_name=vpc_name,
+            region=region,
+            key=key,
+            keyid=keyid,
+            profile=profile,
+            egress=True,
+        )
         if to_delete:
             deleted = True
             for rule in to_delete:

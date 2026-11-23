@@ -197,13 +197,19 @@ def _parse_ip_permissions(permissions):
         for ipr in perm.get("IpRanges") or []:
             rule = _base()
             rule["cidr_ip"] = ipr["CidrIp"]
+            if "Description" in ipr:
+                rule["description"] = ipr["Description"]
             rules.append(rule)
         for ipr in perm.get("Ipv6Ranges") or []:
             rule = _base()
             rule["cidr_ipv6"] = ipr["CidrIpv6"]
+            if "Description" in ipr:
+                rule["description"] = ipr["Description"]
             rules.append(rule)
         for pair in perm.get("UserIdGroupPairs") or []:
             rule = _base()
+            if "Description" in pair:
+                rule["description"] = pair["Description"]
             if pair.get("GroupName"):
                 rule["source_group_name"] = pair["GroupName"]
             if pair.get("UserId"):
@@ -224,8 +230,17 @@ def _build_permission(
     source_group_name=None,
     source_group_owner_id=None,
     source_group_group_id=None,
+    description=None,
 ):
+    if description is not None and not isinstance(description, str):
+        raise SaltInvocationError("Rule description must be a string or None.")
     perm = {"IpProtocol": str(ip_protocol) if ip_protocol is not None else "-1"}
+    if perm["IpProtocol"] == "all":
+        perm["IpProtocol"] = "-1"
+    if perm["IpProtocol"] == "-1":
+        # AWS rejects FromPort/ToPort when the protocol is "all" (-1).
+        from_port = None
+        to_port = None
     if from_port is not None:
         perm["FromPort"] = int(from_port)
     if to_port is not None:
@@ -244,6 +259,9 @@ def _build_permission(
         if source_group_owner_id:
             pair["UserId"] = source_group_owner_id
         perm["UserIdGroupPairs"] = [pair]
+    if description is not None:
+        for grant in perm.get("IpRanges", []) + perm.get("UserIdGroupPairs", []):
+            grant["Description"] = description
     return perm
 
 
@@ -747,6 +765,7 @@ def _authorize_or_revoke(
     vpc_name=None,
     egress=False,
     revoke=False,
+    description=None,
 ):
     conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
     group = _get_group(
@@ -771,6 +790,7 @@ def _authorize_or_revoke(
         source_group_name=source_group_name,
         source_group_owner_id=source_group_owner_id,
         source_group_group_id=source_group_group_id,
+        description=None if revoke else description,
     )
     op = None
     try:
@@ -823,6 +843,7 @@ def authorize(
     vpc_id=None,
     vpc_name=None,
     egress=False,
+    description=None,
 ):
     """
     Add a new rule to an existing security group.
@@ -875,6 +896,12 @@ def authorize(
     egress (bool, optional):
         Whether the rule is an egress rule. Defaults to False.
 
+    description (str, optional):
+        Description applied to each IPv4 CIDR or referenced-group grant.
+
+    .. versionchanged:: 2.0.0
+        The 'description' parameter was added in version 2.0.0.
+
     CLI Example:
 
     .. code-block:: bash
@@ -899,6 +926,7 @@ def authorize(
         vpc_name=vpc_name,
         egress=egress,
         revoke=False,
+        description=description,
     )
 
 
@@ -919,6 +947,7 @@ def revoke(
     vpc_id=None,
     vpc_name=None,
     egress=False,
+    description=None,
 ):
     """
     Remove a rule from an existing security group.
@@ -971,6 +1000,12 @@ def revoke(
     egress (bool, optional):
         Whether the rule is an egress rule. Defaults to False.
 
+    description (str, optional):
+        Accepted rule metadata; ignored when identifying rules to remove.
+
+    .. versionchanged:: 2.0.0
+            The 'description' parameter was added in version 2.0.0.
+
     CLI Example:
 
     .. code-block:: bash
@@ -995,7 +1030,88 @@ def revoke(
         vpc_name=vpc_name,
         egress=egress,
         revoke=True,
+        description=description,
     )
+
+
+def update_rule_description(
+    name=None,
+    source_group_name=None,
+    source_group_owner_id=None,
+    ip_protocol=None,
+    from_port=None,
+    to_port=None,
+    cidr_ip=None,
+    group_id=None,
+    source_group_group_id=None,
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+    vpc_id=None,
+    vpc_name=None,
+    egress=False,
+    description=None,
+):
+    """
+    Update an existing IPv4 or referenced-group rule description in place.
+
+    Select the group and rule using the same arguments as ``authorize``.
+    Set ``egress=True`` for an outbound rule. ``description=None`` or an
+    empty string clears the description; neither changes traffic permissions.
+
+    Requires ``ec2:UpdateSecurityGroupRuleDescriptionsIngress`` or
+    ``ec2:UpdateSecurityGroupRuleDescriptionsEgress`` permission.
+
+    .. versionadded:: 2.0.0
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt myminion boto3_secgroup.update_rule_description mysecgroup \
+            ip_protocol=tcp from_port=22 to_port=22 cidr_ip=10.0.0.1/32 \
+            description='SSH from bastion'
+    """
+    permission = _build_permission(
+        ip_protocol=ip_protocol,
+        from_port=from_port,
+        to_port=to_port,
+        cidr_ip=cidr_ip,
+        source_group_name=source_group_name,
+        source_group_owner_id=source_group_owner_id,
+        source_group_group_id=source_group_group_id,
+        description=description,
+    )
+    if description == "":
+        for grant in permission.get("IpRanges", []) + permission.get("UserIdGroupPairs", []):
+            grant.pop("Description", None)
+    conn = _get_conn("ec2", region=region, key=key, keyid=keyid, profile=profile)
+    group = _get_group(
+        conn=conn,
+        name=name,
+        group_id=group_id,
+        vpc_id=vpc_id,
+        vpc_name=vpc_name,
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
+    if not group:
+        log.error("Failed to update rule description: security group not found.")
+        return False
+    operation = (
+        conn.update_security_group_rule_descriptions_egress
+        if egress
+        else conn.update_security_group_rule_descriptions_ingress
+    )
+    try:
+        response = operation(GroupId=group["GroupId"], IpPermissions=[permission])
+    except ClientError as exc:
+        log.error("Failed to update rule description on %s: %s", group["GroupId"], exc)
+        return False
+    return response.get("Return", True)
 
 
 def set_tags(
