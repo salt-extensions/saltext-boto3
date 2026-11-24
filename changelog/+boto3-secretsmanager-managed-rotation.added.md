@@ -1,0 +1,1 @@
+Added `boto3_secretsmanager.managed_rotation_present` and `boto3_secretsmanager.configure_managed_rotation` to update schedules for service-managed secrets without specifying a Lambda rotation function or starting an immediate rotation.
