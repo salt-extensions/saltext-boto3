@@ -110,6 +110,32 @@ def test_create_happy(conn):
     assert kw["Engine"] == "mysql"
 
 
+def test_create_with_rds_managed_master_password(conn):
+    conn.create_db_instance.return_value = {"DBInstance": {}}
+    ret = boto3_rds.create(
+        **_create_args(
+            master_user_password=None,
+            manage_master_user_password=True,
+            master_user_secret_kms_key_id="kms-key-arn",
+        )
+    )
+    assert ret["created"] is True
+    kwargs = conn.create_db_instance.call_args.kwargs
+    assert kwargs["ManageMasterUserPassword"] is True
+    assert kwargs["MasterUserSecretKmsKeyId"] == "kms-key-arn"
+    assert "MasterUserPassword" not in kwargs
+
+
+def test_create_rejects_password_with_rds_managed_master_password():
+    with pytest.raises(SaltInvocationError, match="mutually exclusive"):
+        boto3_rds.create(**_create_args(manage_master_user_password=True))
+
+
+def test_create_requires_password_without_rds_managed_master_password():
+    with pytest.raises(SaltInvocationError, match="master_user_password is required"):
+        boto3_rds.create(**_create_args(master_user_password=None))
+
+
 def test_create_missing_required():
     with pytest.raises(SaltInvocationError):
         boto3_rds.create(
@@ -381,6 +407,33 @@ def test_modify_db_instance(conn):
     assert kw["ApplyImmediately"] is True
 
 
+def test_modify_db_instance_to_use_rds_managed_master_password(conn):
+    conn.modify_db_instance.return_value = {"DBInstance": {"DBInstanceIdentifier": "r"}}
+    with patch.dict(
+        boto3_rds.__salt__,
+        {"boto3_rds.exists": MagicMock(return_value={"exists": True})},
+    ):
+        ret = boto3_rds.modify_db_instance(
+            "r",
+            manage_master_user_password=True,
+            master_user_secret_kms_key_id="kms-key-arn",
+        )
+    assert ret["modified"] is True
+    kwargs = conn.modify_db_instance.call_args.kwargs
+    assert kwargs["ManageMasterUserPassword"] is True
+    assert kwargs["MasterUserSecretKmsKeyId"] == "kms-key-arn"
+    assert "MasterUserPassword" not in kwargs
+
+
+def test_modify_db_instance_requires_replacement_password_when_disabling_managed():
+    with patch.dict(
+        boto3_rds.__salt__,
+        {"boto3_rds.exists": MagicMock(return_value={"exists": True})},
+    ):
+        with pytest.raises(SaltInvocationError, match="master_user_password is required"):
+            boto3_rds.modify_db_instance("r", manage_master_user_password=False)
+
+
 def test_modify_db_instance_not_exists():
     with patch.dict(
         boto3_rds.__salt__,
@@ -388,3 +441,49 @@ def test_modify_db_instance_not_exists():
     ):
         ret = boto3_rds.modify_db_instance("r", allocated_storage=20)
     assert ret["modified"] is False
+
+
+def test_master_user_secret_ready_when_active(monkeypatch):
+    monkeypatch.setattr(
+        boto3_rds,
+        "describe_db_instances",
+        MagicMock(return_value=[{"SecretArn": "arn:secret", "SecretStatus": "active"}]),
+    )
+    ret = boto3_rds.master_user_secret_ready("r")
+    assert ret["ready"] is True
+    assert "is active" in ret["message"]
+
+
+def test_master_user_secret_ready_fails_when_impaired(monkeypatch):
+    monkeypatch.setattr(
+        boto3_rds,
+        "describe_db_instances",
+        MagicMock(return_value=[{"SecretArn": "arn:secret", "SecretStatus": "impaired"}]),
+    )
+    ret = boto3_rds.master_user_secret_ready("r")
+    assert ret["ready"] is False
+    assert "impaired" in ret["message"]
+
+
+def test_master_user_secret_ready_polls_until_active(monkeypatch):
+    side_effects = [
+        [{"SecretArn": "arn:secret", "SecretStatus": "creating"}],
+        [{"SecretArn": "arn:secret", "SecretStatus": "active"}],
+    ]
+    monkeypatch.setattr(boto3_rds, "describe_db_instances", MagicMock(side_effect=side_effects))
+    monkeypatch.setattr(boto3_rds.time, "sleep", lambda _: None)
+    ret = boto3_rds.master_user_secret_ready("r")
+    assert ret["ready"] is True
+    assert boto3_rds.describe_db_instances.call_count == 2
+
+
+def test_master_user_secret_ready_times_out(monkeypatch):
+    monkeypatch.setattr(
+        boto3_rds,
+        "describe_db_instances",
+        MagicMock(return_value=[None]),
+    )
+    monkeypatch.setattr(boto3_rds.time, "monotonic", lambda: 0)
+    ret = boto3_rds.master_user_secret_ready("r", timeout=0)
+    assert ret["ready"] is False
+    assert "last status: missing" in ret["message"]

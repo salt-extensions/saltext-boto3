@@ -100,7 +100,7 @@ def present(
     db_instance_class,
     engine,
     master_username,
-    master_user_password,
+    master_user_password=None,
     db_name=None,
     storage_type=None,
     db_security_groups=None,
@@ -138,6 +138,9 @@ def present(
     domain_iam_role_name=None,
     promotion_tier=None,
     profile=None,
+    manage_master_user_password=None,
+    master_user_secret_kms_key_id=None,
+    apply_immediately=False,
 ):  # pylint: disable=too-many-arguments
     """
     Ensure RDS instance exists.
@@ -163,8 +166,23 @@ def present(
         The name of master user for the client DB instance.
 
     master_user_password (str):
-        The password for the master database user. Can be any printable ASCII
+        The password for the master database user. Required unless
+        ``manage_master_user_password`` is true. Can be any printable ASCII
         character except "/", '"', or "@".
+
+    manage_master_user_password (bool, optional):
+        If true, RDS generates and manages the master password in Secrets
+        Manager. Mutually exclusive with ``master_user_password``. On an
+        existing instance, this enables service-managed credentials.
+
+    master_user_secret_kms_key_id (str, optional):
+        KMS key used to encrypt an RDS-managed master secret. Only valid when
+        ``manage_master_user_password`` is true. AWS does not allow changing
+        this key after service-managed credentials are enabled.
+
+    apply_immediately (bool, optional):
+        Whether to immediately apply the transition on an existing instance.
+        Defaults to ``False``.
 
     db_name (str, optional):
         The meaning of this parameter differs according to the database engine you use.
@@ -317,9 +335,20 @@ def present(
             - allocated_storage: 20
             - engine: mysql
             - master_username: admin
-            - master_user_password: password
+            - manage_master_user_password: True
             - db_name: exampledb
     """
+    if manage_master_user_password and master_user_password is not None:
+        raise SaltInvocationError(
+            "master_user_password and manage_master_user_password are mutually exclusive"
+        )
+    if manage_master_user_password is not True and not master_user_password:
+        raise SaltInvocationError("master_user_password is required")
+    if master_user_secret_kms_key_id and not manage_master_user_password:
+        raise SaltInvocationError(
+            "master_user_secret_kms_key_id requires manage_master_user_password"
+        )
+
     ret = {"name": name, "result": True, "comment": "", "changes": {}}
 
     r = __salt__["boto3_rds.exists"](name, tags, region, key, keyid, profile)
@@ -374,6 +403,8 @@ def present(
             key,
             keyid,
             profile,
+            manage_master_user_password=manage_master_user_password,
+            master_user_secret_kms_key_id=master_user_secret_kms_key_id,
         )
 
         if not r.get("created"):
@@ -393,8 +424,218 @@ def present(
             )
         }
         ret["comment"] = f"RDS instance {name} created."
+    elif manage_master_user_password is not None:
+        return master_user_password_managed(
+            name,
+            manage=manage_master_user_password,
+            kms_key_id=master_user_secret_kms_key_id,
+            master_user_password=master_user_password if not manage_master_user_password else None,
+            apply_immediately=apply_immediately,
+            region=region,
+            key=key,
+            keyid=keyid,
+            profile=profile,
+        )
     else:
         ret["comment"] = f"RDS instance {name} exists."
+    return ret
+
+
+def master_user_password_managed(
+    name,
+    manage=True,
+    kms_key_id=None,
+    master_user_password=None,
+    apply_immediately=False,
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+):
+    """Enable or disable RDS-managed master credentials in Secrets Manager.
+
+    When ``manage=True`` (default), RDS generates and manages the master
+    password via Secrets Manager. When ``manage=False``, the instance is
+    transitioned back to a manually-supplied ``master_user_password``.
+
+    This is an explicit transition for an existing DB instance. It changes the
+    master password and should not be applied to application credentials.
+
+    Example:
+
+    .. code-block:: yaml
+
+        manage_rds_master_credentials:
+          boto3_rds.master_user_password_managed:
+            - name: dhs-dso-dev-rds
+            - kms_key_id: arn:aws:kms:us-east-1:123456789012:key/example
+            - apply_immediately: False
+    """
+    ret = {"name": name, "changes": {}, "result": True, "comment": ""}
+    instances = __salt__["boto3_rds.describe_db_instances"](
+        name=name,
+        jmespath="DBInstances",
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
+    if isinstance(instances, dict) and instances.get("error"):
+        ret["result"] = False
+        ret["comment"] = instances["error"]
+        return ret
+    if not instances:
+        ret["result"] = False
+        ret["comment"] = f"RDS instance {name} does not exist."
+        return ret
+
+    instance = instances[0]
+    current_secret = instance.get("MasterUserSecret") or {}
+    currently_managed = bool(current_secret)
+
+    if manage:
+        if currently_managed:
+            current_kms_key_id = current_secret.get("KmsKeyId")
+            if kms_key_id and current_kms_key_id != kms_key_id:
+                ret["result"] = False
+                ret["comment"] = (
+                    f"RDS instance {name} already manages its master password with a different KMS key; "
+                    "AWS does not allow changing that key."
+                )
+                return ret
+            ret["comment"] = f"RDS instance {name} already uses RDS-managed master credentials."
+            return ret
+
+        if __opts__["test"]:
+            ret["result"] = None
+            ret["comment"] = f"RDS instance {name} would enable RDS-managed master credentials."
+            return ret
+
+        modified = __salt__["boto3_rds.modify_db_instance"](
+            name=name,
+            manage_master_user_password=True,
+            master_user_secret_kms_key_id=kms_key_id,
+            apply_immediately=apply_immediately,
+            region=region,
+            key=key,
+            keyid=keyid,
+            profile=profile,
+        )
+        if not modified.get("modified"):
+            ret["result"] = False
+            ret["comment"] = modified.get("error") or modified.get(
+                "message", f"Failed to enable RDS-managed master credentials for {name}."
+            )
+            return ret
+
+        ret["changes"] = {
+            "master_user_password_management": {"old": "manual", "new": "rds-managed"}
+        }
+        ret["comment"] = f"Enabled RDS-managed master credentials for {name}."
+        return ret
+    else:
+        if not currently_managed:
+            ret["comment"] = f"RDS instance {name} already uses a manual master password."
+            return ret
+
+        if __opts__["test"]:
+            ret["result"] = None
+            ret["comment"] = f"RDS instance {name} would disable RDS-managed master credentials."
+            return ret
+
+        modified = __salt__["boto3_rds.modify_db_instance"](
+            name=name,
+            manage_master_user_password=False,
+            master_user_password=master_user_password,
+            apply_immediately=apply_immediately,
+            region=region,
+            key=key,
+            keyid=keyid,
+            profile=profile,
+        )
+        if not modified.get("modified"):
+            ret["result"] = False
+            ret["comment"] = modified.get("error") or modified.get(
+                "message", f"Failed to disable RDS-managed master credentials for {name}."
+            )
+            return ret
+
+        ret["changes"] = {
+            "master_user_password_management": {"old": "rds-managed", "new": "manual"}
+        }
+        ret["comment"] = f"Disabled RDS-managed master credentials for {name}."
+        return ret
+
+
+def master_user_secret_ready(
+    name,
+    timeout=300,
+    poll_interval=5,
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+):
+    """Wait until RDS exposes an active managed master secret.
+
+    RDS creates the secret asynchronously after instance creation or migration.
+    Delegates the polling to the ``boto3_rds`` execution module so this state
+    function returns quickly in test mode.
+
+    Example:
+
+    .. code-block:: yaml
+
+        wait-for-rds-secret:
+          boto3_rds.master_user_secret_ready:
+            - name: myrds
+            - timeout: 120
+    """
+    ret = {"name": name, "changes": {}, "result": True, "comment": ""}
+
+    if __opts__["test"]:
+        secrets = __salt__["boto3_rds.describe_db_instances"](
+            name=name,
+            jmespath="DBInstances[*].MasterUserSecret",
+            region=region,
+            key=key,
+            keyid=keyid,
+            profile=profile,
+        )
+        if isinstance(secrets, dict) and secrets.get("error"):
+            ret["result"] = False
+            ret["comment"] = secrets["error"]
+            return ret
+        secret = (secrets[0] if secrets else None) or {}
+        status = secret.get("SecretStatus")
+        if secret.get("SecretArn") and status == "active":
+            ret["comment"] = f"RDS-managed master secret for {name} is active."
+            return ret
+        ret["result"] = None
+        ret["comment"] = (
+            f"RDS-managed master secret for {name} is not active yet (status: {status or 'missing'})."
+        )
+        return ret
+
+    result = __salt__["boto3_rds.master_user_secret_ready"](
+        name=name,
+        timeout=timeout,
+        poll_interval=poll_interval,
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
+    if result.get("error"):
+        ret["result"] = False
+        ret["comment"] = result["error"]
+    elif not result.get("ready"):
+        ret["result"] = False
+        ret["comment"] = result.get(
+            "message", f"RDS-managed master secret for {name} is not ready."
+        )
+    else:
+        ret["comment"] = result.get("message", f"RDS-managed master secret for {name} is active.")
     return ret
 
 
