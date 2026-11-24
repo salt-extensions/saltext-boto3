@@ -1,1 +1,0 @@
-Stringify datetime values in ``boto3_ssm`` command returns (``send_command``, ``get_command_invocation``, ``list_command_invocations``). Raw boto3 datetimes (e.g. ``ExpiresAfter``) leaked into state returns and broke JSON consumers such as the Salt netapi, which returned HTTP 500 for ``jobs.lookup_jid`` on any orchestration embedding the result.
