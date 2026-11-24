@@ -161,6 +161,251 @@ def present(
     return ret
 
 
+def rotation_present(
+    name,
+    rotation_lambda_arn,
+    schedule_expression=None,
+    automatically_after_days=None,
+    duration=None,
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+):
+    """Ensure Lambda-based automatic rotation is configured for a secret.
+
+    This configures the schedule without immediately rotating the credential.
+    Secrets Manager validates the rotation configuration by
+    invoking the Lambda's ``testSecret`` step. This state does not configure
+    service-managed rotation, such as an RDS-managed master password.
+
+    Example:
+
+    .. code-block:: yaml
+
+        rotate_dso_app_password:
+          boto3_secretsmanager.rotation_present:
+            - name: dhs-dso-dev-rds-app
+            - rotation_lambda_arn: arn:aws:lambda:us-east-1:123456789012:function:rotate-dso-rds
+            - automatically_after_days: 90
+    """
+    ret = {"name": name, "changes": {}, "result": True, "comment": ""}
+    if not rotation_lambda_arn:
+        ret["result"] = False
+        ret["comment"] = "rotation_lambda_arn is required for Lambda-based rotation"
+        return ret
+    if schedule_expression is not None and automatically_after_days is not None:
+        ret["result"] = False
+        ret["comment"] = "schedule_expression and automatically_after_days are mutually exclusive"
+        return ret
+    if schedule_expression is None and automatically_after_days is None:
+        ret["result"] = False
+        ret["comment"] = "a rotation schedule is required"
+        return ret
+    if duration is not None and schedule_expression is None:
+        ret["result"] = False
+        ret["comment"] = "duration requires schedule_expression"
+        return ret
+    if automatically_after_days is not None and automatically_after_days < 1:
+        ret["result"] = False
+        ret["comment"] = "automatically_after_days must be at least 1"
+        return ret
+
+    rotation_rules = {}
+    if schedule_expression is not None:
+        rotation_rules["ScheduleExpression"] = schedule_expression
+    if automatically_after_days is not None:
+        rotation_rules["AutomaticallyAfterDays"] = automatically_after_days
+    if duration is not None:
+        rotation_rules["Duration"] = duration
+    current = __salt__["boto3_secretsmanager.get_rotation"](
+        name, region=region, key=key, keyid=keyid, profile=profile
+    )
+    if current.get("error"):
+        ret["result"] = False
+        ret["comment"] = current["error"]
+        return ret
+    if not current.get("exists"):
+        ret["result"] = False
+        ret["comment"] = f"Secret {name} does not exist."
+        return ret
+    if current.get("owning_service"):
+        ret["result"] = False
+        ret["comment"] = (
+            f"Secret {name} is managed by {current['owning_service']}; "
+            "configure rotation through its managing service."
+        )
+        return ret
+
+    current_rules = current.get("rotation_rules", {})
+    if (
+        current.get("rotation_enabled")
+        and current.get("rotation_lambda_arn") == rotation_lambda_arn
+        and current_rules == rotation_rules
+    ):
+        ret["comment"] = f"Rotation is configured for secret {name}."
+        return ret
+
+    if __opts__["test"]:
+        ret["result"] = None
+        ret["comment"] = f"Rotation would be configured for secret {name}."
+        return ret
+
+    configured = __salt__["boto3_secretsmanager.configure_rotation"](
+        name,
+        rotation_lambda_arn,
+        schedule_expression=schedule_expression,
+        automatically_after_days=automatically_after_days,
+        duration=duration,
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
+    if not configured.get("configured"):
+        ret["result"] = False
+        ret["comment"] = configured.get("error", f"Failed to configure rotation for {name}.")
+        return ret
+
+    ret["changes"] = {
+        "rotation_enabled": True,
+        "rotation_lambda_arn": rotation_lambda_arn,
+        "rotation_rules": rotation_rules,
+    }
+    ret["comment"] = f"Rotation configured for secret {name}."
+    return ret
+
+
+def managed_rotation_present(
+    name,
+    schedule_expression=None,
+    automatically_after_days=None,
+    duration=None,
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+):
+    """Ensure a service-managed rotation schedule without a Lambda function.
+
+    The secret must already have service-managed rotation enabled. This state
+    updates its schedule only and never initiates an immediate rotation.
+
+    name (str):
+        Name or ARN of an existing service-managed secret.
+
+    schedule_expression (str, optional):
+        Secrets Manager ``rate()`` or ``cron()`` rotation schedule.
+
+    automatically_after_days (int, optional):
+        Number of days between rotations. Mutually exclusive with
+        ``schedule_expression``.
+
+    duration (str, optional):
+        Rotation window duration, such as ``2h``. Requires
+        ``schedule_expression``.
+
+    region (str, optional):
+        AWS region where the secret is stored.
+
+    key (str, optional):
+        AWS access key ID.
+
+    keyid (str, optional):
+        AWS secret access key.
+
+    profile (str, optional):
+        AWS profile to use for the connection.
+
+    Example:
+
+    .. code-block:: yaml
+
+        rotate_dso_master_password_schedule:
+          boto3_secretsmanager.managed_rotation_present:
+            - name: dhs-dso-dev-rds-master
+            - automatically_after_days: 90
+    """
+    ret = {"name": name, "changes": {}, "result": True, "comment": ""}
+    if schedule_expression is not None and automatically_after_days is not None:
+        ret["result"] = False
+        ret["comment"] = "schedule_expression and automatically_after_days are mutually exclusive"
+        return ret
+    if schedule_expression is None and automatically_after_days is None:
+        ret["result"] = False
+        ret["comment"] = "a rotation schedule is required"
+        return ret
+    if duration is not None and schedule_expression is None:
+        ret["result"] = False
+        ret["comment"] = "duration requires schedule_expression"
+        return ret
+    if automatically_after_days is not None and automatically_after_days < 1:
+        ret["result"] = False
+        ret["comment"] = "automatically_after_days must be at least 1"
+        return ret
+
+    rotation_rules = {}
+    if schedule_expression is not None:
+        rotation_rules["ScheduleExpression"] = schedule_expression
+    if automatically_after_days is not None:
+        rotation_rules["AutomaticallyAfterDays"] = automatically_after_days
+    if duration is not None:
+        rotation_rules["Duration"] = duration
+
+    current = __salt__["boto3_secretsmanager.get_rotation"](
+        name, region=region, key=key, keyid=keyid, profile=profile
+    )
+    if current.get("error"):
+        ret["result"] = False
+        ret["comment"] = current["error"]
+        return ret
+    if not current.get("exists"):
+        ret["result"] = False
+        ret["comment"] = f"Secret {name} does not exist."
+        return ret
+    if not current.get("owning_service"):
+        ret["result"] = False
+        ret["comment"] = f"Secret {name} is not managed by an AWS service."
+        return ret
+    if not current.get("rotation_enabled"):
+        if __opts__["test"]:
+            ret["result"] = None
+            ret["comment"] = f"Service-managed rotation would be configured for secret {name}."
+            return ret
+        ret["result"] = False
+        ret["comment"] = f"Service-managed rotation is not enabled for secret {name}."
+        return ret
+
+    current_rules = current.get("rotation_rules", {})
+    if current_rules == rotation_rules:
+        ret["comment"] = f"Managed rotation is configured for secret {name}."
+        return ret
+
+    if __opts__["test"]:
+        ret["result"] = None
+        ret["comment"] = f"Managed rotation would be configured for secret {name}."
+        return ret
+
+    configured = __salt__["boto3_secretsmanager.configure_managed_rotation"](
+        name,
+        schedule_expression=schedule_expression,
+        automatically_after_days=automatically_after_days,
+        duration=duration,
+        region=region,
+        key=key,
+        keyid=keyid,
+        profile=profile,
+    )
+    if not configured.get("configured"):
+        ret["result"] = False
+        ret["comment"] = configured.get("error", f"Failed to configure rotation for {name}.")
+        return ret
+
+    ret["changes"] = {"rotation_rules": rotation_rules}
+    ret["comment"] = f"Managed rotation configured for secret {name}."
+    return ret
+
+
 def absent(
     name,
     region=None,
