@@ -1,0 +1,1 @@
+Added `manage_master_user_password` and `master_user_secret_kms_key_id` support to RDS execution calls, plus a `boto3_rds.master_user_password_managed` state for explicitly enabling RDS-managed master credentials on an existing instance.

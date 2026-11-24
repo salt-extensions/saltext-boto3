@@ -60,6 +60,193 @@ def test_present_create_ok(mock_salt):
     assert "created" in ret["comment"]
 
 
+def test_present_creates_instance_with_rds_managed_master_password(mock_salt):
+    salt_map = {
+        "boto3_rds.exists": {"exists": False},
+        "boto3_rds.create": {"created": True},
+        "boto3_rds.describe_db_instances": [{"DBInstanceIdentifier": "myrds"}],
+    }
+    with mock_salt(rds_state, salt_map) as salt_mocks:
+        ret = rds_state.present(
+            "myrds",
+            10,
+            "db.t2.micro",
+            "mysql",
+            "u",
+            None,
+            manage_master_user_password=True,
+            master_user_secret_kms_key_id="kms-key-arn",
+        )
+    assert ret["result"] is True
+    kwargs = salt_mocks["boto3_rds.create"].call_args.kwargs
+    assert kwargs["manage_master_user_password"] is True
+    assert kwargs["master_user_secret_kms_key_id"] == "kms-key-arn"
+
+
+def test_present_migrates_existing_instance_to_rds_managed_master_password(mock_salt):
+    salt_map = {
+        "boto3_rds.exists": {"exists": True},
+        "boto3_rds.describe_db_instances": [{"DBInstanceIdentifier": "myrds"}],
+        "boto3_rds.modify_db_instance": {"modified": True},
+    }
+    with mock_salt(rds_state, salt_map) as salt_mocks:
+        ret = rds_state.present(
+            "myrds",
+            10,
+            "db.t2.micro",
+            "mysql",
+            "u",
+            None,
+            manage_master_user_password=True,
+            master_user_secret_kms_key_id="kms-key-arn",
+            apply_immediately=True,
+        )
+    assert ret["result"] is True
+    assert salt_mocks["boto3_rds.modify_db_instance"].call_args.kwargs == {
+        "name": "myrds",
+        "manage_master_user_password": True,
+        "master_user_secret_kms_key_id": "kms-key-arn",
+        "apply_immediately": True,
+        "region": None,
+        "key": None,
+        "keyid": None,
+        "profile": None,
+    }
+
+
+def test_master_user_password_managed_enables_rds_secret(mock_salt):
+    salt_map = {
+        "boto3_rds.describe_db_instances": [{"DBInstanceIdentifier": "myrds"}],
+        "boto3_rds.modify_db_instance": {"modified": True},
+    }
+    with mock_salt(rds_state, salt_map) as salt_mocks:
+        ret = rds_state.master_user_password_managed(
+            "myrds", kms_key_id="kms-key-arn", apply_immediately=False
+        )
+    assert ret["result"] is True
+    assert ret["changes"]["master_user_password_management"]["new"] == "rds-managed"
+    assert salt_mocks["boto3_rds.modify_db_instance"].call_args.kwargs == {
+        "name": "myrds",
+        "manage_master_user_password": True,
+        "master_user_secret_kms_key_id": "kms-key-arn",
+        "apply_immediately": False,
+        "region": None,
+        "key": None,
+        "keyid": None,
+        "profile": None,
+    }
+
+
+def test_master_user_password_managed_is_noop_when_already_managed(mock_salt):
+    salt_map = {
+        "boto3_rds.describe_db_instances": [
+            {"MasterUserSecret": {"SecretArn": "arn:secret", "KmsKeyId": "kms-key-arn"}}
+        ]
+    }
+    with mock_salt(rds_state, salt_map):
+        ret = rds_state.master_user_password_managed("myrds", kms_key_id="kms-key-arn")
+    assert ret["result"] is True
+    assert not ret["changes"]
+
+
+def test_master_user_password_managed_test_mode_does_not_modify(mock_salt):
+    with mock_salt(
+        rds_state,
+        {"boto3_rds.describe_db_instances": [{"DBInstanceIdentifier": "myrds"}]},
+        test=True,
+    ):
+        ret = rds_state.master_user_password_managed("myrds")
+    assert ret["result"] is None
+    assert not ret["changes"]
+
+
+def test_master_user_password_managed_missing_instance_fails(mock_salt):
+    with mock_salt(rds_state, {"boto3_rds.describe_db_instances": []}):
+        ret = rds_state.master_user_password_managed("missing")
+    assert ret["result"] is False
+    assert "does not exist" in ret["comment"]
+
+
+def test_master_user_password_managed_rejects_kms_key_change(mock_salt):
+    with mock_salt(
+        rds_state,
+        {
+            "boto3_rds.describe_db_instances": [
+                {"MasterUserSecret": {"SecretArn": "arn:secret", "KmsKeyId": "old-key"}}
+            ]
+        },
+    ):
+        ret = rds_state.master_user_password_managed("myrds", kms_key_id="new-key")
+    assert ret["result"] is False
+    assert "does not allow changing that key" in ret["comment"]
+
+
+def test_master_user_secret_ready_when_active(mock_salt):
+    salt_map = {
+        "boto3_rds.master_user_secret_ready": {
+            "ready": True,
+            "message": "RDS-managed master secret for myrds is active.",
+        },
+    }
+    with mock_salt(rds_state, salt_map) as salt_mocks:
+        ret = rds_state.master_user_secret_ready("myrds")
+    assert ret["result"] is True
+    assert "is active" in ret["comment"]
+    assert salt_mocks["boto3_rds.master_user_secret_ready"].call_args.kwargs["name"] == "myrds"
+
+
+def test_master_user_secret_ready_fails_when_impaired(mock_salt):
+    salt_map = {
+        "boto3_rds.master_user_secret_ready": {
+            "ready": False,
+            "message": "RDS-managed master secret for myrds is impaired.",
+        }
+    }
+    with mock_salt(rds_state, salt_map):
+        ret = rds_state.master_user_secret_ready("myrds")
+    assert ret["result"] is False
+    assert "impaired" in ret["comment"]
+
+
+def test_master_user_secret_ready_dry_run_active(mock_salt):
+    with mock_salt(
+        rds_state,
+        {
+            "boto3_rds.describe_db_instances": [
+                {"SecretArn": "arn:secret", "SecretStatus": "active"}
+            ]
+        },
+        test=True,
+    ):
+        ret = rds_state.master_user_secret_ready("myrds")
+    assert ret["result"] is True
+    assert "is active" in ret["comment"]
+
+
+def test_master_user_secret_ready_dry_run_reports_pending_state(mock_salt):
+    with mock_salt(
+        rds_state,
+        {"boto3_rds.describe_db_instances": [{"SecretStatus": "creating"}]},
+        test=True,
+    ):
+        ret = rds_state.master_user_secret_ready("myrds")
+    assert ret["result"] is None
+    assert "not active yet" in ret["comment"]
+
+
+def test_master_user_secret_ready_times_out_when_missing(mock_salt):
+    salt_map = {
+        "boto3_rds.master_user_secret_ready": {
+            "ready": False,
+            "message": "Timed out waiting for RDS-managed master secret for myrds to become active (last status: missing).",
+        }
+    }
+    with mock_salt(rds_state, salt_map):
+        ret = rds_state.master_user_secret_ready("myrds", timeout=0)
+    assert ret["result"] is False
+    assert "last status: missing" in ret["comment"]
+
+
 ENDPOINT = "myrds.abc123.us-east-1.rds.amazonaws.com"
 
 

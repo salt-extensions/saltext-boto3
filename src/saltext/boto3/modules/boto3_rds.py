@@ -90,7 +90,9 @@ boto3_param_map = {
     "iops": ("Iops", int),
     "kms_key_id": ("KmsKeyId", str),
     "license_model": ("LicenseModel", str),
+    "manage_master_user_password": ("ManageMasterUserPassword", bool),
     "master_user_password": ("MasterUserPassword", str),
+    "master_user_secret_kms_key_id": ("MasterUserSecretKmsKeyId", str),
     "master_username": ("MasterUsername", str),
     "monitoring_interval": ("MonitoringInterval", int),
     "monitoring_role_arn": ("MonitoringRoleArn", str),
@@ -354,6 +356,8 @@ def create(
     key=None,
     keyid=None,
     profile=None,
+    manage_master_user_password=None,
+    master_user_secret_kms_key_id=None,
 ):  # pylint: disable=too-many-arguments,too-many-locals,unused-argument
     """
     Create an RDS Instance
@@ -374,7 +378,16 @@ def create(
         The master username for the RDS instance.
 
     master_user_password (str):
-        The master user password for the RDS instance.
+        The master user password for the RDS instance. Required unless
+        ``manage_master_user_password`` is true.
+
+    manage_master_user_password (bool, optional):
+        If true, RDS generates and manages the master password in Secrets
+        Manager. Mutually exclusive with ``master_user_password``.
+
+    master_user_secret_kms_key_id (str, optional):
+        KMS key used to encrypt an RDS-managed master secret. Only valid when
+        ``manage_master_user_password`` is true.
 
     db_name (str):
         The name of the database to create when the RDS instance is created.
@@ -503,8 +516,16 @@ def create(
         raise SaltInvocationError("engine is required")
     if not master_username:
         raise SaltInvocationError("master_username is required")
-    if not master_user_password:
+    if manage_master_user_password and master_user_password is not None:
+        raise SaltInvocationError(
+            "master_user_password and manage_master_user_password are mutually exclusive"
+        )
+    if not manage_master_user_password and not master_user_password:
         raise SaltInvocationError("master_user_password is required")
+    if master_user_secret_kms_key_id and not manage_master_user_password:
+        raise SaltInvocationError(
+            "master_user_secret_kms_key_id requires manage_master_user_password"
+        )
     if availability_zone and multi_az:
         raise SaltInvocationError(
             "availability_zone and multi_az are mutually exclusive arguments."
@@ -1731,6 +1752,8 @@ def modify_db_instance(
     key=None,
     keyid=None,
     profile=None,
+    manage_master_user_password=None,
+    master_user_secret_kms_key_id=None,
 ):  # pylint: disable=too-many-arguments,unused-argument
     """
     Modify settings for a DB instance.
@@ -1804,6 +1827,15 @@ def modify_db_instance(
     master_user_password (str, optional):
         The password for the master database user.
 
+    manage_master_user_password (bool, optional):
+        If true, RDS generates and manages the master password in Secrets
+        Manager. Mutually exclusive with ``master_user_password``. To disable
+        RDS-managed credentials, supply a replacement ``master_user_password``.
+
+    master_user_secret_kms_key_id (str, optional):
+        KMS key used to encrypt an RDS-managed master secret when enabling
+        managed credentials. AWS does not allow changing this key afterward.
+
     monitoring_interval (int, optional):
         The interval, in seconds, between points when Enhanced Monitoring metrics are collected for the DB instance.
 
@@ -1876,6 +1908,18 @@ def modify_db_instance(
         }
 
     try:
+        if manage_master_user_password and master_user_password:
+            raise SaltInvocationError(
+                "master_user_password and manage_master_user_password are mutually exclusive"
+            )
+        if manage_master_user_password is False and not master_user_password:
+            raise SaltInvocationError(
+                "master_user_password is required to disable RDS-managed credentials"
+            )
+        if master_user_secret_kms_key_id and manage_master_user_password is not True:
+            raise SaltInvocationError(
+                "master_user_secret_kms_key_id requires manage_master_user_password=True"
+            )
         conn = _get_conn("rds", region=region, key=key, keyid=keyid, profile=profile)
         if not conn:
             return {"modified": False}
@@ -1905,6 +1949,59 @@ def modify_db_instance(
         }
     except ClientError as e:
         return {"error": boto3mod.get_error(e)}
+
+
+def master_user_secret_ready(
+    name,
+    timeout=300,
+    poll_interval=5,
+    region=None,
+    key=None,
+    keyid=None,
+    profile=None,
+):
+    """Wait until RDS exposes an active managed master secret.
+
+    RDS creates the secret asynchronously after instance creation or migration.
+    Polls up to ``timeout`` seconds with ``poll_interval`` second pauses between
+    checks. Returns ``True`` when active, ``False`` if impaired or timed out.
+
+    CLI Example:
+
+    .. code-block:: bash
+
+        salt myminion boto3_rds.master_user_secret_ready myrds timeout=120
+    """
+    deadline = time.monotonic() + timeout
+    while True:
+        secrets = describe_db_instances(
+            name=name,
+            jmespath="DBInstances[*].MasterUserSecret",
+            region=region,
+            key=key,
+            keyid=keyid,
+            profile=profile,
+        )
+        if isinstance(secrets, dict) and secrets.get("error"):
+            return {"ready": False, "error": secrets.get("error")}
+        secret = (secrets[0] if secrets else None) or {}
+        status = secret.get("SecretStatus")
+        if secret.get("SecretArn") and status == "active":
+            return {"ready": True, "message": f"RDS-managed master secret for {name} is active."}
+        if status == "impaired":
+            return {
+                "ready": False,
+                "message": f"RDS-managed master secret for {name} is impaired.",
+            }
+        if time.monotonic() >= deadline:
+            return {
+                "ready": False,
+                "message": (
+                    f"Timed out waiting for RDS-managed master secret for {name} to become active "
+                    f"(last status: {status or 'missing'})."
+                ),
+            }
+        time.sleep(poll_interval)
 
 
 def _tag_doc(tags):
