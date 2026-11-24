@@ -2,6 +2,8 @@
 Unit tests for the ``boto3_lambda`` state module.
 """
 
+import base64
+import hashlib
 from unittest.mock import patch
 
 import pytest
@@ -116,6 +118,24 @@ def test_function_present_update_all_noop(mock_salt):
     ):
         ret = boto3_lambda.function_present("n", "F", "py", "r", "h", S3Bucket="b", S3Key="k")
     assert ret["result"] is True
+
+
+def test_function_code_present_local_zip_with_matching_hash_is_noop(tmp_path, mock_salt):
+    package = b"rotation-lambda-package"
+    zip_path = tmp_path / "rotation.zip"
+    zip_path.write_bytes(package)
+    function = {
+        "CodeSize": len(package),
+        "CodeSha256": base64.b64encode(hashlib.sha256(package).digest()).decode("ascii"),
+    }
+    salt_map = {"boto3_lambda.describe_function": {"function": function}}
+
+    with mock_salt(boto3_lambda, salt_map):
+        result = boto3_lambda._function_code_present(
+            "rotation", str(zip_path), None, None, None, None, None, None, None
+        )
+
+    assert result == {"result": True, "comment": "", "changes": {}}
 
 
 def test_function_absent_missing(mock_salt):

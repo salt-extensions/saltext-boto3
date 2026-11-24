@@ -61,6 +61,7 @@ config:
 .. versionadded:: 1.0.0
 """
 
+import base64
 import hashlib
 import logging
 import os
@@ -503,7 +504,7 @@ def _function_code_present(
             sha = hashlib.sha256()
             with salt.utils.files.fopen(ZipFile, "rb") as f:
                 sha.update(f.read())
-            hashed = sha.digest().encode("base64").strip()
+            hashed = base64.b64encode(sha.digest()).decode("ascii")
             if hashed != func["CodeSha256"]:
                 update = True
         else:
