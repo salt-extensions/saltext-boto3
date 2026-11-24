@@ -1,1 +1,0 @@
-Fix `boto3_secgroup.present` for `all` (`-1`) protocol rules. Rules defined without `from_port`/`to_port` no longer raise `KeyError` during comparison, and ports are stripped before authorize/revoke calls since AWS rejects `FromPort`/`ToPort` when the protocol is `-1` ("When protocol is ALL, you cannot specify from-port"). Applies to both ingress and egress rules.
